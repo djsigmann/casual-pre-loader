@@ -1,0 +1,745 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="fethas & djsigmann">
+      
+      
+        <link rel="canonical" href="https://feathersthechick.github.io/casual-pre-loader/troubleshooting/">
+      
+      
+        <link rel="prev" href="../faq/">
+      
+      
+        <link rel="next" href="../howwork/">
+      
+      
+      <link rel="icon" href="../images/cueki_icon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Troubleshooting - Casual-Pre-loader</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+    
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Casual-Pre-loader" class="md-header__button md-logo" aria-label="Casual-Pre-loader" data-md-component="logo">
+      
+  <img src="../images/cueki_icon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Casual-Pre-loader
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/FeathersTheChick/casual-pre-loader" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Casual-Pre-loader" class="md-nav__button md-logo" aria-label="Casual-Pre-loader" data-md-component="logo">
+      
+  <img src="../images/cueki_icon.png" alt="logo">
+
+    </a>
+    Casual-Pre-loader
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/FeathersTheChick/casual-pre-loader" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#this-mod-doesnt-workmy-mod-doesnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      This mod doesn't work!/My mod doesn't work!
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="This mod doesn&#39;t work!/My mod doesn&#39;t work!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-users-installing-mods" class="md-nav__link">
+    <span class="md-ellipsis">
+      For users installing mods:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-users-creating-mods" class="md-nav__link">
+    <span class="md-ellipsis">
+      For users creating mods:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#i-got-a-vac-error-i-dont-wanna-get-banned" class="md-nav__link">
+    <span class="md-ellipsis">
+      I got a VAC error! I dont wanna get banned!
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issuesbugs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common issues/bugs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common issues/bugs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linux
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howwork/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    How does this work?
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#this-mod-doesnt-workmy-mod-doesnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      This mod doesn't work!/My mod doesn't work!
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="This mod doesn&#39;t work!/My mod doesn&#39;t work!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-users-installing-mods" class="md-nav__link">
+    <span class="md-ellipsis">
+      For users installing mods:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-users-creating-mods" class="md-nav__link">
+    <span class="md-ellipsis">
+      For users creating mods:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#i-got-a-vac-error-i-dont-wanna-get-banned" class="md-nav__link">
+    <span class="md-ellipsis">
+      I got a VAC error! I dont wanna get banned!
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issuesbugs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common issues/bugs
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common issues/bugs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linux
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<p>Here you can find common troublshooting problems and potential fixes/solutions. If none of these work, or your problem isnt listed here, please join the <strong><a href="https://discord.gg/64sNFhqUaB">discord</a></strong> and open a support ticket.</p>
+<p><strong>If you encounter any error, please try upgrading to the <a href="https://github.com/cueki/casual-pre-loader/releases">latest version</a> first.</strong></p>
+<h2 id="this-mod-doesnt-workmy-mod-doesnt-work">This mod doesn't work!/My mod doesn't work!<a class="headerlink" href="#this-mod-doesnt-workmy-mod-doesnt-work" title="Permanent link">&para;</a></h2>
+<h3 id="for-users-installing-mods">For users installing mods:<a class="headerlink" href="#for-users-installing-mods" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>All of your mods should be in the preloader, not custom.</strong><ul>
+<li>The only thing you should keep in custom (if you want to) is your hud.</li>
+</ul>
+</li>
+<li><strong>Check your load order.</strong><ul>
+<li>The preloader will tell you if any files are conflicting with one another and use that to decide what should take priority. <strong>Animations should be installed last in the load order if you have custom weapon models.</strong></li>
+</ul>
+</li>
+<li><strong>Make sure you have all of your desired mods checked off before installing.</strong></li>
+<li><strong>Make sure youre launching with <code>+exec w/config.cfg</code></strong>.</li>
+<li><strong>Make sure the mod has correct file pathing.</strong><ul>
+<li>While the preloader can handle most mods, even non casual compatible ones, they will need to reflect the file structure of TF2. You can either contact the mod author to fix it, or follow the instructions in the <a href="#for-users-creating-mods"><em>"For users creating mods:"</em></a> section to fix it yourself.</li>
+</ul>
+</li>
+<li><strong>If you change huds after installing your mods, make sure to run the preloader again.</strong></li>
+<li><strong>If there was a TF2 update, run the preloader again.</strong><blockquote>
+<p>NOTE: There are a select few mods that <strong>WONT</strong> work when put in the preloader, they are as follows:</p>
+<ul>
+<li>
+<p>Bsp packed content (think modern community maps).</p>
+</li>
+<li>
+<p>Blacklisted sounds (for now).</p>
+</li>
+<li>
+<p>Decals (for now).</p>
+</li>
+<li>
+<p>Configs (these can stay in custom).</p>
+</li>
+<li>
+<p>No hats mod (this should also stay in custom).</p>
+</li>
+<li>
+<p>Custom named materials and models (ONLY works with casual compatible file paths).</p>
+</li>
+</ul>
+</blockquote>
+</li>
+</ol>
+<!-- i know it looks strange, but this is how it needs to be formatted for the list to be nested within the blockquote. im sorry -->
+
+<h3 id="for-users-creating-mods">For users creating mods:<a class="headerlink" href="#for-users-creating-mods" title="Permanent link">&para;</a></h3>
+<p>While this tool doesn't need a mod to be "<em>casual compatible</em>" for it to work, there's still some issues that will need to be addressed. <br></p>
+<ol>
+<li><strong>When making mods, please make sure to include <em>at least</em> the VTF and the base TF2 model itself. If the model is a custom model, please add in a VMT as well.</strong></li>
+<li><strong>Make sure that your paths reflect the structure of tf2!</strong><ul>
+<li>For example, if you're making a pyro cosmetic, the file path <strong>SHOULD</strong> look like this: <code>models/workshop/player/items/pyro/dec17_cats_pajamas/dec17_cats_pajamas.mdl</code></li>
+<li><strong>NOT</strong> like this: <code>models/alaxe/tf2/cosmetics/pyro_female/charred_chainmail.mdl</code></li>
+</ul>
+</li>
+<li><strong>If youre using "<em>casual compatible</em>" paths, custom names are valid for materials ONLY.</strong></li>
+<li><strong>Double check your VMT's are calling the correct paths.</strong></li>
+</ol>
+<p>The preloader also includes an easy sorting system with the use of <code>mod.json</code>, which can help end users sort their mods in the preloader easier. To use it, create a json file called mod.json, and paste this example inside: <br></p>
+<pre><code>{
+  &quot;addon_name&quot;: &quot;your mod name here&quot;,
+  &quot;type&quot;: &quot;use one of these categories: Experimental, HUD, Misc, Texture, Animation, Sound, Skin, or Model&quot;,
+  &quot;description&quot;: &quot;a brief desctription of what your mod is and what it does&quot;,
+  &quot;gamebanana_link&quot;: &quot;the link to your mods gamebanana page&quot;,
+}
+</code></pre>
+<h2 id="i-got-a-vac-error-i-dont-wanna-get-banned">I got a VAC error! I dont wanna get banned!<a class="headerlink" href="#i-got-a-vac-error-i-dont-wanna-get-banned" title="Permanent link">&para;</a></h2>
+<p>The "<code>Disconnected: An issue with your computer is blocking the VAC system. You cannot play on secure servers.</code>" error has nothing to do with the preloader, and is a pretty common steam bug. <strong>To fix it, simply restart steam.</strong> If that doesnt work, try verifying the integrity of your game files, and running the preloader again.</p>
+<h2 id="common-issuesbugs">Common issues/bugs<a class="headerlink" href="#common-issuesbugs" title="Permanent link">&para;</a></h2>
+<p>This section contains known bugs/issues with the preloader, and fixes for them in case you happen to encounter any.</p>
+<blockquote>
+<p>NOTE:
+If your game is crashing out of the blue, it is most likely an issue with the mods you have installed, and not the preloader. Please troubleshoot your mods FIRST before seeking further assistance in the discord.</p>
+</blockquote>
+<h3 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Sometimes a bug with quickprecache can crash your TF2 instance on launch. Just launch again to fix it.</li>
+<li>Black weapons/models. Just reboot.</li>
+</ol>
+<h3 id="windows">Windows<a class="headerlink" href="#windows" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Auto updater not working. This could be for a plethora of reasons, but the easiest fix is to just install the <a href="https://github.com/cueki/casual-pre-loader/releases">new version</a> of the preloader manually.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
