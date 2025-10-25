@@ -40,6 +40,7 @@ While this tool doesn't need a mod to be '*casual compatible*' for it to work, t
     - **NOT** like this: `models/alaxe/tf2/cosmetics/pyro_female/charred_chainmail.mdl`
 3. **If you're using '*casual compatible*' paths, custom names are valid for materials ONLY.**
 4. **Double check your VMT's are calling the correct paths.**
+5. **Make sure your textures (VTF'S) have `no mipmap` and `no level of detail` checkmarked so textures don't break.**
 
 The preloader also includes an easy sorting system with the use of `mod.json`, which can help end users sort their mods in the preloader easier. To use it, create a json file called mod.json, and paste this example inside: <br>
 ```
