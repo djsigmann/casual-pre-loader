@@ -27,6 +27,7 @@ jobs:
       - name: Chekout code
         uses: actions/checkout@v5
 
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -38,6 +39,9 @@ jobs:
           mkdocs get-deps >>build_requirements.txt
           python -m pip install -r build_requirements.txt
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Build documentation
         env:
           REPO_URL: https://github.com/${{ github.repository }}/
@@ -45,14 +49,11 @@ jobs:
         run: |
           mkdocs build -sv
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: "site/"
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # - name: Upload pages artifact
+      #   uses: actions/upload-pages-artifact@v4
+      #   with:
+      #     path: "site/"
+      #
+      # - name: Deploy to GitHub Pages
+      #   id: deployment
+      #   uses: actions/deploy-pages@v4
