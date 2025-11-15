@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -7,13 +7,11 @@ ERR=false
 TERM_OPTS="$(stty -g)"
 trap 'stty "${TERM_OPTS}"' 0 1 2 3 15
 
-# two dirs up
-cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")"
+cd "$(realpath "$(dirname "${0}")/..")" # two dirs up
 
 log() (
 	level="${1}"
-	fmt="${2:-"%s\\t%s\\n"}"
-	fmt="%s ${fmt}"
+	fmt="%s ${2:-"%s\\t%s\\n"}"
 
 	while read -r line; do
 		printf "${fmt}" "$(date '+[%Y-%m-%d %H:%M:%S %Z%z]')" "${level}" "${line}"
@@ -27,29 +25,15 @@ info() { log_color INFO 34; }
 err() { log_color ERROR 31; }
 warn() { log_color WARNING 33; }
 
-_dep_missing_install() {
-	printf \
-		'Debian/Ubuntu:
-	  apt install %s
-	Arch:
-	  pacman -S %s
-	Fedora:
-	  dnf install %s
-	' "${@}"
-}
-
-dep_missing() {
-	printf '%s is not installed, please install it using your package manager\n' "${1}"
-}
+dep_missing() { printf '%s is not installed, please install it using your package manager\n' "${1}"; }
 
 prompt() {
 	[ -t 0 ] || return 1
 
-	stty raw -echo
-
 	printf '%s' "${1}" >&2
-	printf '%s' "$(head -c 1)"
 
+	stty raw -echo
+	printf '%s' "$(head -c 1)"
 	stty "${TERM_OPTS}"
 
 	printf '\n' >&2
@@ -64,8 +48,8 @@ prompt_yn() {
 		set -- "${1} [y/N]" "${2}"
 
 	case "$(prompt "${1}")" in
-	[yY]) printf 'y' ;;
-	[nN]) printf 'n' ;;
+	[yY]) printf y ;;
+	[nN]) printf n ;;
 	*) printf '%s' "${2}" ;;
 	esac
 }
@@ -90,14 +74,13 @@ ${ERR} && exit 1 # exit if errors were previously raised
 if [ -f 'requirements.txt' ]; then
 	! [ -d '.venv' ] &&
 		printf '%s\n' 'Creating virtual environment' | info &&
-		python3 -m venv .venv | info
+		python3 -m venv .venv
 
 	. .venv/bin/activate
 
-	pip install --upgrade pip | info
-
 	printf '%s\n' 'Installing dependencies' | info
-	pip install --upgrade -r requirements.txt | info
+	pip install --upgrade pip
+	pip install --upgrade -r requirements.txt
 fi
 
 printf '%s\n' 'Starting Casual Preloader' | info
