@@ -48,13 +48,23 @@ DELETE_PORTABLE: list[Path] = [
     folder_setup.install_dir / 'mod_urls.json',
     folder_setup.install_dir / 'operations',
     folder_setup.install_dir / 'quickprecache',
+    folder_setup.install_dir / 'temp',
 ]
 DELETE: list[tuple[Path, Path]] = [
     folder_setup.project_dir / 'temp',
 ]
 
 # Files and folders to relocate
-MOVE_PORTABLE: list[tuple[Path, Path]] = []
+MOVE_PORTABLE: list[tuple[Path, Path]] = [
+    #
+    # userdata
+    #
+    (folder_setup.install_dir / 'mods', folder_setup.mods_dir),
+    (folder_setup.install_dir / 'app_settings.json', folder_setup.app_settings_file),
+    (folder_setup.install_dir / 'addon_metadata.json', folder_setup.addon_metadata_file),
+    (folder_setup.install_dir / 'casual-pre-loader.log', folder_setup.log_file),
+    (folder_setup.install_dir / 'modsinfo.json', folder_setup.modsinfo_file),
+]
 MOVE: list[tuple[Path, Path]] = []
 
 # Files and folders to set the mode of
