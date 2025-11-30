@@ -26,9 +26,9 @@ class FolderConfig:
 
     if portable:
         # default portable values
-        project_dir = install_dir
-        settings_dir = project_dir
-        temp_dir = project_dir / 'temp'
+        project_dir =  install_dir / 'userdata' / 'data'
+        settings_dir = install_dir / 'userdata' / 'config'
+        temp_dir =     install_dir / 'userdata' / 'temp'
     else:
         import platformdirs
 

@@ -1,10 +1,6 @@
-mods/
-modsinfo.json
+userdata/
 blood_test/
-temp/
 test.py
-addon_metadata.json
-app_settings.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
