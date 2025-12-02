@@ -47,16 +47,35 @@ prompt_yn() {
 	esac
 }
 
+check_python_version() {
+	python3 -c 'import sys; vi = sys.version_info; exit(not (vi.major == 3 and vi.minor >= 11))'
+}
+
 ERR=false
 
-! command -v python3 >/dev/null 2>&1 && ERR=true &&
-	dep_missing python3 | err
+[ "$(id -u)" -eq 0 ] && printf "This script should not be run as root\n" | err && ERR=true
 
-! python3 -m pip --version >/dev/null 2>&1 && ERR=true &&
-	dep_missing pip | err
+# try to ensure that submodules ARE in fact, properly cloned
+git submodule update --init --recursive --remote
 
-! python3 -c 'import venv, ensurepip' 2>/dev/null && ERR=true &&
-	dep_missing 'python3-venv' | err
+(
+	set -e
+
+	! command -v python3 >/dev/null 2>&1 &&
+		dep_missing python3 | err && false # none of the other commands in this subshell will work without python
+
+	! check_python_version && ERR=true &&
+		printf 'Your version of python (%s) is out of date, the minimum required version is Python 3.11\n' \
+			"$(python3 -V)" | err
+
+	! python3 -m pip --version >/dev/null 2>&1 && ERR=true &&
+		dep_missing pip | err
+
+	! python3 -c 'import venv, ensurepip' 2>/dev/null && ERR=true &&
+		dep_missing 'python3-venv' | err
+
+	! ${ERR}
+) || ERR=true
 
 # check for wine
 ! command -v wine >/dev/null 2>&1 &&
@@ -73,9 +92,11 @@ if [ -f 'requirements.txt' ]; then
 
 	. .venv/bin/activate
 
-	printf '%s\n' 'Installing dependencies' | info
-	pip install --upgrade pip
-	pip install --upgrade -r requirements.txt
+	! check_python_version && deactivate && rm -r .venv && python3 -m venv .venv && . .venv/bin/activate
+
+	printf '%s\n' 'Installing and/or updating dependencies' | info
+	pip -q install --upgrade pip
+	pip -q install --upgrade -r requirements.txt
 fi
 
 printf '%s\n' 'Starting Casual Preloader' | info
