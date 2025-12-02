@@ -74,8 +74,16 @@ def parse_vmt_texture(vmt_path):
                         value_start = line.rfind(quote_char, 0, value_end - 1)
                         if value_start != -1:
                             texture_path = line[value_start + 1:value_end].strip()
-                            texture_paths_list.append(Path(texture_path + '.vtf'))
-                            texture_paths_list.append(Path(texture_path + '.vmt'))
+                            # check if path already has an extension
+                            if texture_path.endswith('.vtf'):
+                                texture_paths_list.append(Path(texture_path))
+                                texture_paths_list.append(Path(texture_path[:-4] + '.vmt'))
+                            elif texture_path.endswith('.vmt'):
+                                texture_paths_list.append(Path(texture_path[:-4] + '.vtf'))
+                                texture_paths_list.append(Path(texture_path))
+                            else:
+                                texture_paths_list.append(Path(texture_path + '.vtf'))
+                                texture_paths_list.append(Path(texture_path + '.vmt'))
                     else:
                         # look for tab or space after the parameter
                         param_end = pos + len(texture_param)
@@ -85,8 +93,16 @@ def parse_vmt_texture(vmt_path):
                         # find the value - everything after whitespace until end of line
                         value_start = param_end
                         texture_path = line[value_start:].strip()
-                        texture_paths_list.append(Path(texture_path + '.vtf'))
-                        texture_paths_list.append(Path(texture_path + '.vmt'))
+                        # check if path already has an extension
+                        if texture_path.endswith('.vtf'):
+                            texture_paths_list.append(Path(texture_path))
+                            texture_paths_list.append(Path(texture_path[:-4] + '.vmt'))
+                        elif texture_path.endswith('.vmt'):
+                            texture_paths_list.append(Path(texture_path[:-4] + '.vtf'))
+                            texture_paths_list.append(Path(texture_path))
+                        else:
+                            texture_paths_list.append(Path(texture_path + '.vtf'))
+                            texture_paths_list.append(Path(texture_path + '.vmt'))
 
                     start_pos = line_end
                 else:
