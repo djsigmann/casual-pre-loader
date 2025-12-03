@@ -1,0 +1,101 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools]
+packages = ['backup', 'core', 'data', 'gui']
+
+[tool.setuptools.package-data]
+# Include non-Python files in data directory
+'data' = ['**/*']
+'backup' = ['**/*']
+
+[project]
+dynamic = ['version']
+
+name = 'casual-pre-loader'
+description = 'TF2 particle modifications via some wizardry.'
+keywords = ['team-fortress-2', 'tf2', 'modding', 'source-games', 'valve-games']
+
+readme = 'README.md'
+license = 'GPL-3.0-or-later AND CC-BY-NC-ND-4.0'
+license-files = ['LICEN[CS]E*']
+
+requires-python = '>= 3.11'
+dependencies = [
+	# GUI
+	'PyQt6~=6.10',
+
+	# core
+	'more-itertools~=10.8',
+	'packaging~=26.0',
+	'platformdirs~=4.5',
+	'PyGithub~=2.8',
+	'requests~=2.32',
+	'rich~=14.3',
+	'valve-parsers>=1.0.8',
+]
+
+[project.optional-dependencies]
+dev = [
+	'ruff',
+]
+
+[project.scripts]
+casual-pre-loader = 'casual_pre_loader.main:main'
+#
+# [project.gui-scripts]
+# casual-pre-loader = 'casual-pre-loader:main'
+
+# [project.authors]
+#   {name = 'cueki', email = 'madisonlovett@lovett.dev'}
+#   {name = 'djsigmann', email = 'djsigmann@protonmail.com'}
+#
+# [project.maintainers]
+#   {name = 'cueki', email = 'madisonlovett@lovett.dev'}
+#   {name = 'djsigmann', email = 'djsigmann@protonmail.com'}
+
+[project.urls]
+Homepage = 'https://github.com/cueki/casual-pre-loader'
+Documentation = 'https://cueki.github.com/casual-pre-loader'
+Repository = 'https://github.com/cueki/casual-pre-loader'
+Issues = 'https://github.com/cueki/casual-pre-loader/issues'
+Changelog  = 'https://github.com/cueki/casual-pre-loader/blob/main/CHANGELOG.md'
+
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+  '.git',
+  '.venv',
+]
+line-length = 140
+indent-width = 4
+target-version = 'py311'
+
+[tool.ruff.lint]
+select = ['E4', 'E7', 'E9', 'F']
+ignore = []
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ['ALL']
+unfixable = []
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = '^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$'
+
+[tool.ruff.format]
+quote-style = 'single'
+indent-style = 'space'
+skip-magic-trailing-comma = false
+line-ending = 'lf'
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = 'dynamic'
