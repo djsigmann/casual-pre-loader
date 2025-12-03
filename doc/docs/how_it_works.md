@@ -1,5 +1,5 @@
 # How It Works
-*What follows chronicles my perspective during the development of the preloader. If you wish to contact me, or anyone else who has worked on this, join the **[discord](https://discord.gg/64sNFhqUaB)**. — cueki*
+*What follows chronicles my perspective during the development of the preloader. If you wish to contact me, or anyone else who has worked on this, join the **[discord]({{ discord_url }})**. — cueki*
 
 ## Mannifesto
 ### Context
