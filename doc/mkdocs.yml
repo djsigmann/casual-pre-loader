@@ -49,6 +49,7 @@ plugins:
       module_name: docs/.macros
 extra:
   discord_url: !ENV [DISCORD_URL, "https://discord.gg/64sNFhqUaB"]
+  gamebanana_url: !ENV [GAMEBANANA_URL, "https://gamebanana.com/tools/19049"]
 
 extra_css:
   - stylesheets/extra.css
