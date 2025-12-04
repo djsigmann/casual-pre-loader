@@ -1,5 +1,9 @@
+import logging
 from pathlib import Path
-from valve_parsers import VPKFile, PCFFile
+
+from valve_parsers import PCFFile, VPKFile
+
+log = logging.getLogger()
 
 
 def pcf_empty_root_processor():
@@ -58,7 +62,8 @@ def check_game_type(file_path) -> bool:
                     return True
         return False
     except Exception as e:
-        print(f"Error checking game type in {file_path}: {str(e)}")
+        #TODO: log exception properly
+        log.error(f"Error checking game type in {file_path}: {str(e)}")
         return False
 
 
@@ -107,7 +112,8 @@ def get_from_vpk(vpk_path: Path):
                     with open(vpk_path, 'wb') as f:
                         f.write(data)
     except Exception as e:
-        print(f"Error processing VPK {vpk_path}: {e}")
+        #TODO: log exception properly
+        log.error(f"Error processing VPK {vpk_path}: {e}")
 
 
 def get_from_file(file_path: Path):
@@ -125,7 +131,8 @@ def get_from_file(file_path: Path):
                     f.write(data)
             return total
     except Exception as e:
-        print(f"Error processing file {file_path}: {e}")
+        #TODO: log exception properly
+        log.error(f"Error processing file {file_path}: {e}")
         return 0
 
 
