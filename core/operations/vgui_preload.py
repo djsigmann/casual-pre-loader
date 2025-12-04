@@ -1,8 +1,13 @@
+import logging
 import shutil
 from pathlib import Path
-from core.folder_setup import folder_setup
-from core.constants import BACKUP_MAINMENU_FOLDER
+
 from valve_parsers import VPKFile
+
+from core.constants import BACKUP_MAINMENU_FOLDER
+from core.folder_setup import folder_setup
+
+log = logging.getLogger()
 
 
 def patch_mainmenuoverride(tf_path: str):
@@ -54,7 +59,8 @@ def _add_vguipreload_string(file_path):
                 f.write('#base "vguipreload.res"\n' + content)
             return True
     except Exception as e:
-        print(e)
+        #TODO: log exception properly
+        log.exception(e)
 
 
 def _process_vpk(vpk_path):
@@ -80,6 +86,7 @@ def _process_vpk(vpk_path):
         vpk_path.unlink()
 
     except Exception as e:
-        print(f"Error extracting VPK {vpk_path}: {e}")
+        #TODO: log exception properly
+        log.error(f"Error extracting VPK {vpk_path}: {e}")
         import traceback
         traceback.print_exc()

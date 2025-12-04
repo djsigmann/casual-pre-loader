@@ -1,5 +1,10 @@
-from valve_parsers import PCFFile, PCFElement
+import logging
+
+from valve_parsers import PCFElement, PCFFile
+
 from core.constants import AttributeType
+
+log = logging.getLogger()
 
 
 def copy_element(element: PCFElement, offset: int, source_pcf: PCFFile,
@@ -19,7 +24,8 @@ def copy_element(element: PCFElement, offset: int, source_pcf: PCFFile,
                 new_type_name_index = len(target_pcf.string_dictionary)
                 target_pcf.string_dictionary.append(type_name)
     except Exception as e:
-        print(f"Error: Failed to process particle element '{type_name.decode('ascii', errors='replace')}' during merge: {str(e)}")
+        #TODO: log exception properly
+        log.error(f"Error: Failed to process particle element '{type_name.decode('ascii', errors='replace')}' during merge: {str(e)}")
         raise ValueError(f"PCF merge failed while processing element type '{type_name.decode('ascii', errors='replace')}')")
 
     new_element = PCFElement(

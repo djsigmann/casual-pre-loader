@@ -1,12 +1,21 @@
+import logging
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List
+
 from valve_parsers import PCFFile
-from core.operations.pcf_rebuild import (load_particle_system_map, get_pcf_element_names, extract_elements,
-                                         rebuild_particle_files)
-from core.operations.pcf_merge import merge_pcf_files
-from core.folder_setup import folder_setup
+
 from core.constants import PARTICLE_SPLITS
+from core.folder_setup import folder_setup
+from core.operations.pcf_merge import merge_pcf_files
+from core.operations.pcf_rebuild import (
+    extract_elements,
+    get_pcf_element_names,
+    load_particle_system_map,
+    rebuild_particle_files,
+)
+
+log = logging.getLogger()
 
 
 def sequential_merge(pcf_files: List[PCFFile]):
@@ -17,7 +26,8 @@ def sequential_merge(pcf_files: List[PCFFile]):
         try:
             result = merge_pcf_files(result, pcf)
         except ValueError as e:
-            print(f"Warning: Skipping PCF file due to merge error: {e}")
+            #TODO: log exception properly
+            log.error(f"Skipping PCF file due to merge error: {e}")
             continue
     return result
 
@@ -119,7 +129,8 @@ class AdvancedParticleMerger:
                     try:
                         result = merge_pcf_files(chosen_pcf, game_elements)
                     except ValueError as e:
-                        print(f"Warning: Failed to merge with game elements: {e}")
+                        #TODO: log exception properly
+                        log.error(f"Failed to merge with game elements: {e}")
                         result = chosen_pcf
                 else:
                     pcf_files.append(game_elements)
