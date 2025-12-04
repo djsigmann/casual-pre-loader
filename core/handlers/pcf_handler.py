@@ -1,18 +1,23 @@
+import logging
 from pathlib import Path
-from valve_parsers import VPKFile, PCFFile, PCFElement
+
+from valve_parsers import PCFElement, PCFFile, VPKFile
+
 from core.util.vpk import get_vpk_name
+
+log = logging.getLogger()
 
 
 def restore_particle_files(tf_path: str) -> int:
     backup_particles_dir = Path("backup/particles")
     if not backup_particles_dir.exists():
-        print("Error, missing backup dir/")
+        log.error("Error, missing backup dir/")
         return 0
 
     vpk_name = get_vpk_name(tf_path)
     vpk_path = Path(tf_path) / vpk_name
     if not vpk_path.exists():
-        print(f"Error, missing {vpk_name}, is the path correct?")
+        log.error(f"Error, missing {vpk_name}, is the path correct?")
         return 0
 
     vpk = VPKFile(str(vpk_path))
@@ -31,7 +36,8 @@ def restore_particle_files(tf_path: str) -> int:
                 patched_count += 1
 
         except Exception as e:
-            print(f"Error patching particle file {file_name}: {e}")
+            #TODO: log exception properly
+            log.error(f"Error patching particle file {file_name}: {e}")
 
     return patched_count
 
@@ -90,4 +96,3 @@ def update_materials(base: PCFFile, mod: PCFFile) -> PCFFile:
         result.elements.append(new_element)
 
     return result
-
