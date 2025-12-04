@@ -1,7 +1,10 @@
-from sys import platform
-import subprocess
+import logging
 import shutil
+import subprocess
 from pathlib import Path
+from sys import platform
+
+log = logging.getLogger()
 
 
 class VTFHandler:
@@ -12,7 +15,7 @@ class VTFHandler:
 
         self.vtf_available = self.vtf_cmd_path.exists()
         if not self.vtf_available:
-            print("Warning: VTFCmd.exe not found at vtfedit/VTFCmd.exe. VTF operations will be disabled.")
+            log.warning("VTFCmd.exe not found at vtfedit/VTFCmd.exe. VTF operations will be disabled.")
 
     def _run_vtf_command(self, args):
         cmd_path = str(self.vtf_cmd_path)
