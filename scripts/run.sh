@@ -2,14 +2,18 @@
 
 set -e
 
-cd "$(realpath "$(dirname "${0}")/..")" # two dirs up
+cd "$(dirname "$(dirname "${0}")")" # one dir up
 
 _log() (
+	set -e
+
 	level="${1}"
 	fmt="%s ${2:-"%s\\t%s\\n"}"
+	date="$(date '+[%Y-%m-%d %H:%M:%S %Z%z]')"
 
 	while read -r line; do
-		printf "${fmt}" "$(date '+[%Y-%m-%d %H:%M:%S %Z%z]')" "${level}" "${line}"
+		# shellcheck disable=SC2059
+		printf "${fmt}" "${date}" "${level}" "${line}"
 	done >&2
 )
 
@@ -36,6 +40,7 @@ prompt_yn() {
 	! [ -t 0 ] && printf n && return
 
 	set -- "${1}" "${2:-y}"
+	# shellcheck disable=SC2015
 	[ "${2}" = y ] &&
 		set -- "${1} [Y/n]" "${2}" ||
 		set -- "${1} [y/N]" "${2}"
@@ -53,17 +58,20 @@ check_python_version() {
 
 ERR=false
 
+# shellcheck disable=SC2310,SC2312
 [ "$(id -u)" -eq 0 ] && printf "This script should not be run as root\n" | err && ERR=true
 
 # try to ensure that submodules ARE in fact, properly cloned
 git submodule update --init --recursive --remote
 
+# shellcheck disable=SC2310
 (
 	set -e
 
 	! command -v python3 >/dev/null 2>&1 &&
 		dep_missing python3 | err && false # none of the other commands in this subshell will work without python
 
+	# shellcheck disable=SC2312
 	! check_python_version && ERR=true &&
 		printf 'Your version of python (%s) is out of date, the minimum required version is Python 3.11\n' \
 			"$(python3 -V)" | err
@@ -77,6 +85,7 @@ git submodule update --init --recursive --remote
 	! ${ERR}
 ) || ERR=true
 
+# shellcheck disable=SC2310,SC2312
 # check for wine
 ! command -v wine >/dev/null 2>&1 &&
 	dep_missing wine | warn &&
@@ -86,12 +95,14 @@ git submodule update --init --recursive --remote
 ${ERR} && exit 1 # exit if errors were previously raised
 
 if [ -f 'requirements.txt' ]; then
+	# shellcheck disable=SC2310,SC2312
 	! [ -f '.venv/bin/activate' ] &&
 		printf '%s\n' 'Creating virtual environment' | info &&
 		python3 -m venv .venv
 
 	. .venv/bin/activate
 
+	# shellcheck disable=SC2310,SC2312
 	! check_python_version && deactivate && rm -r .venv && python3 -m venv .venv && . .venv/bin/activate
 
 	printf '%s\n' 'Installing and/or updating dependencies' | info
