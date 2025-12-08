@@ -1,11 +1,15 @@
-import tempfile
 import itertools
+import logging
+import tempfile
 from pathlib import Path
 from typing import Set
+
+from core.folder_setup import folder_setup
 from core.quickprecache.precache_list import make_precache_list
 from core.quickprecache.r_rootlod import check_root_lod
 from core.quickprecache.studio_mdl import StudioMDL
-from core.folder_setup import folder_setup
+
+log = logging.getLogger()
 
 
 def handle_string(input_str: str) -> str:
@@ -44,9 +48,10 @@ def load_list_from_file(list_file: str) -> Set[str]:
                 model = handle_string(line)
                 if model:
                     model_list.add(model)
-                    print(f"Added model: {model}")
+                    log.info(f"Added model: {model}")
     except Exception as e:
-        print(f"Error loading model list from {list_file}: {e}")
+        #TODO: log exception properly
+        log.error(f"Error loading model list from {list_file}: {e}")
 
     return model_list
 
@@ -113,7 +118,8 @@ class QuickPrecache:
                     f.write(f"{model}\n")
             return True
         except Exception as e:
-            print(f"Error saving model list to {output_file}: {e}")
+            #TODO: log exception properly
+            log.error(f"Error saving model list to {output_file}: {e}")
             return False
 
     def make_precache_sub_list(self, strings: Set[str]) -> None:
@@ -178,7 +184,8 @@ class QuickPrecache:
 
             return success
         except Exception as e:
-            print(f"Error creating QC file {filename}: {e}")
+            #TODO: log exception properly
+            log.error(f"Error creating QC file {filename}: {e}")
             return False
 
     def make_precache_list_file(self) -> bool:
@@ -211,7 +218,8 @@ class QuickPrecache:
 
             return result
         except Exception as e:
-            print(f"Error creating main precache QC file: {e}")
+            #TODO: log exception properly
+            log.error(f"Error creating main precache QC file: {e}")
             return False
 
     def cleanup(self) -> None:
@@ -220,7 +228,8 @@ class QuickPrecache:
                 if temp_file.exists():
                     temp_file.unlink()
             except Exception as e:
-                print(f"Error removing temporary file {temp_file}: {e}")
+                #TODO: log exception properly
+                log.error(f"Error removing temporary file {temp_file}: {e}")
 
     def run(self, auto: bool = False, list_file: str = "", flush: bool = False) -> bool:
         # main process
@@ -229,8 +238,8 @@ class QuickPrecache:
             files_removed = self.flush_files()
 
             if flush:
-                print("Flush completed. Exiting as requested.")
-                print(f"Removed {files_removed} existing precache files")
+                log.info("Flush completed. Exiting as requested.")
+                log.info(f"Removed {files_removed} existing precache files")
                 return True
 
             # initialize StudioMDL only when we actually need to compile
@@ -242,7 +251,7 @@ class QuickPrecache:
 
             # step 3: get the model list
             if auto:
-                print("Auto-scanning for models...")
+                log.info("Auto-scanning for models...")
                 self.model_list = make_precache_list(self.game_path)
 
                 # save the list if requested
@@ -253,13 +262,13 @@ class QuickPrecache:
                 if not list_file:
                     list_file = "precachelist.txt"
 
-                print(f"Loading model list from {list_file}")
+                log.info(f"Loading model list from {list_file}")
                 self.model_list = load_list_from_file(list_file)
 
             # display the model list
-            print(f"Found {len(self.model_list)} models to precache:")
+            log.info(f"Found {len(self.model_list)} models to precache:")
             for model in sorted(self.model_list):
-                print(f"  {model}")
+                log.info(f"{model}")
 
             # step 4: create QC files and compile them
             self.make_precache_sub_list(self.model_list)
@@ -267,13 +276,14 @@ class QuickPrecache:
 
             # step 5: report any failed VPKs
             if self.failed_vpks:
-                print("WARNING!!! Failed to load invalid vpk(s):")
+                log.warning("WARNING!!! Failed to load invalid vpk(s):")
                 for vpk_path in self.failed_vpks:
-                    print(f"  {vpk_path}")
+                    log.warning(f"{vpk_path}")
 
             return True
         except Exception as e:
-            print(f"Error in precache process: {e}")
+            #TODO: log exception properly
+            log.error(f"Error in precache process: {e}")
             return False
         finally:
             if not self.debug:
