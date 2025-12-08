@@ -121,8 +121,8 @@ if [ -f 'requirements.txt' ]; then
 	fi
 
 	printf '%s\n' 'Installing and/or updating dependencies' | info
-	pip -q install --upgrade pip
-	pip -q install --upgrade -r requirements.txt
+	python3 -m pip -q install --upgrade pip
+	python3 -m pip -q install --upgrade -r requirements.txt
 fi
 
 printf '%s\n' 'Starting Casual Preloader' | info
