@@ -1,23 +1,47 @@
+import logging
 import os
-from sys import platform
 import subprocess
 import threading
 from pathlib import Path
+from sys import platform
+
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit,
-                             QLabel, QFileDialog, QMessageBox, QGroupBox, QTabWidget,
-                             QCheckBox,  QDialog, QProgressDialog, QStyle)
 from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QDialog,
+    QFileDialog,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QProgressDialog,
+    QPushButton,
+    QStyle,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
 from core.folder_setup import folder_setup
 from core.particle_splits import migrate_old_particle_files
 from core.version import VERSION
-from gui.settings_manager import (SettingsManager, validate_tf_directory, validate_goldrush_directory,
-                                   auto_detect_tf2, auto_detect_goldrush)
-from gui.drag_and_drop import ModDropZone
 from gui.addon_manager import AddonManager
-from gui.installation import InstallationManager
 from gui.addon_panel import AddonPanel
+from gui.drag_and_drop import ModDropZone
 from gui.first_time_setup import mods_download_group
+from gui.installation import InstallationManager
+from gui.settings_manager import (
+    SettingsManager,
+    auto_detect_goldrush,
+    auto_detect_tf2,
+    validate_goldrush_directory,
+    validate_tf_directory,
+)
+
+log = logging.getLogger()
 
 
 class SettingsDialog(QDialog):
@@ -480,7 +504,7 @@ class ParticleManagerGUI(QMainWindow):
                 self.addon_description.clear()
 
         except Exception as e:
-            print(f"Error in on_addon_click: {e}")
+            log.error(f"Error in on_addon_click: {e}")
             import traceback
             traceback.print_exc()
 
@@ -495,7 +519,7 @@ class ParticleManagerGUI(QMainWindow):
             self.settings_manager.set_addon_selections(load_order)
 
         except Exception as e:
-            print(f"Error in on_addon_checkbox_changed: {e}")
+            log.error(f"Error in on_addon_checkbox_changed: {e}")
             import traceback
             traceback.print_exc()
 
@@ -510,7 +534,8 @@ class ParticleManagerGUI(QMainWindow):
             self.settings_manager.set_addon_selections(load_order)
 
         except Exception as e:
-            print(f"Error in on_load_order_changed: {e}")
+            #TODO: log exception properly
+            log.error(f"Error in on_load_order_changed: {e}")
             import traceback
             traceback.print_exc()
 
