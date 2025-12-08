@@ -1,9 +1,14 @@
 import collections
 import json
+import logging
 import shutil
+
+from PyQt6.QtCore import QObject, Qt
 from PyQt6.QtWidgets import QListWidgetItem, QMessageBox
-from PyQt6.QtCore import Qt, QObject
+
 from core.folder_setup import folder_setup
+
+log = logging.getLogger()
 
 
 class AddonManager(QObject):
@@ -125,7 +130,8 @@ class AddonManager(QObject):
                 })
 
             except Exception as e:
-                print(f"Error scanning {addon_name}: {e}")
+                #TODO: log exception properly
+                log.error(f"Error scanning {addon_name}: {e}")
 
         self.settings_manager.set_addon_metadata(addon_metadata)
         return new_or_updated > 0

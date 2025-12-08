@@ -1,10 +1,23 @@
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-                             QPushButton, QTextEdit, QCheckBox, QProgressBar,
-                             QMessageBox)
+import logging
+
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+)
+
 from core.auto_updater import AutoUpdater
 from gui.settings_manager import SettingsManager
+
+log = logging.getLogger()
 
 
 class UpdateWorker(QThread):
@@ -153,16 +166,18 @@ class UpdateDialog(QDialog):
     def save_suppress_setting(self):
         try:
             self.settings_manager.set_suppress_update_notifications(True)
-            print("Suppressing future update notifications")
+            log.info("Suppressing future update notifications")
         except Exception as e:
-            print(f"Error saving suppress setting: {e}")
+            #TODO: log exception properly
+            log.error(f"Error saving suppress setting: {e}")
 
     def save_skipped_version(self):
         try:
             self.settings_manager.set_skipped_update_version(self.update_info["version"])
-            print(f"Skipped version {self.update_info['version']}")
+            log.info(f"Skipped version {self.update_info['version']}")
         except Exception as e:
-            print(f"Error saving skipped version: {e}")
+            #TODO: log exception properly
+            log.error(f"Error saving skipped version: {e}")
 
 
 def show_update_dialog(update_info, parent=None):

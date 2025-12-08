@@ -1,9 +1,22 @@
 import json
+import logging
 import webbrowser
+
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QTableWidget, QHeaderView, QCheckBox, QHBoxLayout, QWidget, QPushButton, QAbstractItemView
-from core.folder_setup import folder_setup
+from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
+    QHBoxLayout,
+    QHeaderView,
+    QPushButton,
+    QTableWidget,
+    QWidget,
+)
+
 from core.constants import PARTICLE_GROUP_MAPPING
+from core.folder_setup import folder_setup
+
+log = logging.getLogger()
 
 
 def load_mod_urls():
@@ -14,7 +27,8 @@ def load_mod_urls():
             with open(urls_file, "r") as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Error loading mod URLs: {e}")
+            #TODO: log exception properly
+            log.error(f"Error loading mod URLs: {e}")
     return {}
 
 
@@ -49,7 +63,8 @@ class ConflictMatrix(QTableWidget):
             try:
                 webbrowser.open(self.mod_urls[mod_name])
             except Exception as e:
-                print(f"Error opening URL for {mod_name}: {e}")
+                #TODO: log exception properly
+                log.error(f"Error opening URL for {mod_name}: {e}")
 
     def load_selections(self):
         if self.settings_manager:
@@ -65,7 +80,7 @@ class ConflictMatrix(QTableWidget):
         for col in range(1, self.columnCount()):
             header_item = self.horizontalHeaderItem(col)
             if not header_item:
-                print(f"Warning: Missing header item for column {col}")
+                log.warning(f"Missing header item for column {col}")
                 continue
             column_name = header_item.text().strip()
 
@@ -80,7 +95,7 @@ class ConflictMatrix(QTableWidget):
                             if isinstance(checkbox, QCheckBox) and checkbox.isChecked():
                                 v_header_item = self.verticalHeaderItem(row)
                                 if not v_header_item:
-                                    print(f"Warning: Missing vertical header item for row {row}")
+                                    log.warning(f"Missing vertical header item for row {row}")
                                     continue
                                 mod_name = v_header_item.text()
 
