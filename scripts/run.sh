@@ -103,8 +103,22 @@ if [ -f 'requirements.txt' ]; then
 
 	. .venv/bin/activate
 
-	# shellcheck disable=SC2310,SC2312
-	! check_python_version && deactivate && rm -r .venv && python3 -m venv .venv && . .venv/bin/activate
+	# shellcheck disable=SC2310
+	if ! check_python_version; then
+		printf '%s\n' 'virtual environment is using an out-of-date version of python, attempting to recreate' | warn
+
+		# shellcheck disable=SC2218
+		deactivate
+
+		rm -r .venv
+		python3 -m venv .venv
+		. .venv/bin/activate
+
+		! check_python_version &&
+			printf '%s\n' 'unable to recreate the virtual environment with an up-to-date version of python' | error &&
+			exit 1
+		printf '%s\n' 'managed to recreate the virtual environment with an up-to-date version of python' | warn
+	fi
 
 	printf '%s\n' 'Installing and/or updating dependencies' | info
 	pip -q install --upgrade pip
