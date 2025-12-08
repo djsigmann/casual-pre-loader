@@ -77,7 +77,7 @@ class QuickPrecache:
         self.model_list = set()
         self.failed_vpks = []
         self.builder_index = 0
-        self.studio_mdl = StudioMDL(game_path)
+        self.studio_mdl = None
         self.temp_files = []
         self.progress_callback = progress_callback
         self.compiled_count = 0
@@ -232,6 +232,10 @@ class QuickPrecache:
                 print("Flush completed. Exiting as requested.")
                 print(f"Removed {files_removed} existing precache files")
                 return True
+
+            # initialize StudioMDL only when we actually need to compile
+            # TODO: add warning here?
+            self.studio_mdl = StudioMDL(self.game_path)
 
             # step 2: check config (is this actually needed)?
             check_root_lod(self.game_path)
