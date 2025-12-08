@@ -2,7 +2,8 @@
 
 set -e
 
-cd "$(dirname "$(dirname "${0}")")" # one dir up
+# shellcheck disable=SC2312
+cd "$(dirname "$(dirname "$(realpath -s "${0}")")")" # one dir up
 
 _log() (
 	set -e
