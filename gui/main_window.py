@@ -610,9 +610,9 @@ class ParticleManagerGUI(QMainWindow):
 
     def rescan_addon_contents(self):
         thread = threading.Thread(
-				target=self.addon_manager.scan_addon_contents,
-				daemon=True
-		)
+            target=self.addon_manager.scan_addon_contents,
+            daemon=True
+        )
         thread.start()
 
     def start_install(self):
