@@ -62,9 +62,6 @@ ERR=false
 # shellcheck disable=SC2310,SC2312
 [ "$(id -u)" -eq 0 ] && printf "This script should not be run as root\n" | err && ERR=true
 
-# try to ensure that submodules ARE in fact, properly cloned
-git submodule update --init --recursive --remote
-
 # shellcheck disable=SC2310
 (
 	set -e
@@ -94,6 +91,8 @@ git submodule update --init --recursive --remote
 	{ ${ERR} || [ "$(prompt_yn 'Continue anyway?' n)" != y ]; } && ERR=true
 
 ${ERR} && exit 1 # exit if errors were previously raised
+
+git submodule update --init --recursive --remote # try to ensure that submodules ARE in fact, properly cloned
 
 if [ -f 'requirements.txt' ]; then
 	# shellcheck disable=SC2310,SC2312
