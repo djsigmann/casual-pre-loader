@@ -39,9 +39,8 @@ class AutoUpdater:
                 }
             return None
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error checking for updates: {e}")
+        except Exception:
+            log.execption("Error checking for updates")
             return None
 
     @staticmethod
@@ -65,9 +64,8 @@ class AutoUpdater:
                     f.write(chunk)
             return True
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error downloading {url}: {e}")
+        except Exception:
+            log.exception(f"Error downloading {url}")
             return False
 
     def _use_windows_updater(self, zip_path: Path, updater_path: Path):
@@ -133,9 +131,8 @@ class AutoUpdater:
 
             return True
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error extracting update: {e}")
+        except Exception:
+            log.exception("Error extracting update")
             return False
 
     def update_application(self, update_url: str) -> bool:
@@ -153,9 +150,8 @@ class AutoUpdater:
             tmp_path.unlink()
             return success
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error updating application: {e}")
+        except Exception:
+            log.exception("Error updating application")
             if tmp_path.exists():
                 tmp_path.unlink()
             return False
