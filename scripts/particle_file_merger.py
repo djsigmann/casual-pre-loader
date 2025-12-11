@@ -44,10 +44,10 @@ def resolve_conflicts(conflicts: Dict[str, List[int]], pcf_files: List[Path]) ->
     if not conflicts:
         return decisions
 
-    log.info(f"\nFound {len(conflicts)} conflicting particle elements:")
+    log.info(f"Found {len(conflicts)} conflicting particle elements:")
 
     for element_name, source_indices in conflicts.items():
-        log.info(f"\n'{element_name}' found in:")
+        log.info(f"'{element_name}' found in:")
         for i, source_idx in enumerate(source_indices):
             log.info(f"  [{i+1}] {pcf_files[source_idx].name}")
 
@@ -61,7 +61,7 @@ def resolve_conflicts(conflicts: Dict[str, List[int]], pcf_files: List[Path]) ->
                         break
                 log.error(f"Invalid choice. Please enter 1-{len(source_indices)}")
             except (ValueError, KeyboardInterrupt):
-                log.info("\n Operation cancelled by user")
+                log.critical("Operation cancelled by user", exc_info=True)
                 sys.exit(1)
 
     return decisions
@@ -110,7 +110,7 @@ def create_merged_pcf(pcf_files: List[PCFFile], pcf_paths: List[Path],
 
         source_idx = conflict_decisions[element_name]
         source_pcf = pcf_files[source_idx]
-        log.info(f" Replacing '{element_name}' with version from {pcf_paths[source_idx].name}")
+        log.info(f"Replacing '{element_name}' with version from {pcf_paths[source_idx].name}")
 
         extracted = extract_elements(source_pcf, [element_name])
 
@@ -173,16 +173,16 @@ def main():
     try:
         particle_map = load_particle_system_map()
     except FileNotFoundError:
-        log.error("Error: particle_system_map.json not found")
+        log.critical("particle_system_map.json not found", exc_info=True)
         sys.exit(1)
 
     target = args.target
     if target not in particle_map:
-        log.error(f"Error: Target '{target}' not found in particle_system_map.json")
-        log.info("Available targets:")
+        log.critical(f"Target '{target}' not found in particle_system_map.json", stack_info=True)
+        log.critical("Available targets:")
         for available_target in sorted(particle_map.keys()):
             display_name = available_target.replace('particles/', '')
-            log.info(f"  - {display_name}")
+            log.critical(f"  - {display_name}")
         sys.exit(1)
 
     target_elements = particle_map[args.target]
@@ -195,7 +195,7 @@ def main():
     for file_path in args.input_files:
         path = Path(file_path)
         if not path.exists():
-            log.error(f" Error: File '{file_path}' does not exist")
+            log.critical(f" File '{file_path}' does not exist", stack_info=True)
             sys.exit(1)
 
         try:
@@ -204,9 +204,8 @@ def main():
             pcf_files.append(pcf)
             elements = get_pcf_element_names(pcf)
             log.info(f" Loaded {path.name} ({len(elements)} particle systems)")
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f" Error loading '{file_path}': {e}")
+        except Exception:
+            log.critical(f"Error loading '{file_path}'", exc_info=True)
             sys.exit(1)
 
     # resolve conflicts
@@ -236,9 +235,8 @@ def main():
         else:
             log.info("All target elements included!")
 
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f" Error creating merged PCF: {e}")
+    except Exception:
+        log.critical("Error creating merged PCF", exc_info=True)
         sys.exit(1)
 
 

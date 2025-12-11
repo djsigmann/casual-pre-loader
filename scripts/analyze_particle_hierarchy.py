@@ -47,7 +47,7 @@ def analyze_particle_hierarchy(pcf_file: PCFFile) -> Dict[str, Dict]:
     for system_name, system_info in particle_systems.items():
         element = system_info['element']
 
-        log.debug(f"\nAnalyzing: {system_name}")
+        log.debug(f"Analyzing: {system_name}")
 
         # look through attributes for references
         for attr_name, (attr_type, attr_value) in element.attributes.items():
@@ -231,9 +231,8 @@ def generate_particle_system_map_with_parents(pcf_directory: Path, output_file: 
             root_systems = find_root_systems(particle_systems)
             particle_map[relative_path] = sorted(root_systems)
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error processing {pcf_path}: {e}")
+        except Exception:
+            log.exception(f"Error processing {pcf_path}")
             continue
 
     with open(output_file, 'w') as f:
@@ -244,10 +243,11 @@ def generate_particle_system_map_with_parents(pcf_directory: Path, output_file: 
     total_files = len(particle_map)
     total_parent_systems = sum(len(systems) for systems in particle_map.values())
 
-    log.info("Summary:")
-    log.info(f"  PCF files processed: {total_files}")
-    log.info(f"  Total parent systems: {total_parent_systems}")
-    log.info(f"  Average parent systems per file: {total_parent_systems/total_files:.1f}" if total_files > 0 else "")
+    log.info(
+f"""Summary:
+PCF files processed: {total_files}
+Total parent systems: {total_parent_systems}
+{f'Average parent systems per file: {total_parent_systems/total_files:.1f}' if total_files > 0 else ''}""")
 
 
 def main():
@@ -285,7 +285,7 @@ def main():
     if args.generate_map:
         pcf_directory = Path(args.directory)
         if not pcf_directory.exists():
-            log.critical(f"Directory '{args.directory}' does not exist.")
+            log.critical(f"Directory '{args.directory}' does not exist.", stack_info=True)
             sys.exit(1)
         generate_particle_system_map_with_parents(pcf_directory, args.output)
         return
@@ -324,7 +324,6 @@ def main():
                 for root_name in root_systems:
                     tree = build_hierarchy_tree(particle_systems, root_name)
                     print_hierarchy_tree(tree, show_components=args.components)
-                    log.info()
 
             systems_with_children = [(name, info) for name, info in particle_systems.items() if info['children']]
             if systems_with_children:
@@ -335,26 +334,25 @@ def main():
             else:
                 log.info("No parent-child relationships found between particle systems.")
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error processing {pcf_path}: {e}")
+        except Exception:
+            log.exception(f"Error processing {pcf_path}")
 
     if args.pcf_file:
         pcf_path = Path(args.pcf_file)
         if not pcf_path.exists():
-            log.critical(f"PCF file '{args.pcf_file}' does not exist.")
+            log.critical(f"PCF file '{args.pcf_file}' does not exist.", stack_info=True)
             sys.exit(1)
         analyze_single_file(pcf_path)
 
     elif args.all:
         pcf_directory = Path(args.directory)
         if not pcf_directory.exists():
-            log.critical(f"Directory '{args.directory}' does not exist.")
+            log.critical(f"Directory '{args.directory}' does not exist.", stack_info=True)
             sys.exit(1)
 
         pcf_files = list(pcf_directory.glob("*.pcf"))
         if not pcf_files:
-            log.critical(f"No PCF files found in {pcf_directory}")
+            log.critical(f"No PCF files found in {pcf_directory}", stack_info=True)
             sys.exit(1)
 
         for pcf_path in sorted(pcf_files):
@@ -365,12 +363,12 @@ def main():
         # default: analyze first file
         pcf_directory = Path(args.directory)
         if not pcf_directory.exists():
-            log.critical(f"Directory '{args.directory}' does not exist.")
+            log.critical(f"Directory '{args.directory}' does not exist.", stack_info=True)
             sys.exit(1)
 
         pcf_files = list(pcf_directory.glob("*.pcf"))
         if not pcf_files:
-            log.critical(f"No PCF files found in {pcf_directory}")
+            log.critical(f"No PCF files found in {pcf_directory}", stack_info=True)
             sys.exit(1)
 
         pcf_path = sorted(pcf_files)[0]
