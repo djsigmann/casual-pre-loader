@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from dataclasses import dataclass, field
@@ -13,6 +14,9 @@ from valve_parsers import PCFFile
 from core.are_we_portable import portable
 from core.constants import PROGRAM_AUTHOR, PROGRAM_NAME
 from core.handlers.pcf_handler import get_parent_elements
+
+log = logging.getLogger()
+
 
 @dataclass
 class FolderConfig:
