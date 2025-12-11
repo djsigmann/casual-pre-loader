@@ -353,7 +353,6 @@ class AddonDescription(QWidget):
                     updated_info = json.load(f)
                     updated_info['file_path'] = folder_name
                     self.update_content(updated_info.get("addon_name", self.current_addon_name), updated_info)
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error refreshing addon details: {e}")
+            except Exception:
+                log.exception("Error refreshing addon details")
                 self.clear()

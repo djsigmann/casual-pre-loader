@@ -26,9 +26,8 @@ def load_mod_urls():
         try:
             with open(urls_file, "r") as f:
                 return json.load(f)
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error loading mod URLs: {e}")
+        except Exception:
+            log.exception("Error loading mod URLs")
     return {}
 
 
@@ -62,9 +61,8 @@ class ConflictMatrix(QTableWidget):
         if mod_name in self.mod_urls and self.mod_urls[mod_name]:
             try:
                 webbrowser.open(self.mod_urls[mod_name])
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error opening URL for {mod_name}: {e}")
+            except Exception:
+                log.exception(f"Error opening URL for {mod_name}")
 
     def load_selections(self):
         if self.settings_manager:

@@ -118,11 +118,8 @@ class LoadOrderPanel(QWidget):
 
             self.load_order_list.blockSignals(False)
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error in update_display: {e}")
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            log.exception("Error in update_display")
 
     def sync_from_checked_addons(self, checked_addon_names):
         # update load order list from checked addons

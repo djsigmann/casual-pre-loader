@@ -167,17 +167,15 @@ class UpdateDialog(QDialog):
         try:
             self.settings_manager.set_suppress_update_notifications(True)
             log.info("Suppressing future update notifications")
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error saving suppress setting: {e}")
+        except Exception:
+            log.exception("Error saving suppress setting")
 
     def save_skipped_version(self):
         try:
             self.settings_manager.set_skipped_update_version(self.update_info["version"])
             log.info(f"Skipped version {self.update_info['version']}")
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error saving skipped version: {e}")
+        except Exception:
+            log.exception("Error saving skipped version")
 
 
 def show_update_dialog(update_info, parent=None):

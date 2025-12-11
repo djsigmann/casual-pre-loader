@@ -148,9 +148,8 @@ class SettingsManager:
             try:
                 with open(self.settings_file, "r") as f:
                     return json.load(f)
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error loading settings: {e}")
+            except Exception:
+                log.exception("Error loading settings")
 
         return default_settings
 
@@ -164,9 +163,8 @@ class SettingsManager:
             try:
                 with open(self.metadata_file, "r") as f:
                     return json.load(f)
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error loading addon metadata: {e}")
+            except Exception:
+                log.exception("Error loading addon metadata")
 
         return default_metadata
 
@@ -174,17 +172,15 @@ class SettingsManager:
         try:
             with open(self.settings_file, "w") as f:
                 json.dump(self.settings, f, indent=2)
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error saving settings: {e}")
+        except Exception:
+            log.exception("Error saving settings")
 
     def save_metadata(self):
         try:
             with open(self.metadata_file, "w") as f:
                 json.dump(self.addon_metadata, f, indent=2)
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error saving addon metadata: {e}")
+        except Exception:
+            log.exception("Error saving addon metadata")
 
     def get_tf_directory(self):
         return self.settings.get("tf_directory", "")

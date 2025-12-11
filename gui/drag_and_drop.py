@@ -119,10 +119,8 @@ def parse_vmt_texture(vmt_path):
 
         return texture_paths_list
 
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error parsing VMT file {vmt_path}: {e}")
-        return None
+    except Exception:
+        log.exception(f"Error parsing VMT file {vmt_path}")
 
 
 def get_mod_particle_files():

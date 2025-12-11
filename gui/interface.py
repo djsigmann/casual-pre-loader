@@ -66,8 +66,8 @@ class Interface(QObject):
                             mod_info = json.load(f)
                             if mod_info.get('type', '').lower() == 'hud' and mod_info.get('preloader_installed', False):
                                 items_to_delete.append(item)
-                    except json.JSONDecodeError as e:
-                        log.info(f"Warning: Invalid JSON in {mod_json}: {e}")
+                    except json.JSONDecodeError:
+                        log.warning(f"Invalid JSON in {mod_json}", exc_info=True)
 
         # delete after closing all file handles
         for item in items_to_delete:
@@ -101,8 +101,8 @@ class Interface(QObject):
                                         continue  # skip hud files for now
                                     else:
                                         raise Exception(f"There are 2 mods that have directory names which resolve to the same case-insensitive name:\n'{hud_addons[addon_path].name}'\n'{addon_dir.name}'")
-                        except json.JSONDecodeError as e:
-                            log.info(f"Warning: Invalid JSON in {mod_json_path}: {e}")
+                        except json.JSONDecodeError:
+                            log.warning(f"Invalid JSON in {mod_json_path}", exc_info=True)
 
                     for src_path in addon_dir.glob('**/*'):
                         if src_path.is_file() and src_path.name != 'mod.json' and src_path.name != 'sound.cache':
@@ -145,9 +145,8 @@ class Interface(QObject):
                             mod_info['preloader_installed'] = True
                             with open(hud_mod_json, 'w') as f:
                                 json.dump(mod_info, f, indent=2)
-                        except json.JSONDecodeError as e:
-                            #TODO: log exception properly
-                            log.warning(f"Invalid JSON in {hud_mod_json}: {e}, skipping preloader_installed flag")
+                        except json.JSONDecodeError:
+                            log.warning(f"Invalid JSON in {hud_mod_json}, skipping preloader_installed flag", exc_info=True)
 
             if self.cancel_requested:
                 raise Exception("Installation cancelled by user")
