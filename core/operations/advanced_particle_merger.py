@@ -25,9 +25,8 @@ def sequential_merge(pcf_files: List[PCFFile]):
     for pcf in pcf_files[1:]:
         try:
             result = merge_pcf_files(result, pcf)
-        except ValueError as e:
-            #TODO: log exception properly
-            log.error(f"Skipping PCF file due to merge error: {e}")
+        except ValueError:
+            log.exception("Skipping PCF file due to merge error")
             continue
     return result
 
@@ -128,9 +127,8 @@ class AdvancedParticleMerger:
                 if duplicates:
                     try:
                         result = merge_pcf_files(chosen_pcf, game_elements)
-                    except ValueError as e:
-                        #TODO: log exception properly
-                        log.error(f"Failed to merge with game elements: {e}")
+                    except ValueError:
+                        log.exception("Failed to merge with game elements")
                         result = chosen_pcf
                 else:
                     pcf_files.append(game_elements)

@@ -60,9 +60,8 @@ def generate_vmt_content(texture_path: str, game_vpk: Optional[VPKFile] = None) 
             vmt_content = game_vpk.get_file_data(vmt_path)
             if vmt_content:
                 return vmt_content.decode('utf-8', errors='ignore')
-        except Exception as e:
-            #TODO: log exception properly
-                log.error(f"Error reading VMT from game VPK: {e}")
+        except Exception:
+            log.exception("Error reading VMT from game VPK")
 
     # fallback to generic VMT
     return f'"LightmappedGeneric"\n{{\n\t"$basetexture" "{texture_path}"\n}}\n'
@@ -84,8 +83,8 @@ def generate_missing_vmt_files(temp_mods_dir: Path = None, tf_path: str = None) 
             try:
                 game_vpk = VPKFile(str(game_vpk_path))
                 log.info(f"Loaded game VPK: {game_vpk_path}")
-            except Exception as e:
-                log.error(f"Error loading game VPK: {e}")
+            except Exception:
+                log.exception("Error loading game VPK")
                 game_vpk = None
         else:
             log.info(f"Game VPK not found at: {game_vpk_path}")
@@ -121,9 +120,8 @@ def generate_missing_vmt_files(temp_mods_dir: Path = None, tf_path: str = None) 
                 else:
                     log.info(f"Created generic VMT: {vmt_path}")
 
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error creating VMT file {vmt_path}: {e}")
+            except Exception:
+                log.exception(f"Error creating VMT file {vmt_path}")
                 continue
 
             created_count += 1

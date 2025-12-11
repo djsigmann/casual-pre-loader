@@ -123,9 +123,8 @@ class DecalMerge:
 
             return True
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error modifying sprite sheet: {e}")
+        except Exception:
+            log.exception("Error modifying sprite sheet")
             return False
 
     def process_mod_decals(self, mod_dir: Path, output_dir: Path):

@@ -61,9 +61,8 @@ def check_game_type(file_path) -> bool:
                 if 'type' in line and 'multiplayer_only' in line and '//' in line:
                     return True
         return False
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error checking game type in {file_path}: {str(e)}")
+    except Exception:
+        log.exception(f"Error checking game type in {file_path}")
         return False
 
 
@@ -111,9 +110,8 @@ def get_from_vpk(vpk_path: Path):
                 if total > 0:
                     with open(vpk_path, 'wb') as f:
                         f.write(data)
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error processing VPK {vpk_path}: {e}")
+    except Exception:
+        log.exception(f"Error processing VPK {vpk_path}")
 
 
 def get_from_file(file_path: Path):
@@ -130,9 +128,8 @@ def get_from_file(file_path: Path):
                 with open(file_path, 'wb') as f:
                     f.write(data)
             return total
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error processing file {file_path}: {e}")
+    except Exception:
+        log.exception(f"Error processing file {file_path}")
         return 0
 
 
