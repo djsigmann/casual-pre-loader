@@ -23,9 +23,8 @@ def copy_element(element: PCFElement, offset: int, source_pcf: PCFFile,
                 # add new type name to dictionary if it doesn't exist
                 new_type_name_index = len(target_pcf.string_dictionary)
                 target_pcf.string_dictionary.append(type_name)
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error: Failed to process particle element '{type_name.decode('ascii', errors='replace')}' during merge: {str(e)}")
+    except Exception:
+        log.execption(f"Failed to process particle element '{type_name.decode('ascii', errors='replace')}' during merge")
         raise ValueError(f"PCF merge failed while processing element type '{type_name.decode('ascii', errors='replace')}')")
 
     new_element = PCFElement(

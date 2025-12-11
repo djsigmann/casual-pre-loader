@@ -58,9 +58,8 @@ def _add_vguipreload_string(file_path):
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write('#base "vguipreload.res"\n' + content)
             return True
-    except Exception as e:
-        #TODO: log exception properly
-        log.exception(e)
+    except Exception:
+        log.exception()
 
 
 def _process_vpk(vpk_path):
@@ -85,8 +84,5 @@ def _process_vpk(vpk_path):
         # delete the original VPK file
         vpk_path.unlink()
 
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error extracting VPK {vpk_path}: {e}")
-        import traceback
-        traceback.print_exc()
+    except Exception:
+        log.exception(f"Error extracting VPK {vpk_path}")
