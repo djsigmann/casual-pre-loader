@@ -89,7 +89,7 @@ class FileHandler:
                 # already have bytes
                 new_data = content
             else:
-                log.error(f"Error: Unsupported content type '{type(content).__name__}' for file {file_name}")
+                log.error(f"Unsupported content type '{type(content).__name__}' for file {file_name}", stack_info=True)
                 return False
 
             # check if the processed file size matches the original size
@@ -101,20 +101,16 @@ class FileHandler:
                     new_data = new_data + b' ' * padding_needed
 
                 else:
-                    log.error(f"{file_name} is {len(new_data) - original_size} bytes larger than original! "
-                          f"This should be ignored unless you know what you are doing")
+                    log.warning(
+                            f"{file_name} is {len(new_data) - original_size} bytes larger than original! This should be ignored unless you know what you are doing"
+                    )
                     return False
 
             # patch back into VPK
             return self.vpk.patch_file(full_path, new_data, create_backup=False)
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error processing file {file_name}:")
-            log.error(f"Exception type: {type(e).__name__}")
-            log.error(f"Exception message: {str(e)}")
-            log.error("Traceback:")
-            traceback.print_exc()
+        except Exception:
+            log.exception(f"Error processing file {file_name}")
             return False
 
         finally:

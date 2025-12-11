@@ -50,7 +50,7 @@ def handle_skybox_mods(temp_dir: Path, tf_path) -> int:
             target_path = "materials/skybox/" + vmt_filename
 
             if not target_path:
-                log.error(f"Could not find {vmt_filename} in VPK")
+                log.error(f"Could not find {vmt_filename} in VPK", stack_info=True)
                 continue
 
             # patch vmt into vpk
@@ -60,11 +60,8 @@ def handle_skybox_mods(temp_dir: Path, tf_path) -> int:
             if success:
                 patched_count += 1
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error processing skybox VMT {vmt_path}: {e}")
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            log.exception(f"Error processing skybox VMT {vmt_path}")
 
     return patched_count
 
@@ -89,8 +86,7 @@ def restore_skybox_files(tf_path: str) -> int:
             if vpk.patch_file(file_path, original_content, create_backup=False):
                 restored_count += 1
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error restoring skybox {vmt_name}: {e}")
+        except Exception:
+            log.exception(f"Error restoring skybox {vmt_name}")
 
     return restored_count

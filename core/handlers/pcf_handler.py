@@ -35,9 +35,8 @@ def restore_particle_files(tf_path: str) -> int:
             if vpk.patch_file(file_path, original_content, create_backup=False):
                 patched_count += 1
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error patching particle file {file_name}: {e}")
+        except Exception:
+            log.exception(f"Error patching particle file {file_name}")
 
     return patched_count
 
