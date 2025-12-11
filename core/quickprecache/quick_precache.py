@@ -49,9 +49,8 @@ def load_list_from_file(list_file: str) -> Set[str]:
                 if model:
                     model_list.add(model)
                     log.info(f"Added model: {model}")
-    except Exception as e:
-        #TODO: log exception properly
-        log.error(f"Error loading model list from {list_file}: {e}")
+    except Exception:
+        log.exception(f"Error loading model list from {list_file}")
 
     return model_list
 
@@ -117,9 +116,8 @@ class QuickPrecache:
                 for model in sorted(self.model_list):
                     f.write(f"{model}\n")
             return True
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error saving model list to {output_file}: {e}")
+        except Exception:
+            log.exception(f"Error saving model list to {output_file}")
             return False
 
     def make_precache_sub_list(self, strings: Set[str]) -> None:
@@ -183,9 +181,8 @@ class QuickPrecache:
             self.update_progress(f"Compiling precache models ({self.compiled_count}/{self.total_compiles})...")
 
             return success
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error creating QC file {filename}: {e}")
+        except Exception:
+            log.exception(f"Error creating QC file {filename}")
             return False
 
     def make_precache_list_file(self) -> bool:
@@ -217,9 +214,8 @@ class QuickPrecache:
             self.update_progress(f"QuickPrecache complete!")
 
             return result
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error creating main precache QC file: {e}")
+        except Exception:
+            log.exception("Error creating main precache QC file")
             return False
 
     def cleanup(self) -> None:
@@ -227,9 +223,8 @@ class QuickPrecache:
             try:
                 if temp_file.exists():
                     temp_file.unlink()
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error removing temporary file {temp_file}: {e}")
+            except Exception:
+                log.exception(f"Error removing temporary file {temp_file}")
 
     def run(self, auto: bool = False, list_file: str = "", flush: bool = False) -> bool:
         # main process
@@ -276,14 +271,13 @@ class QuickPrecache:
 
             # step 5: report any failed VPKs
             if self.failed_vpks:
-                log.warning("WARNING!!! Failed to load invalid vpk(s):")
+                log.warning("Failed to load invalid vpk(s):")
                 for vpk_path in self.failed_vpks:
                     log.warning(f"{vpk_path}")
 
             return True
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error in precache process: {e}")
+        except Exception:
+            log.exception("Error in precache process")
             return False
         finally:
             if not self.debug:
