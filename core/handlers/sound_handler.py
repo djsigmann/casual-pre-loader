@@ -178,7 +178,7 @@ def update_script_files(script_files: List[str], path_mappings: List[Tuple[str, 
                 modified_files.append(script_file)
             except Exception as e:
                 #TODO: log exception properly
-                log.error(f"[Error writing {script_file}: {e}")
+                log.error(f"Error writing {script_file}: {e}")
 
     return modified_files
 
