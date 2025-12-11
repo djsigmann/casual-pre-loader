@@ -21,16 +21,17 @@ _log() (
 _log_color() { _log "${1}" "\\033[${2}m%-${max_len_level}s\\033[0m\033[${2}m%s\\033[0m\\n"; }
 
 max_len_level=0
-for _ in debug:32 info:34 warning:33 err:31; do
-	color="${_##*:}" level="${_%:*}"
+for _level in debug:32 info:34 warning:33 err:31; do
+	level="${_level%:*}"
 
-	len_level="$(printf '%s' "${level}" | wc -c)"
-	[ "${len_level}" -gt "${max_len_level}" ] && max_len_level="${len_level}"
-	_level="$(printf '%s' "${_%:*}" | tr '[:lower:]' '[:upper:]')"
+	# shellcheck disable=SC2312
+	max_len_level="$(printf '%s\n' "${max_len_level}" "${#level}" | sort -n | tail -n1)"
 
-	eval "${_%:*}() { _log_color \"${_level}\" \"${color}\" ; }"
+	# shellcheck disable=SC2312
+	eval "${level}() { _log_color $(printf '%s' "${level}" | tr '[:lower:]' '[:upper:]') ${_level##*:}; }"
 done
-max_len_level="$((max_len_level+2))"
+unset level _level
+: $((max_len_level += 2)) # apply 2 spaces of padding
 
 dep_missing() { printf '%s is not installed, please install it using your package manager\n' "${1}"; }
 
