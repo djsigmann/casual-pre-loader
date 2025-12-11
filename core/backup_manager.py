@@ -19,7 +19,6 @@ def prepare_working_copy() -> bool:
 
         return True
 
-    except Exception as e:
-        # TODO: log exception properly
-        log.error(f"Error preparing working copy: {e}")
+    except Exception:
+        log.exception("Error preparing working copy")
         return False

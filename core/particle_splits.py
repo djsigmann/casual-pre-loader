@@ -61,17 +61,16 @@ def migrate_old_particle_files():
                 merger = AdvancedParticleMerger()
                 merger.preprocess_vpk(mod_dir)
 
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Failed to migrate {mod_dir.name}: {e}")
+            except Exception:
+                log.exception(f"Failed to migrate {mod_dir.name}")
 
-        log.info("Migration complete!\n")
+        log.info("Migration complete!")
 
     # migrate mods without source (fallback cringe lazy method)
     if mods_missing_source:
-        log.info("\nMigrating the following mods using fallback method (missing particles/ directory):")
+        log.info("Migrating the following mods using fallback method (missing particles/ directory):")
         for mod_name in mods_missing_source:
-            log.info(f"- {mod_name}")
+            log.info(f"{mod_name}")
 
         for mod_name in mods_missing_source:
             mod_dir = folder_setup.particles_dir / mod_name
@@ -87,6 +86,5 @@ def migrate_old_particle_files():
                         save_split_files(pcf, mod_dir, split_defs)
                         old_file.unlink()
 
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Failed to migrate {mod_name}: {e}")
+            except Exception:
+                log.exception(f"Failed to migrate {mod_name}")
