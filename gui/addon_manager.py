@@ -129,9 +129,8 @@ class AddonManager(QObject):
                     'file_count': len(addon_files)
                 })
 
-            except Exception as e:
-                #TODO: log exception properly
-                log.error(f"Error scanning {addon_name}: {e}")
+            except Exception:
+                log.exception(f"Error scanning {addon_name}")
 
         self.settings_manager.set_addon_metadata(addon_metadata)
         return new_or_updated > 0

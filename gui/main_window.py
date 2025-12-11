@@ -533,11 +533,8 @@ class ParticleManagerGUI(QMainWindow):
             load_order = self.addon_panel.get_load_order()
             self.settings_manager.set_addon_selections(load_order)
 
-        except Exception as e:
-            #TODO: log exception properly
-            log.error(f"Error in on_load_order_changed: {e}")
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            log.exception("Error in on_load_order_changed")
 
     def update_load_order_display(self):
         # delegate to load order panel
