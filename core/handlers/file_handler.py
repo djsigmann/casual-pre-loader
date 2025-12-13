@@ -64,7 +64,7 @@ class FileHandler:
         if '/' not in file_name:
             full_path = self.vpk.find_file_path(file_name)
             if not full_path:
-                log.info(f"Could not find file: {file_name}")
+                log.warning(f"Could not find file: {file_name}")
                 return False
         else:
             full_path = file_name
@@ -76,7 +76,7 @@ class FileHandler:
             # get original file info
             file_info = self.vpk.get_file_info(full_path)
             if not file_info:
-                log.info(f"Failed to get file info for {full_path}")
+                log.warning(f"Failed to get file info for {full_path}")
                 return False
             original_size = file_info['size']
 

@@ -34,6 +34,7 @@ class VTFHandler:
             )
             return True, result.stdout
         except subprocess.CalledProcessError as e:
+            log.exception("Error executing VTFCmd")
             return False, f"Error executing VTFCmd: {e.stderr}"
 
     def convert_vtf_to_png(self, vtf_file, relative_to="materials"):
