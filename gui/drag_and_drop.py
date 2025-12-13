@@ -365,8 +365,9 @@ class ModDropZone(QFrame):
 
             return True
 
-        except Exception as e:
-            self.worker.error.emit(f"Error processing folder {folder_name}: {str(e)}")
+        except Exception:
+            log.exception(f"Error processing folder {folder_name}")
+            self.worker.error.emit(f"Error processing folder {folder_name}")
             return False
 
     def process_zip_file(self, zip_path: Path) -> bool:
@@ -420,10 +421,12 @@ class ModDropZone(QFrame):
                     return success_count > 0
 
         except zipfile.BadZipFile:
+            log.exception(f"Invalid ZIP file: {zip_name}")
             self.worker.error.emit(f"Invalid ZIP file: {zip_name}")
             return False
-        except Exception as e:
-            self.worker.error.emit(f"Error processing ZIP file {zip_name}: {str(e)}")
+        except Exception:
+            log.exception(f"Error processing ZIP file {zip_name}")
+            self.worker.error.emit(f"Error processing ZIP file {zip_name}")
             return False
 
     def update_matrix(self):
@@ -484,8 +487,9 @@ class ModDropZone(QFrame):
                 else:
                     self.worker.error.emit(f"Unsupported file type: {item_name}")
 
-            except Exception as e:
-                self.worker.error.emit(f"Error processing {item_name}: {str(e)}")
+            except Exception:
+                log.exception(f"Error processing {item_name}")
+                self.worker.error.emit(f"Error processing {item_name}")
 
         if successful_items:
             self.addon_updated.emit()

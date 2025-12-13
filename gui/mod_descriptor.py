@@ -124,8 +124,9 @@ class ModJsonEditor(QDialog):
                 json.dump(updated_data, f, indent=2)
             self.addon_updated.emit()
             self.accept()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save mod.json: {str(e)}")
+        except Exception:
+            log.exception("Failed to save mod.json")
+            QMessageBox.critical(self, "Error", "Failed to save mod.json")
 
 
 class AddonDescription(QWidget):
@@ -341,8 +342,9 @@ class AddonDescription(QWidget):
             else:
                 subprocess.run(["xdg-open", str(exports_dir)])
 
-        except Exception as e:
-            QMessageBox.critical(self, "Export Failed", f"Error exporting addon: {str(e)}")
+        except Exception:
+            log.exception("Error exporting addon")
+            QMessageBox.critical(self, "Export Failed", "Error exporting addon")
 
     def refresh_current_addon(self):
         if self.current_addon_name and self.current_addon_info:
