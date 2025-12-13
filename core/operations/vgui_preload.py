@@ -59,7 +59,7 @@ def _add_vguipreload_string(file_path):
                 f.write('#base "vguipreload.res"\n' + content)
             return True
     except Exception:
-        log.exception()
+        log.exception(f'Failed to modify {file_path}')
 
 
 def _process_vpk(vpk_path):
