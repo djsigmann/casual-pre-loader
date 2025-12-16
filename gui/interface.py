@@ -22,6 +22,7 @@ from core.handlers.pcf_handler import (
     restore_particle_files,
     update_materials,
 )
+from core.handlers.paint_handler import disable_paints, enable_paints
 from core.handlers.skybox_handler import handle_skybox_mods, restore_skybox_files
 from core.handlers.sound_handler import SoundHandler
 from core.operations.file_processors import game_type, get_from_custom_dir
@@ -153,6 +154,7 @@ class Interface(QObject):
             if is_tf2:
                 restore_skybox_files(tf_path)
                 restore_particle_files(tf_path)
+                enable_paints(tf_path)
 
             if self.cancel_requested:
                 raise Exception("Installation cancelled by user")
@@ -211,6 +213,11 @@ class Interface(QObject):
                 # patch skybox mods into VPK
                 if is_tf2:
                     handle_skybox_mods(folder_setup.temp_to_be_vpk_dir, tf_path)
+
+                # handle paint removal if enabled
+                if is_tf2 and self.settings_manager and self.settings_manager.get_disable_paint_colors():
+                    self.update_progress(52, "Disabling paint colors...")
+                    disable_paints(tf_path)
 
             if is_tf2:
                 # TF2: process and patch particles into main VPK (sv_pure enabled)
@@ -461,6 +468,7 @@ class Interface(QObject):
                 # TF2-specific: restore VPK patches, quickprecache, mainmenu
                 restore_skybox_files(tf_path)
                 restore_particle_files(tf_path)
+                enable_paints(tf_path)
 
                 # flush quick precache
                 QuickPrecache(str(Path(tf_path).parents[0]), debug=False).run(flush=True)

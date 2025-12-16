@@ -141,7 +141,8 @@ class SettingsManager:
             "skip_launch_options_popup": False,
             "suppress_update_notifications": False,
             "skipped_update_version": None,
-            "show_console_on_startup": True
+            "show_console_on_startup": True,
+            "disable_paint_colors": False
         }
 
         if self.settings_file.exists():
@@ -266,4 +267,11 @@ class SettingsManager:
 
     def set_show_console_on_startup(self, show_console):
         self.settings["show_console_on_startup"] = show_console
+        self.save_settings()
+
+    def get_disable_paint_colors(self):
+        return self.settings.get("disable_paint_colors", False)
+
+    def set_disable_paint_colors(self, disable):
+        self.settings["disable_paint_colors"] = disable
         self.save_settings()

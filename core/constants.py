@@ -168,6 +168,13 @@ QUICKPRECACHE_MODEL_LIST = [
 ]
 
 
+COSMETIC_VMT_PATHS = [
+    "materials/models/player/items/",
+    "materials/models/workshop/player/items/",
+    "materials/models/workshop_partner/player/items/"
+]
+
+
 DECAL_MAPPING = {
     # this is just the blood decal mapping, would need to add bullet holes and such if we want those
     "decal/flesh/blood1": {"position": (384, 64), "size": (64, 64)},

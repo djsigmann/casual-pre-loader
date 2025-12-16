@@ -57,6 +57,7 @@ class SettingsDialog(QDialog):
         self.console_checkbox = None
         self.suppress_updates_checkbox = None
         self.skip_launch_popup_checkbox = None
+        self.disable_paint_checkbox = None
         self.tf_directory = ""
         self.goldrush_directory = ""
 
@@ -164,6 +165,7 @@ class SettingsDialog(QDialog):
         self.console_checkbox = QCheckBox("Enable TF2 console on startup")
         self.suppress_updates_checkbox = QCheckBox("Suppress update notifications")
         self.skip_launch_popup_checkbox = QCheckBox("Suppress launch options reminder")
+        self.disable_paint_checkbox = QCheckBox("Disable paint colors on cosmetics")
 
         # load current settings from parent's settings_manager
         parent_widget = self.parent()
@@ -171,15 +173,18 @@ class SettingsDialog(QDialog):
             self.console_checkbox.setChecked(parent_widget.settings_manager.get_show_console_on_startup())
             self.suppress_updates_checkbox.setChecked(parent_widget.settings_manager.get_suppress_update_notifications())
             self.skip_launch_popup_checkbox.setChecked(parent_widget.settings_manager.get_skip_launch_options_popup())
+            self.disable_paint_checkbox.setChecked(parent_widget.settings_manager.get_disable_paint_colors())
         else:
             # defaults
             self.console_checkbox.setChecked(True)
             self.suppress_updates_checkbox.setChecked(False)
             self.skip_launch_popup_checkbox.setChecked(False)
+            self.disable_paint_checkbox.setChecked(False)
 
         preloader_layout.addWidget(self.console_checkbox)
         preloader_layout.addWidget(self.suppress_updates_checkbox)
         preloader_layout.addWidget(self.skip_launch_popup_checkbox)
+        preloader_layout.addWidget(self.disable_paint_checkbox)
 
         preloader_group.setLayout(preloader_layout)
         layout.addWidget(preloader_group)
@@ -252,6 +257,9 @@ class SettingsDialog(QDialog):
 
     def get_skip_launch_options_popup(self):
         return self.skip_launch_popup_checkbox.isChecked()
+
+    def get_disable_paint_colors(self):
+        return self.disable_paint_checkbox.isChecked()
 
     def save_and_accept(self):
         self.accept()
@@ -798,6 +806,7 @@ class ParticleManagerGUI(QMainWindow):
             self.settings_manager.set_show_console_on_startup(dialog.get_show_console_on_startup())
             self.settings_manager.set_suppress_update_notifications(dialog.get_suppress_update_notifications())
             self.settings_manager.set_skip_launch_options_popup(dialog.get_skip_launch_options_popup())
+            self.settings_manager.set_disable_paint_colors(dialog.get_disable_paint_colors())
 
     def dragEnterEvent(self, event):
         if hasattr(self, 'mod_drop_zone') and self.mod_drop_zone:
