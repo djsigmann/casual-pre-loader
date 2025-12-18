@@ -67,9 +67,9 @@ def download_file(url: str, path: Path, timeout: Optional[int] = None, reporthoo
     try:
         socket.setdefaulttimeout(timeout)
 
-        tmp_path = folder_setup.temp_dir / f'{path.name}.part'
+        tmp_path = folder_setup.temp_download_dir / f'{path.name}'
 
-        folder_setup.temp_dir.mkdir(parents=True, exist_ok=True)
+        folder_setup.temp_download_dir.mkdir(parents=True, exist_ok=True)
         urllib.request.urlretrieve(url, tmp_path, reporthook)
 
         path.parent.mkdir(parents=True, exist_ok=True)
