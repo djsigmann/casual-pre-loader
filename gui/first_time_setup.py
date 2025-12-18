@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-import socket
 import zipfile
 from pathlib import Path
 
