@@ -65,12 +65,11 @@ class FolderConfig:
         self.addons_dir = self.mods_dir / self._mods_addons_folder
 
         self.temp_dir = self.project_dir / self._temp_folder
+        self.temp_download_dir = self.temp_dir  / 'download'
         self.temp_to_be_processed_dir = self.temp_dir / self._temp_to_be_processed_folder
         self.temp_to_be_referenced_dir = self.temp_dir / self._temp_to_be_referenced_folder
         self.temp_to_be_patched_dir = self.temp_dir / self._temp_to_be_patched_folder
         self.temp_to_be_vpk_dir = self.temp_dir / self._temp_to_be_vpk_folder
-
-        self.modsinfo_file = self.project_dir / "modsinfo.json"
 
     def create_required_folders(self) -> None:
         folders = [

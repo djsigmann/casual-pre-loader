@@ -388,13 +388,11 @@ def download_cueki_mods(parent=None, button=None):
                 progress.setValue(min(percent, 99))
                 QApplication.processEvents()
 
-        ret = check_mods()
-        if ret is not None:
-            asset, tag = ret
+        update = check_mods()
+        if update is not None:
+            mods_file = folder_setup.temp_dir / update.asset.name
 
-            mods_file = folder_setup.temp_dir / asset.name
-
-            download_file(asset.browser_download_url, mods_file, 10, download_progress)
+            download_file(update.asset.browser_download_url, mods_file, 10, download_progress)
 
             progress.setLabelText("Extracting mods...")
             progress.setValue(99)
@@ -412,8 +410,8 @@ def download_cueki_mods(parent=None, button=None):
                     dir.mkdir(parents=True, exist_ok=True)
                     zip_ref.extractall(dir)
 
-                with folder_setup.modsinfo_file.open('w') as fd:
-                    json.dump({'tag': tag, 'digest': asset.digest}, fd)
+                with (folder_setup.project_dir / 'modsinfo.json').open('w') as fd:
+                    json.dump({'tag': update.release.tag_name, 'digest': update.asset.digest}, fd)
 
             finally:
                 mods_file.unlink()
@@ -430,7 +428,7 @@ def download_cueki_mods(parent=None, button=None):
         QMessageBox.information(
             parent,
             "Download Complete",
-            ret and "cueki's mods have been successfully downloaded and installed!" or "cueki's mods are already installed and up to date!"
+            update and "cueki's mods have been successfully downloaded and installed!" or "cueki's mods are already installed and up to date!"
         )
 
         # re-enable button
