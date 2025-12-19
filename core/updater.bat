@@ -29,8 +29,8 @@ if %errorlevel%==0 (
     if %errorlevel%==0 echo Cleaned up zip file
 
     echo Restarting application...
-    cd /d "%install_dir%\casual-preloader"
-    python.exe main.py
+    cd /d "%install_dir%"
+    call RUNME.bat
 ) else (
     echo ERROR: Failed to extract update (exit code: %errorlevel%)
     echo Press any key to exit...
