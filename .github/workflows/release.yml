@@ -37,6 +37,8 @@ jobs:
         run: |
           curl -L -o python.zip https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip
           unzip python.zip -d release/casual-preloader/
+          # Add site-packages to path for embeddable Python
+          printf 'python312.zip\n.\nLib\nLib\\site-packages\n' > release/casual-preloader/python312._pth
 
       - name: Download pip.pyz
         run: curl -L -o release/casual-preloader/pip.pyz https://bootstrap.pypa.io/pip/pip.pyz
