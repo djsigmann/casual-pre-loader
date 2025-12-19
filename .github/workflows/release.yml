@@ -1,0 +1,68 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release directory
+        run: mkdir -p release/casual-preloader
+
+      - name: Download embeddable Python
+        run: |
+          curl -L -o python.zip https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip
+          unzip python.zip -d release/casual-preloader/
+
+      - name: Download pip.pyz
+        run: curl -L -o release/casual-preloader/pip.pyz https://bootstrap.pypa.io/pip/pip.pyz
+
+      - name: Build application
+        run: python scripts/build.py --target_dir release/casual-preloader <<< "y"
+
+      - name: Copy launcher
+        run: cp scripts/RUNME.bat release/
+
+      - name: Create release zip
+        run: |
+          cd release
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          zip -r ../casual-preloader-${VERSION//./-}.zip .
+
+      - name: Upload artifact (for testing)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: casual-preloader-${{ steps.version.outputs.VERSION }}
+          path: casual-preloader-*.zip
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: casual-preloader-*.zip
+          generate_release_notes: true
