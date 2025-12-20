@@ -8,9 +8,11 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QApplication, QSplashScreen
 
+import core.migrations
 from core.auto_updater import check_for_updates
 from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
+from core.version import VERSION
 from gui.first_time_setup import check_first_time_setup, run_first_time_setup
 from gui.main_window import ParticleManagerGUI
 from gui.settings_manager import SettingsManager
@@ -23,6 +25,9 @@ def main():
     log.info(f'Application files are located in {folder_setup.install_dir}')
     log.info(f'Project files are written to {folder_setup.project_dir}')
     log.info(f'Settings files are in {folder_setup.settings_dir}')
+    log.info(f'Version {VERSION} on {platform}')
+
+    core.migrations.migrate()
 
     app = QApplication([])
     font = app.font()
@@ -50,9 +55,6 @@ def main():
                           Qt.WindowType.FramelessWindowHint)
     splash.show()
 
-    # cleanup old updater, old structure, and temp folders
-    folder_setup.cleanup_old_updater()
-    folder_setup.cleanup_old_structure()
     folder_setup.cleanup_temp_folders()
     folder_setup.create_required_folders()
     prepare_working_copy()
