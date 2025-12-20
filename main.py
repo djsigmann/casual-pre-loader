@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QApplication, QSplashScreen
 from core.auto_updater import check_for_updates
 from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
+from core.version import VERSION
 from gui.first_time_setup import check_first_time_setup, run_first_time_setup
 from gui.main_window import ParticleManagerGUI
 from gui.settings_manager import SettingsManager
@@ -19,10 +20,11 @@ from gui.update_dialog import show_update_dialog
 log = logging.getLogger()
 
 def main():
-    log.info(f'We{" ARE " if folder_setup.portable else " are NOT "}running a portable install')
+    log.info(f'Version {VERSION} on {platform} {"(portable)" if folder_setup.portable else ""}')
     log.info(f'Application files are located in {folder_setup.install_dir}')
     log.info(f'Project files are written to {folder_setup.project_dir}')
     log.info(f'Settings files are in {folder_setup.settings_dir}')
+
 
     app = QApplication([])
     font = app.font()
@@ -50,9 +52,6 @@ def main():
                           Qt.WindowType.FramelessWindowHint)
     splash.show()
 
-    # cleanup old updater, old structure, and temp folders
-    folder_setup.cleanup_old_updater()
-    folder_setup.cleanup_old_structure()
     folder_setup.cleanup_temp_folders()
     folder_setup.create_required_folders()
     prepare_working_copy()
@@ -87,6 +86,11 @@ def main():
     folder_setup.cleanup_temp_folders()
 
 def run():
+    import core.migrations
+
+    core.migrations.migrate()
+    del core.migrations
+
     try:
         from rich.logging import RichHandler
         from rich.traceback import install

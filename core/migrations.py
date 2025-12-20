@@ -1,0 +1,104 @@
+import stat
+from functools import partial
+from itertools import starmap
+from pathlib import Path
+
+from more_itertools import consume
+
+from core.folder_setup import folder_setup
+from core.util.file import delete, modeset_add, move
+
+__all__ = ('migrate',)
+
+"""
+This module has a single function, `migrate()`, that ensures that old files are cleaned up or moved into new locations.
+This is so that if we change things, users will have a (hopefully) seamless expereince.
+
+For instance, let's say we write to a directory, `/dir/subdir`, but we decide that it'd be better to call it `/dir/subdir2`.
+We'd add an entry in this file to move `/dir/subdir` to `dir/subdir2`, commit that, and generate a new minor (or major) release.
+
+Generating a new release would technically not be strictly necessary,
+but assuming that users make use of the auto-updater, they won't end up with broken program/data/config files.
+The auto-updater repeatedly updates to the next non-downloaded minor/major release and calls `migrate()`,
+meaning that we can remove all old migrations from `migrate()` every time we generate a new release.
+
+Granted, users using a rolling-release package manager, e.g. pacman, or users using `git` directly could still end up with broken files,
+since there is no way to tell pacman to update to only the next version instead of the latest,
+nor could we tell pacman to run the program in between those updates.
+Technically, programs like `downgrade` exist, or users could manually grab old packages, but this is irrelevant to AUR packages anyway.
+ALl this aside, such users should usually be expected to have some knowledge about the programs they run and the packages they install,
+so I'd say this is a tolerable shortcoming.
+
+To try and mitigate this potential problem, it is recommended to not remove things from this file too often, once a month at the most should be fine.
+
+`migrate()` only needs to be called once per program execution, so one should run `del core.migrations` afterwards so that the interpreter can gc the module.
+"""
+
+# Files and folders to delete
+DELETE_PORTABLE: list[Path] = [
+    #
+    # old updater
+    #
+    folder_setup.install_dir / 'core' / 'updater_old.exe',
+    folder_setup.install_dir / 'RUNME.tmp.bat',
+    #
+    # old files/folders
+    #
+    folder_setup.install_dir / 'particle_system_map.json',
+    folder_setup.install_dir / 'mod_urls.json',
+    folder_setup.install_dir / 'operations',
+    folder_setup.install_dir / 'quickprecache',
+]
+DELETE: list[tuple[Path, Path]] = []
+
+# Files and folders to relocate
+MOVE_PORTABLE: list[tuple[Path, Path]] = []
+MOVE: list[tuple[Path, Path]] = []
+
+# Files and folders to set the mode of
+MODESET: dict[int, list[Path]] = {}
+MODESET_PORTABLE: dict[int, list[Path]] = {}
+MODESET_ADD: dict[int, list[Path]] = {}
+MODESET_ADD_PORTABLE: dict[int, list[Path]] = {
+    # set executable bit
+    stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR: [
+        folder_setup.install_dir / 'main.py',
+        folder_setup.install_dir / 'scripts' / 'build.py',
+        folder_setup.install_dir / 'scripts' / 'analyze_particle_hierarchy.py',
+        folder_setup.install_dir / 'scripts' / 'particle_file_merger.py',
+        folder_setup.install_dir / 'scripts' / 'run.sh',
+    ]
+}
+
+
+def _map(*args, **kwargs):
+    return consume(map(*args, **kwargs))
+
+
+def _starmap(*args, **kwargs):
+    return consume(starmap(*args, **kwargs))
+
+
+def _modeset(mode: int, files: list[Path]) -> None:
+    _map(lambda file: file.exists() and file.chmod(mode), files)
+
+
+def _modeset_add(mode: int, files: list[Path]) -> None:
+    _map(lambda file: file.exists() and modeset_add(file, mode), files)
+
+
+_delete = partial(delete, not_exist_ok=True)
+_move = partial(move, not_exist_ok=True)
+
+
+def migrate():
+    if folder_setup.portable:
+        _map(_delete, DELETE_PORTABLE)
+        _starmap(_move, MOVE_PORTABLE)
+        _starmap(_modeset, MODESET_PORTABLE.items())
+        _starmap(_modeset_add, MODESET_ADD_PORTABLE.items())
+
+    _map(_delete, DELETE)
+    _starmap(_move, MOVE)
+    _starmap(_modeset, MODESET.items())
+    _starmap(_modeset_add, MODESET_ADD.items())
