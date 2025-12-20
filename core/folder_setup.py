@@ -101,37 +101,6 @@ class FolderConfig:
             self.base_default_pcf = None
             self.base_default_parents = None
 
-    def cleanup_old_updater(self) -> None:
-        core_dir = self.install_dir / "core"
-        updater_old = core_dir / "updater_old.exe"
-        if not updater_old.exists():
-            return
-
-        updater_old.unlink()
-        log.debug(f"Removed old updater: {updater_old.name}")
-
-    def cleanup_old_structure(self) -> None:
-        # cleanup old files/folders after reorganization during auto update
-        old_files = [
-            self.install_dir / "particle_system_map.json",
-            self.install_dir / "mod_urls.json"
-        ]
-
-        old_folders = [
-            self.install_dir / "operations",
-            self.install_dir / "quickprecache",
-        ]
-
-        for old_file in old_files:
-            if old_file.exists():
-                old_file.unlink()
-                log.debug(f"Removed old file: {old_file.name}")
-
-        for old_folder in old_folders:
-            if old_folder.exists():
-                shutil.rmtree(old_folder)
-                log.debug(f"Removed old folder: {old_folder.name}")
-
     def get_temp_path(self, filename: str) -> Path:
         return self.temp_dir / filename
 
