@@ -398,7 +398,7 @@ def download_cueki_mods(parent=None, button=None):
             progress.setValue(99)
             QApplication.processEvents()
 
-            # extract mods
+            # FIXME: use `utils.extract`
             try:
                 with zipfile.ZipFile(mods_file, 'r') as zip_ref:
                     dir = folder_setup.mods_dir
