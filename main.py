@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QApplication, QSplashScreen
 
-from core.auto_updater import check_for_updates_sync
+from core.auto_updater import check_for_updates
 from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
 from gui.first_time_setup import check_first_time_setup, run_first_time_setup
@@ -59,21 +59,15 @@ def main():
 
     window = ParticleManagerGUI(tf_directory)
 
-    # check for updates after first-time setup is complete (only for portable)
-    update_info = None
-    if not check_first_time_setup() and folder_setup.portable:
+    if not check_first_time_setup() and folder_setup.portable: # check for updates after first-time setup is complete (only for portable)
         settings_manager = SettingsManager()
 
-        update_info = check_for_updates_sync()
+        updates = check_for_updates()
 
-        if update_info and settings_manager.should_show_update_dialog(update_info["version"]):
+        # TODO: update this once we can update multiple at a time
+        if updates and settings_manager.should_show_update_dialog(updates[0].release.tag_name.lstrip('v')):
             splash.hide()
-            show_update_dialog(update_info)
-            splash.show()
-
-    # pass update info to window for display
-    if update_info:
-        window.update_info = update_info
+            show_update_dialog(updates) # NOTE: may eventually re-execute the interpreter
 
     # set icon for Windows
     if platform == 'win32':
