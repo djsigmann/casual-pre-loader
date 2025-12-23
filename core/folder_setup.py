@@ -41,37 +41,21 @@ class FolderConfig:
     base_default_pcf: Optional[PCFFile] = field(default=None)
     base_default_parents: Optional[set[str]] = field(default=None)
 
-    # main folder names
-    _backup_folder = "backup"
-    _mods_folder = "mods"
+    data_dir = install_dir / 'data'
+    backup_dir = project_dir / 'backup'
 
-    # mods subdir
-    _mods_particles_folder = "particles"
-    _mods_addons_folder = "addons"
+    mods_dir = project_dir / 'mods'
+    particles_dir = mods_dir / 'particles'
+    addons_dir = mods_dir / 'addons'
 
-    # temp and it's nested folders (to be cleared every run)
-    _temp_folder = "temp"
-    _temp_to_be_processed_folder = "to_be_processed"
-    _temp_to_be_referenced_folder = "to_be_referenced"
-    _temp_to_be_patched_folder = "to_be_patched"
-    _temp_to_be_vpk_folder = "to_be_vpk"
+    temp_dir = project_dir / 'temp'
+    temp_download_dir = temp_dir  / 'download'
+    temp_to_be_processed_dir = temp_dir / 'to_be_processed'
+    temp_to_be_referenced_dir = temp_dir /  'to_be_referenced'
+    temp_to_be_patched_dir = temp_dir /  'to_be_patched'
+    temp_to_be_vpk_dir = temp_dir /  'to_be_vpk'
 
-    def __post_init__(self):
-        self.backup_dir = self.project_dir / self._backup_folder
-        self.data_dir = self.install_dir / "data"
-
-        self.mods_dir = self.project_dir / self._mods_folder
-        self.particles_dir = self.mods_dir / self._mods_particles_folder
-        self.addons_dir = self.mods_dir / self._mods_addons_folder
-
-        self.temp_dir = self.project_dir / self._temp_folder
-        self.temp_download_dir = self.temp_dir  / 'download'
-        self.temp_to_be_processed_dir = self.temp_dir / self._temp_to_be_processed_folder
-        self.temp_to_be_referenced_dir = self.temp_dir / self._temp_to_be_referenced_folder
-        self.temp_to_be_patched_dir = self.temp_dir / self._temp_to_be_patched_folder
-        self.temp_to_be_vpk_dir = self.temp_dir / self._temp_to_be_vpk_folder
-
-        self.modsinfo_file = self.project_dir / "modsinfo.json"
+    modsinfo_file = project_dir / 'modsinfo.json'
 
     def create_required_folders(self) -> None:
         folders = [
