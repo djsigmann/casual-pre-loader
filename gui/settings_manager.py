@@ -121,12 +121,7 @@ def auto_detect_goldrush():
 
 class SettingsManager:
     # listen up students, in this class we will learn how to write java getters and setters
-    def __init__(self, settings_file="app_settings.json", metadata_file="addon_metadata.json"):
-        folder_setup.settings_dir.mkdir(parents=True, exist_ok=True)  # Ensure that settings directory exists
-
-        self.settings_file = folder_setup.settings_dir / settings_file
-        self.metadata_file = folder_setup.settings_dir / metadata_file
-
+    def __init__(self):
         self.settings = self._load_settings()
         self.addon_metadata = self._load_metadata()
 
@@ -145,9 +140,9 @@ class SettingsManager:
             "disable_paint_colors": False
         }
 
-        if self.settings_file.exists():
+        if folder_setup.app_settings_file.exists():
             try:
-                with open(self.settings_file, "r") as f:
+                with open(folder_setup.app_settings_file, "r") as f:
                     return json.load(f)
             except Exception:
                 log.exception("Error loading settings")
@@ -160,9 +155,9 @@ class SettingsManager:
             "addon_metadata": {}
         }
 
-        if self.metadata_file.exists():
+        if folder_setup.addon_metadata_file.exists():
             try:
-                with open(self.metadata_file, "r") as f:
+                with open(folder_setup.addon_metadata_file, "r") as f:
                     return json.load(f)
             except Exception:
                 log.exception("Error loading addon metadata")
@@ -171,14 +166,16 @@ class SettingsManager:
 
     def save_settings(self):
         try:
-            with open(self.settings_file, "w") as f:
+            folder_setup.app_settings_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(folder_setup.app_settings_file, "w") as f:
                 json.dump(self.settings, f, indent=2)
         except Exception:
             log.exception("Error saving settings")
 
     def save_metadata(self):
         try:
-            with open(self.metadata_file, "w") as f:
+            folder_setup.addon_metadata_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(folder_setup.addon_metadata_file, "w") as f:
                 json.dump(self.addon_metadata, f, indent=2)
         except Exception:
             log.exception("Error saving addon metadata")
