@@ -94,6 +94,7 @@ class AdvancedParticleMerger:
                     rebuild_particle_files(particle, self.particle_map)):
                 output_path = folder_setup.get_output_path(
                     f"{len(self.vpk_groups[vpk_folder_name][particle_file_target])}_{particle_file_target}")
+                output_path.parent.mkdir(parents=True, exist_ok=True)
                 extract_elements(source_pcf, elements_to_extract).encode(output_path)
                 self.vpk_groups[vpk_folder_name][particle_file_target].append(output_path)
 
@@ -121,6 +122,7 @@ class AdvancedParticleMerger:
 
             if elements_we_still_need:
                 game_file_path = folder_setup.temp_to_be_referenced_dir / particle_group
+                game_file_path.parent.mkdir(parents=True, exist_ok=True) # INFO: technically not necessary, but PCFFile does not check if `input_file` exists, let alone its parent dir
                 game_file_in = PCFFile(game_file_path).decode()
                 game_elements = extract_elements(game_file_in, elements_we_still_need)
 
@@ -143,5 +145,5 @@ class AdvancedParticleMerger:
                 actual_particles.parent.mkdir(parents=True, exist_ok=True)
                 result.encode(actual_particles)
 
-        for file in folder_setup.temp_to_be_processed_dir.iterdir():
+        for file in folder_setup.temp_to_be_processed_dir.glob('*'):
             file.unlink()

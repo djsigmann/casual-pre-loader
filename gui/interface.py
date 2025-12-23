@@ -236,6 +236,7 @@ class Interface(QObject):
                     if not target_path.exists():
                         # copy from game_files if not in
                         source_path = folder_setup.temp_to_be_referenced_dir / duplicate_effect
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
                         if source_path.exists():
                             extract_elements(PCFFile(source_path).decode(),
                                              load_particle_system_map(folder_setup.data_dir / 'particle_system_map.json')
@@ -354,6 +355,7 @@ class Interface(QObject):
                 split_size = 2 ** 31
                 vpk_base_path = custom_dir / CUSTOM_VPK_NAME.replace('.vpk', '')
 
+                custom_content_dir.mkdir(parents=True, exist_ok=True) # INFO: technically not necessary, but VPKFile does not check if `source_dir` exists
                 if not VPKFile.create(str(custom_content_dir), str(vpk_base_path), split_size):
                     raise Exception("Failed to create custom VPK")
 

@@ -57,22 +57,6 @@ class FolderConfig:
 
     modsinfo_file = project_dir / 'modsinfo.json'
 
-    def create_required_folders(self) -> None:
-        folders = [
-            self.mods_dir,
-            self.addons_dir,
-            self.particles_dir,
-
-            self.temp_dir,
-            self.temp_to_be_processed_dir,
-            self.temp_to_be_referenced_dir,
-            self.temp_to_be_patched_dir,
-            self.temp_to_be_vpk_dir
-        ]
-
-        for folder in folders:
-            folder.mkdir(parents=True, exist_ok=True)
-
     def initialize_pcf(self):
         if self.temp_to_be_referenced_dir.exists():
             default_base_path = self.temp_to_be_referenced_dir / "disguise.pcf"

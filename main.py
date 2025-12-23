@@ -56,7 +56,6 @@ def main():
     splash.show()
 
     folder_setup.cleanup_temp_folders()
-    folder_setup.create_required_folders()
     prepare_working_copy()
 
     window = ParticleManagerGUI(tf_directory)

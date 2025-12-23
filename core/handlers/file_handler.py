@@ -71,6 +71,7 @@ class FileHandler:
 
         # create temp file for processing in working directory
         temp_path = folder_setup.get_temp_path(f"temp_{Path(file_name).name}")
+        temp_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
             # get original file info
