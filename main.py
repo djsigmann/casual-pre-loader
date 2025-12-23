@@ -12,7 +12,7 @@ import core.migrations
 from core.auto_updater import check_for_updates
 from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
-from core.util.file import copy
+from core.util.file import copy, delete
 from core.version import VERSION
 from gui.first_time_setup import check_first_time_setup, run_first_time_setup
 from gui.main_window import ParticleManagerGUI
@@ -57,8 +57,6 @@ def main():
                           Qt.WindowType.FramelessWindowHint)
     splash.show()
 
-    folder_setup.cleanup_temp_folders()
-    folder_setup.create_required_folders()
     prepare_working_copy()
 
     window = ParticleManagerGUI(tf_directory)
@@ -94,7 +92,7 @@ def main():
     window.show()
 
     app.exec()
-    folder_setup.cleanup_temp_folders()
+    delete(folder_setup.temp_dir, not_exist_ok=True)
 
 def run():
     try:
