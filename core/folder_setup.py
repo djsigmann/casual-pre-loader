@@ -21,10 +21,9 @@ log = logging.getLogger()
 @dataclass
 class FolderConfig:
     # configuration class for managing folder paths
-    install_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent  # INFO: I'm not too sure if this can break or not, oh well
+    install_dir = Path(os.path.abspath(__file__)).parent.parent
     portable = portable  # make sure it is accessible via self.portable
 
-    # TODO: allow windows users to use non-portable installs (would allow us to remove this entire platform check)
     if portable:
         # default portable values
         project_dir = install_dir
