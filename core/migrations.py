@@ -49,7 +49,9 @@ DELETE_PORTABLE: list[Path] = [
     folder_setup.install_dir / 'operations',
     folder_setup.install_dir / 'quickprecache',
 ]
-DELETE: list[tuple[Path, Path]] = []
+DELETE: list[tuple[Path, Path]] = [
+    folder_setup.project_dir / 'temp',
+]
 
 # Files and folders to relocate
 MOVE_PORTABLE: list[tuple[Path, Path]] = []

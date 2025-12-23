@@ -40,14 +40,13 @@ def check_mods() -> Update | None:
     # - There was also a time where the mods were kept in a zip file checked into the VCS...yeah, ~80 MB...per revision...
 
     modsinfo = None
-    modsinfo_file = folder_setup.project_dir / 'modsinfo.json'
     try:
-        with modsinfo_file.open('r') as fd:
+        with folder_setup.modsinfo_file.open('r') as fd:
             modsinfo = json.load(fd)
     except FileNotFoundError:
         pass
     except json.JSONDecodeError:
-        log.exception(f'Could not parse {modsinfo_file}') # ignore this error and act as if the file didn't exist at all
+        log.exception(f'Could not parse {folder_setup.modsinfo_file}') # ignore this error and act as if the file didn't exist at all
 
     for update in get_releases_with_asset(REMOTE_REPO, 'mods.zip'):
         if modsinfo:
@@ -98,7 +97,8 @@ def download_mods(
     try:
         extract(archive_path, folder_setup.mods_dir, 1, False)
 
-        with (folder_setup.project_dir / 'modsinfo.json').open('w') as fd:
+        folder_setup.modsinfo_file.parent.mkdir(parents=True, exist_ok=True)
+        with folder_setup.modsinfo_file.open('w') as fd:
             json.dump({'tag': update.release.tag_name, 'digest': update.asset.digest}, fd)
     finally:
         archive_path.unlink()

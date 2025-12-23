@@ -295,9 +295,6 @@ class FirstTimeSetupDialog(QDialog):
 
         # create or update app_settings.json
         try:
-            folder_setup.settings_dir.mkdir(parents=True, exist_ok=True)
-            settings_file = folder_setup.settings_dir / "app_settings.json"
-
             # start with imported settings if available
             settings_data = {}
             if self.import_settings_path:
@@ -314,7 +311,8 @@ class FirstTimeSetupDialog(QDialog):
             # update with current setup values
             settings_data["tf_directory"] = self.tf_directory
 
-            with open(settings_file, 'w') as f:
+            folder_setup.app_settings_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(folder_setup.app_settings_file, 'w') as f:
                 json.dump(settings_data, f, indent=2)
         except Exception as e:
             QMessageBox.warning(
@@ -328,8 +326,7 @@ class FirstTimeSetupDialog(QDialog):
 
 
 def check_first_time_setup():
-    settings_file = folder_setup.settings_dir / "app_settings.json"
-    return not settings_file.exists()
+    return not folder_setup.app_settings_file.exists()
 
 
 def run_first_time_setup(parent=None):

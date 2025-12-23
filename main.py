@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QApplication, QSplashScreen
 from core.auto_updater import check_for_updates
 from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
+from core.util.file import copy, delete
 from core.version import VERSION
 from gui.first_time_setup import check_first_time_setup, run_first_time_setup
 from gui.main_window import ParticleManagerGUI
@@ -24,7 +25,9 @@ def main():
     log.info(f'Application files are located in {folder_setup.install_dir}')
     log.info(f'Project files are written to {folder_setup.project_dir}')
     log.info(f'Settings files are in {folder_setup.settings_dir}')
+    log.info(f'Log is written to {folder_setup.log_file}')
 
+    copy(folder_setup.install_dir / "backup", folder_setup.project_dir / "backup", noclobber=False)
 
     app = QApplication([])
     font = app.font()
@@ -52,8 +55,6 @@ def main():
                           Qt.WindowType.FramelessWindowHint)
     splash.show()
 
-    folder_setup.cleanup_temp_folders()
-    folder_setup.create_required_folders()
     prepare_working_copy()
 
     window = ParticleManagerGUI(tf_directory)
@@ -83,7 +84,7 @@ def main():
     window.show()
 
     app.exec()
-    folder_setup.cleanup_temp_folders()
+    delete(folder_setup.temp_dir, not_exist_ok=True)
 
 def run():
     import core.migrations
@@ -103,12 +104,14 @@ def run():
     def fmt_time(t: datetime.datetime) -> str:
         return t.strftime('[%Y-%m-%d %H:%M:%S]')
 
+    folder_setup.log_file.parent.mkdir(parents=True, exist_ok=True)
+
     verbose = False
     logging.basicConfig(
         level=(verbose and logging.DEBUG or logging.INFO),
         format='%(message)s',
         datefmt=fmt_time,
-        handlers=[logging.FileHandler(folder_setup.project_dir / 'casual-pre-loader.log', mode='a', encoding='utf-8'), stream_handler],
+        handlers=[logging.FileHandler(folder_setup.log_file, mode='a', encoding='utf-8'), stream_handler],
     )
 
     main()
