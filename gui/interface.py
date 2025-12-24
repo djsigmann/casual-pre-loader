@@ -17,15 +17,20 @@ from core.constants import (
 )
 from core.folder_setup import folder_setup
 from core.handlers.file_handler import FileHandler, copy_config_files, generate_config
+from core.handlers.paint_handler import disable_paints, enable_paints
 from core.handlers.pcf_handler import (
     check_parents,
+    get_parent_elements,
     restore_particle_files,
     update_materials,
 )
-from core.handlers.paint_handler import disable_paints, enable_paints
 from core.handlers.skybox_handler import handle_skybox_mods, restore_skybox_files
 from core.handlers.sound_handler import SoundHandler
-from core.operations.file_processors import game_type, get_from_custom_dir
+from core.operations.file_processors import (
+    game_type,
+    get_from_custom_dir,
+    initialize_pcf,
+)
 from core.operations.for_the_love_of_god_add_vmts_to_your_mods import (
     generate_missing_vmt_files,
 )
@@ -79,7 +84,8 @@ class Interface(QObject):
         try:
             working_vpk_path = Path(tf_path) / get_vpk_name(tf_path)
             file_handler = FileHandler(str(working_vpk_path))
-            folder_setup.initialize_pcf()
+            base_default_pcf = initialize_pcf(folder_setup.temp_to_be_referenced_dir)
+            base_default_parents = get_parent_elements(base_default_pcf)
             self.update_progress(0, "Installing addons...")
 
             total_files = 0
@@ -263,12 +269,11 @@ class Interface(QObject):
                     base_name = pcf_file.name
 
                     mod_pcf = PCFFile(pcf_file).decode()
-
-                    if base_name != folder_setup.base_default_pcf.input_file.name and check_parents(mod_pcf, folder_setup.base_default_parents):
+                    if base_name != base_default_pcf.input_file.name and check_parents(mod_pcf, base_default_parents):
                         continue
 
-                    if base_name == folder_setup.base_default_pcf.input_file.name:
-                        mod_pcf = update_materials(folder_setup.base_default_pcf, mod_pcf)
+                    if base_name == base_default_pcf.input_file.name:
+                        mod_pcf = update_materials(base_default_pcf, mod_pcf)
 
                     # process the mod PCF
                     processed_pcf = remove_duplicate_elements(mod_pcf)

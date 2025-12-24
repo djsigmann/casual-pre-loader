@@ -92,8 +92,10 @@ class AdvancedParticleMerger:
         for particle in particles_filter:
             for particle_file_target, elements_to_extract, source_pcf in (
                     rebuild_particle_files(particle, self.particle_map)):
-                output_path = folder_setup.get_output_path(
-                    f"{len(self.vpk_groups[vpk_folder_name][particle_file_target])}_{particle_file_target}")
+                output_path = (
+                    folder_setup.temp_to_be_processed_dir
+                    / f"{len(self.vpk_groups[vpk_folder_name][particle_file_target])}_{particle_file_target}"
+                )
                 output_path.parent.mkdir(parents=True, exist_ok=True)
                 extract_elements(source_pcf, elements_to_extract).encode(output_path)
                 self.vpk_groups[vpk_folder_name][particle_file_target].append(output_path)
