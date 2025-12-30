@@ -1,76 +1,104 @@
-import json
 import logging
-import shutil
 import socket
+import tempfile
+import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
 
-from packaging import version
-
-from core.constants import REMOTE_REPO
 from core.folder_setup import folder_setup
-from core.util.repo import Update
-from core.util.repo.github import get_releases_with_asset
+from core.util.file import move
 
 log = logging.getLogger()
 
 
-def check_mods() -> Update | None:
-    modsinfo = None
-    try:
-        with (folder_setup.project_dir / 'modsinfo.json').open('r') as fd:
-            modsinfo = json.load(fd)
-    except FileNotFoundError:
-        pass
-    except json.JSONDecodeError:
-        log.exception(f'Could not parse {folder_setup.modsinfo_file}') # INFO: ignore this error and act as if the file didn't exist at all
-
-    # NOTE: How files are packaged
-    # The preloader itself in:
-    # - `casual-preloader.zip`
-    # We also maintain a collection of mods (some of which were originally authored by 3rd parties but modified and distributed with permission). They're highly-recommended.
-    # - `mods.zip`
-
-    # INFO:
-    # At certain points, the collection of mods was bundled with the preloader itself in the following files:
-    # - `cukei_particle_preload.zip`
-    # - `casual-particle-preloader.zip`
-    # - `casual-preloader.zip`
-    # The preloader was at one point released in two separate distribuitions, one with and one without the mods:
-    # - `casual-preloader-full.zip`
-    # - `casual-preloader-light.zip`
-    # - There was also a time where the mods were kept in a zip file checked into the VCS...yeah, ~80 MB...
-
-    for update in get_releases_with_asset(REMOTE_REPO, 'mods.zip'):
-        if modsinfo:
-            if update.asset.digest == modsinfo["digest"]:
-                log.info(f'We already have the latest release of mods ({update.version})')
-                return
-
-            if not update.version > version.parse(modsinfo["tag"]):
-                log.info(f"We already have the latest release of mods ({update.version}), but the remote file differs")
-        else:
-            log.info(f'A new release of mods is available ({update.version})')
-
-        return update
+Reporthook = Callable[[int, float, float], None]
 
 
-def download_file(url: str, path: Path, timeout: Optional[int] = None, reporthook=None) -> None:
+def download_file(url: str, path: Path, timeout: Optional[int] = None, reporthook: Optional[Reporthook] = None, noclobber: Optional[bool] = False) -> None:
+    """
+    Download a file to a temporary location, then move it into the destination.
+
+    Args:
+        url: URL to download.
+        path: Path to move the downloaded file to. Parent directories are created as needed.
+        timeout: Timeout in seconds.
+        reporthook: Function to call when reporting download progress.
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
+    """
+
+    folder_setup.temp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_file = tempfile.NamedTemporaryFile(prefix=path.name[:128], suffix='.part', dir=folder_setup.temp_dir, delete_on_close=False)
+    tmp_path = Path(tmp_file.name)
+
     old_timeout = socket.getdefaulttimeout()
 
     try:
         socket.setdefaulttimeout(timeout)
 
-        tmp_path = folder_setup.temp_download_dir / f"{path.name}"
-
-        tmp_path.parent.mkdir(parents=True, exist_ok=True)
+        log.debug(f'downloading {url} -> {tmp_path}')
         urllib.request.urlretrieve(url, tmp_path, reporthook)
 
-        path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(tmp_path, path)
-
+        tmp_file.close()
+        move(tmp_path, path, noclobber=noclobber)
     except Exception as e:
         raise Exception(f'Error downloading file\n{url} -> {path}') from e
     finally:
         socket.setdefaulttimeout(old_timeout)
+
+        try: # cleanup the tempfile
+            with tmp_file:
+                pass
+        except ValueError:
+            pass
+
+
+def download_file_to_dir(url: str, dir: Path, timeout: Optional[int] = None, reporthook: Optional[Reporthook] = None, noclobber: Optional[bool] = False) -> Path:
+    """
+    Download a file to a temporary location, then move it into the destination, retaining its original filename.
+
+    Args:
+        url: URL to download.
+        dir: Directory to download the file to. Parent directories are created as needed.
+        timeout: Timeout in seconds.
+        reporthook: Function to call when reporting download progress.
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
+
+    Returns:
+        The final output Path.
+    """
+
+    path = dir / Path(urllib.parse.urlparse(url).path).name
+    download_file(url, path, timeout, reporthook, noclobber)
+    return path
+
+def download_reporthook(
+    set_value: Optional[Callable[[int], None]] = None,
+    process: Optional[Callable[[None], None]] = None,
+    was_canceled: Optional[Callable[[None], bool]] = None
+) -> Reporthook:
+    """
+    Accepts multiple optional callbacks and returns a function using them that is compaticle with the `reporthook` argument of `urllib.request.urlretrieve()`.
+
+    Args:
+        set_value: Callback to update progress value.
+        process: Callback to process progress updates.
+        was_canceled: Callback to check if the operation was canceled.
+
+    Returns:
+        A function that is compatible with the `reporthook` argument of `urllib.request.urlretrieve()'.
+    """
+
+    def func(block_num: int, block_size: float, total_size: float) -> None:
+        if was_canceled and was_canceled():
+            raise Exception('Download cancelled by user')
+
+        if set_value and total_size > 0:
+            percent = int((block_num * block_size / total_size) * 100)
+            set_value(min(percent, 99))
+
+            if process:
+                process()
+
+    return func

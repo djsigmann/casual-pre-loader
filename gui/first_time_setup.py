@@ -1,7 +1,6 @@
 import json
-import os
+import logging
 import shutil
-import zipfile
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -24,8 +23,10 @@ from PyQt6.QtWidgets import (
 )
 
 from core.folder_setup import folder_setup
-from core.util.net import check_mods, download_file
+from core.download_mods import check_mods, download_mods
 from gui.settings_manager import SettingsManager, auto_detect_tf2, validate_tf_directory
+
+log = logging.getLogger()
 
 
 class FirstTimeSetupDialog(QDialog):
@@ -380,43 +381,9 @@ def download_cueki_mods(parent=None, button=None):
         progress.show()
         QApplication.processEvents()
 
-        def download_progress(block_num, block_size, total_size):
-            if progress.wasCanceled():
-                raise Exception("Download cancelled by user")
-            if total_size > 0:
-                percent = int((block_num * block_size / total_size) * 100)
-                progress.setValue(min(percent, 99))
-                QApplication.processEvents()
-
         update = check_mods()
-        if update is not None:
-            mods_file = folder_setup.temp_dir / update.asset.name
-
-            download_file(update.asset.browser_download_url, mods_file, 10, download_progress)
-
-            progress.setLabelText("Extracting mods...")
-            progress.setValue(99)
-            QApplication.processEvents()
-
-            # extract mods
-            try:
-                with zipfile.ZipFile(mods_file, 'r') as zip_ref:
-                    dir = folder_setup.mods_dir
-                    for file in zip_ref.infolist():
-                        if file.is_dir() and file.filename == 'mods/':
-                            dir = folder_setup.project_dir
-                            break
-
-                    dir.mkdir(parents=True, exist_ok=True)
-                    zip_ref.extractall(dir)
-
-                with (folder_setup.project_dir / 'modsinfo.json').open('w') as fd:
-                    json.dump({'tag': update.release.tag_name, 'digest': update.asset.digest}, fd)
-
-            finally:
-                mods_file.unlink()
-
-        progress.setValue(100)
+        if update:
+            download_mods(update, progress.setValue, progress.setLabelText, QApplication.processEvents, progress.wasCanceled)
         progress.close()
 
         # refresh main window if not called from first time setup
@@ -427,33 +394,27 @@ def download_cueki_mods(parent=None, button=None):
 
         QMessageBox.information(
             parent,
-            "Download Complete",
+            'Download Complete',
             update and "cueki's mods have been successfully downloaded and installed!" or "cueki's mods are already installed and up to date!"
         )
 
-        # re-enable button
-        if button:
-            button.setEnabled(True)
-            button.setText(original_text)
-            button.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
-
         return True
-
     except Exception as e:
+        log.exception(e)
+
         if progress:
             progress.close()
 
-        if "cancelled" not in str(e).lower():
+        if 'cancelled' not in str(e).lower():
             QMessageBox.critical(
                 parent,
-                "Download Failed",
-                f"Failed to download mods:\n{str(e)}\n\n"
+                'Download Failed',
+                f"Failed to download cueki's mods:\n{str(e)}\n\n"
             )
 
-        # re-enable button
-        if button:
+        return False
+    finally:
+        if button: # re-enable button
             button.setEnabled(True)
             button.setText(original_text)
             button.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
-
-        return False
