@@ -12,6 +12,7 @@ import core.migrations
 from core.auto_updater import check_for_updates
 from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
+from core.util.file import copy
 from core.version import VERSION
 from gui.first_time_setup import check_first_time_setup, run_first_time_setup
 from gui.main_window import ParticleManagerGUI
@@ -28,6 +29,7 @@ def main():
     log.info(f'Version {VERSION} on {platform}')
 
     core.migrations.migrate()
+    copy(folder_setup.install_dir / "backup", folder_setup.project_dir / "backup", noclobber=False)
 
     app = QApplication([])
     font = app.font()

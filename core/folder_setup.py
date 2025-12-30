@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 from dataclasses import dataclass, field
@@ -14,8 +13,6 @@ from valve_parsers import PCFFile
 from core.are_we_portable import portable
 from core.constants import PROGRAM_AUTHOR, PROGRAM_NAME
 from core.handlers.pcf_handler import get_parent_elements
-
-log = logging.getLogger()
 
 
 @dataclass
@@ -35,8 +32,6 @@ class FolderConfig:
         # default non-portable values
         project_dir = Path(platformdirs.user_data_dir(PROGRAM_NAME, PROGRAM_AUTHOR))
         settings_dir = Path(platformdirs.user_config_dir(PROGRAM_NAME, PROGRAM_AUTHOR))
-
-        shutil.copytree(install_dir / "backup", project_dir / "backup", dirs_exist_ok=True)
 
     base_default_pcf: Optional[PCFFile] = field(default=None)
     base_default_parents: Optional[set[str]] = field(default=None)
