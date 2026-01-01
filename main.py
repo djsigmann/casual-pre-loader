@@ -95,8 +95,10 @@ def main():
 def run():
     try:
         from rich.logging import RichHandler
+        from rich.traceback import install
 
         stream_handler = RichHandler(rich_tracebacks=True)
+        install(show_locals=True)
     except ModuleNotFoundError:
         stream_handler = logging.StreamHandler()
 
