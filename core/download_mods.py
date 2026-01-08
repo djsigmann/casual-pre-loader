@@ -1,5 +1,7 @@
 import json
 import logging
+from collections.abc import Callable
+from typing import Optional
 
 from packaging import version
 
@@ -14,6 +16,13 @@ log = logging.getLogger()
 
 
 def check_mods() -> Update | None:
+    """
+    Check if a new modpack update is available for download.
+
+    Returns:
+        The most recent non-downloaded update if any.
+    """
+
     # NOTE: How files are packaged
     # The preloader itself in:
     # - `casual-preloader.zip`
@@ -53,13 +62,32 @@ def check_mods() -> Update | None:
         return update
 
 
-def download_mods(update: Update, set_value = None, set_label = None, process = None, was_canceled = None) -> None:
+def download_mods(
+    update: Update,
+    set_value: Optional[Callable[[int], None]] = None,
+    set_label: Optional[Callable[[str], None]] = None,
+    process: Optional[Callable[[None], None]] = None,
+    was_canceled: Optional[Callable[[None], bool]] = None
+) -> None:
+    """
+    Download a modpack update.
+
+    The `set_value`, `process`, and `was_canceled` arguments are passed to `core.util.net.download_reporthook()`.
+
+    Args:
+        update: The update to download.
+        set_value: Callback to update progress value.
+        set_label: Callback to update text label.
+        process: Callback to process progress and label updates.
+        was_canceled: Callback to check if the operation was canceled.
+    """
+
     # INFO:
     # the archive containing the mods has the same structure as `folder_setup.mods_dir`.
     # Its contents are wrapped in a `mods/` directory.
 
     archive_path = folder_setup.temp_dir / update.asset.name
-    download_file(update.asset.browser_download_url, archive_path, 10, download_reporthook(set_value, set_label, process, was_canceled))
+    download_file(update.asset.browser_download_url, archive_path, 10, download_reporthook(set_value, process, was_canceled))
 
     set_label("Extracting mods")
     set_value(99)
