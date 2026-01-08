@@ -9,10 +9,19 @@ from core.util.file import PathLike, pathify
 
 log = logging.getLogger()
 
+_Filter = Callable[[ZipFilePath], Callable[[ZipFilePath], bool]]
 
 # NOTE: Fuck this shit
 
+
 def _sanitize_path(member: ZipFilePath) -> None:
+    """
+    Sanitize a `zipfile.Path` object in-place.
+
+    Args:
+        member: A `zipfile.Path`` object.
+    """
+
     member.at = member.at.replace('/../', '/')
     if member.at.startswith('../'):
         member.at = member.at.ltrim('.')
@@ -22,6 +31,15 @@ def _sanitize_path(member: ZipFilePath) -> None:
 
 
 def _extract_member_to(member: ZipFilePath, path: Path, root: ZipFilePath) -> None:
+    """
+    Extract a single member of a  zipfile.
+
+    Args:
+        member: The member to extract.
+        path: The root destination to extract it to.
+        root: The relative root of the member. This is used to get the actual destination path of the member.
+    """
+
     _sanitize_path(member)
     path /= member.relative_to(root)
 
@@ -33,7 +51,18 @@ def _extract_member_to(member: ZipFilePath, path: Path, root: ZipFilePath) -> No
             fd.write(member.read_bytes())
 
 
-def _apply_filter(_filter: Callable, root: ZipFilePath):
+def _apply_filter(_filter: _Filter | None, root: ZipFilePath) -> Iterable[ZipFilePath]:
+    """
+    Applies an optional filter-function-returning function to a relative root and applies that to to all members under `root`.
+
+    Args:
+        _filter: A function that returns a filter function.
+        root: The relative root to use.
+
+    Returns:
+        An iterable of valid members.
+    """
+
     members = root.glob('**')
     if _filter:
         members = filter(_filter(root), members)
@@ -42,11 +71,21 @@ def _apply_filter(_filter: Callable, root: ZipFilePath):
 
 def _extract(
     zip_ref: ZipFile,
-    dst: Optional[PathLike] = None,
+    dst: PathLike,
     strip: Optional[int] = 0,
     noclobber: Optional[bool] = False,
-    _filter: Optional[Callable[[str, list[str]], Iterable]] = None,
+    _filter: Optional[_Filter] = None,
 ) -> None:
+    """
+    Extract a zip file.
+
+    Args:
+        zip_ref: A `zipfile.ZipFile` object.
+        dst: The destination path.
+        strip: How many leading directories to strip when extracting.
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
+        _filter: A function that returns a filter function.
+    """
     try:
         dst.mkdir(parents=True, exist_ok=True)
         if noclobber and len(tuple(dst.iterdir())):
@@ -78,11 +117,22 @@ def _extract(
 
 def extract(
     zip_file: Union[PathLike, ZipFile],
-    dst: Optional[PathLike] = None,
+    dst: PathLike,
     strip: Optional[int] = 0,
     noclobber: Optional[bool] = False,
     _filter: Optional[Callable[[str, list[str]], Iterable]] = None,
 ) -> None:
+    """
+    Extract a zip file.
+
+    Args:
+        zip_ref: A `zipfile.ZipFile` object or a path-like object pointing to a zip file.
+        dst: The destination path.
+        strip: How many leading directories to strip when extracting.
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
+        _filter: A function that returns a filter function.
+    """
+
     dst = pathify(dst)
 
     if isinstance(zip_file, ZipFile):
