@@ -12,7 +12,7 @@ from core.folder_setup import folder_setup
 from core.util.file import copy, delete
 from core.util.net import download_file
 from core.util.repo import Update
-from core.util.repo.github import get_releases_with_asset
+from core.util.repo.github_api import get_releases_with_asset
 from core.util.zip import extract
 from core.version import VERSION
 
