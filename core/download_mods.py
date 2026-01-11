@@ -9,7 +9,7 @@ from core.constants import REMOTE_REPO
 from core.folder_setup import folder_setup
 from core.util.net import download_file, download_reporthook
 from core.util.repo import Update
-from core.util.repo.github import get_releases_with_asset
+from core.util.repo.github_api import get_releases_with_asset
 from core.util.zip import extract
 
 log = logging.getLogger()
