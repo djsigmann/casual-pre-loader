@@ -1,11 +1,11 @@
 # GUI
-PyQt6>=6.8.0
+PyQt6~=6.8
 
 # core
-more-itertools~=10.8.0
+more-itertools~=10.8
 packaging~=25.0
-platformdirs
-PyGithub>=2.8.0
-requests~=2.32.5
-rich
+platformdirs~=4.5
+PyGithub~=2.8
+requests~=2.32
+rich~=14.2
 valve-parsers>=1.0.7
