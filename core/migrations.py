@@ -3,8 +3,32 @@ from functools import partial
 from itertools import starmap
 from pathlib import Path
 
+from more_itertools import consume
+
 from core.folder_setup import folder_setup
-from core.util.file import delete, move
+from core.util.file import delete, modeset_add, move
+
+__all__ = ('migrate',)
+
+"""
+This module has a single function, `migrate()`, that ensures that old files are cleaned up or moved into new locations.
+This is so that if we change things, users will have a (hopefully) seamless expereince.
+
+For instance, let's say we write to a directory, `/dir/subdir`, but we decide that it'd be better to call it `/dir/subdir2`.
+We'd add an entry in this file to move `/dir/subdir` to `dir/subdir2`, commit that, and generate a new minor (or major) release.
+
+Generating a new release would technically not be strictly necessary,
+but assuming that users make use of the auto-updater, they won't end up with broken program/data/config files.
+The auto-updater repeatedly updates to the next non-downloaded minor/major release and calls `migrate()`,
+meaning that we can remove all old migrations from `migrate()` every time we generate a new release.
+
+Now, granted, users using a rolling-release package manager, like, say, pacman, copuld still end up with broken files,
+since there is no way to tell pacman to update to update to only the next version instead of the latest,
+nor could we tell pacman to run the program in between those updates.
+Technically, programs like `downgrade` exist, or users could mnaually grab old packages, but this is irrelevant to AUR packages anyway.
+ALl this aside, arch users should usually be expected to have some knowledge about the programs they run and the packages they install,
+so I'd say this is a tolerable shortcoming.
+"""
 
 # Files and folders to delete
 DELETE_PORTABLE: list[Path] = [
@@ -28,8 +52,10 @@ MOVE_PORTABLE: list[tuple[Path, Path]] = []
 MOVE: list[tuple[Path, Path]] = []
 
 # Files and folders to set the mode of
-MODE: dict[int, list[Path]] = {}
-MODE_PORTABLE: dict[int, list[Path]] = {
+MODESET: dict[int, list[Path]] = {}
+MODESET_PORTABLE: dict[int, list[Path]] = {}
+MODESET_ADD: dict[int, list[Path]] = {}
+MODESET_ADD_PORTABLE: dict[int, list[Path]] = {
     # set executable bit
     stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR: [
         folder_setup.install_dir / 'main.py',
@@ -41,18 +67,34 @@ MODE_PORTABLE: dict[int, list[Path]] = {
 }
 
 
+def _map(*args, **kwargs):
+    return consume(map(*args, **kwargs))
+
+
+def _starmap(*args, **kwargs):
+    return consume(starmap(*args, **kwargs))
+
+
+def _modeset(mode: int, files: list[Path]) -> None:
+    _map(lambda file: file.exists() and file.chmod(mode), files)
+
+
+def _modeset_add(mode: int, files: list[Path]) -> None:
+    _map(lambda file: file.exists() and modeset_add(file, mode), files)
+
+
+_delete = partial(delete, not_exist_ok=True)
+_move = partial(move, not_exist_ok=True)
+
+
 def migrate():
-    def modeset(mode: int, files: list[Path]) -> None:
-        map(lambda file: file.exists() and file.chmod(mode), files)
-
-    _delete = partial(delete, not_exist_ok=True)
-    _move = partial(move, not_exist_ok=True)
-
     if folder_setup.portable:
-        map(_delete, DELETE_PORTABLE)
-        starmap(_move, MOVE_PORTABLE)
-        starmap(modeset, MODE_PORTABLE.items())
+        _map(_delete, DELETE_PORTABLE)
+        _starmap(_move, MOVE_PORTABLE)
+        _starmap(_modeset, MODESET_PORTABLE.items())
+        _starmap(_modeset_add, MODESET_ADD_PORTABLE.items())
 
-    map(_delete, DELETE)
-    starmap(_move, MOVE)
-    starmap(modeset, MODE.items())
+    _map(_delete, DELETE)
+    _starmap(_move, MOVE)
+    _starmap(_modeset, MODESET.items())
+    _starmap(_modeset_add, MODESET_ADD.items())

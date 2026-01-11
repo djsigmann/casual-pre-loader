@@ -29,6 +29,7 @@ def main():
     log.info(f'Version {VERSION} on {platform}')
 
     core.migrations.migrate()
+    del core.migrations
     copy(folder_setup.install_dir / "backup", folder_setup.project_dir / "backup", noclobber=False)
 
     app = QApplication([])
