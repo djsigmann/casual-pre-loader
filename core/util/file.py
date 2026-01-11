@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import stat
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional, Sequence, Union
@@ -184,3 +185,58 @@ def move(
         return dst
     except Exception as e:
         raise Exception(f'Error moving\n{src} -> {dst}') from e
+
+
+def format_mode(mode: int) -> str:
+    """
+    Formats a file permission mode into a human-readble representation (e.g. rwxrwxrwx).
+
+    Args:
+        mode: The mode bits to format.
+
+    Returns:
+        A human-readble representation of mode bits.
+    """
+
+    ret = ''
+
+    ret += 'r' if mode & stat.S_IRUSR else '-'
+    ret += 'w' if mode & stat.S_IWUSR else '-'
+    ret += 'x' if mode & stat.S_IXUSR else '-'
+
+    ret += 'r' if mode & stat.S_IRGRP else '-'
+    ret += 'w' if mode & stat.S_IWGRP else '-'
+    ret += 'x' if mode & stat.S_IXGRP else '-'
+
+    ret += 'r' if mode & stat.S_IROTH else '-'
+    ret += 'w' if mode & stat.S_IWOTH else '-'
+    ret += 'x' if mode & stat.S_IXOTH else '-'
+
+    return ret
+
+
+def modeset_add(file: Path, mode: int, not_exist_ok: Optional[bool] = False) -> None:
+    """
+    Additively changes a file's mode bits.
+
+    Args:
+        file: The file to operate on.
+        mode: The mode bitwise OR with the file's mode.
+        not_exist_ok: Do not throw an error if the file does not exist.
+    """
+
+    try:
+        if not_exist_ok and file.exists():
+            log.debug(f'Cannot get/set mode for {file} because it does not exist')
+            return
+
+        _mode = file.stat().st_mode
+        _f_mode = format_mode(_mode)
+        log.debug(f'retrived mode {_f_mode} from {file}')
+
+        mode |= _mode
+        f_mode = format_mode(mode)
+        file.chmod(mode)
+        log.debug(f'changed mode from {_f_mode} to {f_mode} for {file}')
+    except Exception as e:
+        raise Exception(f'unable to get/set mode for {file}') from e
