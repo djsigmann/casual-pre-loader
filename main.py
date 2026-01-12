@@ -62,9 +62,7 @@ def main():
 
     window = ParticleManagerGUI(tf_directory)
 
-    # check for updates after first-time setup is complete (only for portable)
-    update_info = None
-    if not check_first_time_setup() and folder_setup.portable:
+    if not check_first_time_setup() and folder_setup.portable: # check for updates after first-time setup is complete (only for portable)
         settings_manager = SettingsManager()
 
         updates = check_for_updates()
@@ -73,10 +71,6 @@ def main():
         if updates and settings_manager.should_show_update_dialog(updates[0].release.tag_name.lstrip('v')):
             splash.hide()
             show_update_dialog(updates) # NOTE: may eventually re-execute the interpreter
-
-    # pass update info to window for display
-    if update_info:
-        window.update_info = update_info
 
     # set icon for Windows
     if platform == 'win32':

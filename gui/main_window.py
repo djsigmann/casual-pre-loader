@@ -266,13 +266,12 @@ class SettingsDialog(QDialog):
 
 
 class ParticleManagerGUI(QMainWindow):
-    def __init__(self, tf_directory=None, update_info=None):
+    def __init__(self, tf_directory=None):
         super().__init__()
         # store initial tf directory from first-time setup
         self.simple_mode_action = None
         self.addon_panel = None
         self.initial_tf_directory = tf_directory
-        self.update_info = update_info
 
         # managers
         self.settings_manager = SettingsManager()

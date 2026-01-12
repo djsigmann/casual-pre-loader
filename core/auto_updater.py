@@ -58,7 +58,7 @@ def perform_updates(updates: Optional[tuple[Update]] = None) -> None:
 
         match sys.platform:
             case 'win32':
-                renamed_runme = folder_setup.install__dir / 'RUNME.tmp.bat'
+                renamed_runme = folder_setup.install_dir / 'RUNME.tmp.bat'
 
                 try:
                     extract(archive_path, folder_setup.install_dir / '.tmp_update', 0, False, None)
