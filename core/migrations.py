@@ -22,12 +22,14 @@ but assuming that users make use of the auto-updater, they won't end up with bro
 The auto-updater repeatedly updates to the next non-downloaded minor/major release and calls `migrate()`,
 meaning that we can remove all old migrations from `migrate()` every time we generate a new release.
 
-Now, granted, users using a rolling-release package manager, like, say, pacman, copuld still end up with broken files,
+Now, granted, users using a rolling-release package manager, like, say, pacman, could still end up with broken files,
 since there is no way to tell pacman to update to update to only the next version instead of the latest,
 nor could we tell pacman to run the program in between those updates.
 Technically, programs like `downgrade` exist, or users could mnaually grab old packages, but this is irrelevant to AUR packages anyway.
 ALl this aside, arch users should usually be expected to have some knowledge about the programs they run and the packages they install,
 so I'd say this is a tolerable shortcoming.
+
+`migrate()` only needs to be called once per program execution, so one should run `del core.migrations` afterwards so that the interpreter can gc the module.
 """
 
 # Files and folders to delete
