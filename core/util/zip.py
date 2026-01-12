@@ -24,9 +24,9 @@ def _sanitize_path(member: ZipFilePath) -> None:
 
     member.at = member.at.replace('/../', '/')
     if member.at.startswith('../'):
-        member.at = member.at.ltrim('.')
+        member.at = member.at.lstrip('.')
     if member.at.endswith('/..'):
-        member.at = member.at.rtrim('.')
+        member.at = member.at.rstrip('.')
     member.at = member.at.lstrip('/')
 
 
@@ -120,7 +120,7 @@ def extract(
     dst: PathLike,
     strip: Optional[int] = 0,
     noclobber: Optional[bool] = False,
-    _filter: Optional[Callable[[str, list[str]], Iterable]] = None,
+    _filter: Optional[_Filter] = None,
 ) -> None:
     """
     Extract a zip file.
