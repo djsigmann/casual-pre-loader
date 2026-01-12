@@ -22,7 +22,7 @@ but assuming that users make use of the auto-updater, they won't end up with bro
 The auto-updater repeatedly updates to the next non-downloaded minor/major release and calls `migrate()`,
 meaning that we can remove all old migrations from `migrate()` every time we generate a new release.
 
-Now, granted, users using a rolling-release package manager, like, say, pacman, could still end up with broken files,
+Granted, users using a rolling-release package manager, e.g. pacman, or users using `git` directly could still end up with broken files,
 since there is no way to tell pacman to update to only the next version instead of the latest,
 nor could we tell pacman to run the program in between those updates.
 Technically, programs like `downgrade` exist, or users could mnaually grab old packages, but this is irrelevant to AUR packages anyway.
