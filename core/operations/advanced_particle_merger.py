@@ -124,7 +124,7 @@ class AdvancedParticleMerger:
 
             if elements_we_still_need:
                 game_file_path = folder_setup.temp_to_be_referenced_dir / particle_group
-                game_file_path.parent.mkdir(parents=True, exist_ok=True) # INFO: technically not necessary, but PCFFile does not check if `input_file` exists, let alone its parent dir
+                game_file_path.parent.mkdir(parents=True, exist_ok=True)
                 game_file_in = PCFFile(game_file_path).decode()
                 game_elements = extract_elements(game_file_in, elements_we_still_need)
 
