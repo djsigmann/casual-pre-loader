@@ -189,7 +189,7 @@ def move(
 
 def format_mode(mode: int) -> str:
     """
-    Formats a file permission mode into a human-readble representation (e.g. rwxrwxrwx).
+    Format a file permission mode into a human-readable representation (e.g. rwxrwxrwx).
 
     Args:
         mode: The mode bits to format.
@@ -217,7 +217,7 @@ def format_mode(mode: int) -> str:
 
 def modeset_add(file: Path, mode: int, not_exist_ok: Optional[bool] = False) -> None:
     """
-    Additively changes a file's mode bits.
+    Additively change a file's mode bits.
 
     Args:
         file: The file to operate on.
@@ -226,7 +226,7 @@ def modeset_add(file: Path, mode: int, not_exist_ok: Optional[bool] = False) -> 
     """
 
     try:
-        if not_exist_ok and file.exists():
+        if not_exist_ok and not file.exists():
             log.debug(f'Cannot get/set mode for {file} because it does not exist')
             return
 
