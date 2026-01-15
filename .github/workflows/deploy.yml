@@ -1,5 +1,5 @@
 # based on `https://github.com/purrbot-site/Docs/blob/master/.github/workflows/deploy.yml`
-name: Deploy Site
+name: Build and deploy Docs
 
 on:
   push:
@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-docs:
     runs-on: ubuntu-latest
 
     steps:
