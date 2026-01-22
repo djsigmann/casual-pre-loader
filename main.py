@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import datetime
 import logging
 from sys import platform
 
@@ -8,9 +7,21 @@ from core.folder_setup import folder_setup
 from core.util.file import delete
 from core.version import VERSION
 
-log = logging.getLogger()
 
-def main():
+def log_start() -> None:
+    from core.config import config
+
+    logging.info(f'Version {VERSION} on {platform} {"(portable)" if config.portable else ""}')
+    logging.info(f'Application files are located in {config.install_dir}')
+    logging.info(f'Project files are written to {config.project_dir}')
+    logging.info(f'Settings files are in {config.settings_dir}')
+    logging.info(f'Log is written to {config.log_file}')
+
+    logging.debug('DEBUG OUTPUT HAS BEEN ENABLED')
+
+
+#TODO: move to `gui/` and reorganize
+def gui() -> int:
     from PyQt6.QtCore import Qt
     from PyQt6.QtGui import QIcon, QPixmap
     from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
@@ -23,12 +34,6 @@ def main():
     from gui.theme import GLOBAL_STYLESHEET
     from gui.update_dialog import show_update_dialog
 
-    log.info(f'Version {VERSION} on {platform} {"(portable)" if folder_setup.portable else ""}')
-    log.info(f'Application files are located in {folder_setup.install_dir}')
-    log.info(f'Project files are written to {folder_setup.project_dir}')
-    log.info(f'Settings files are in {folder_setup.settings_dir}')
-    log.info(f'Log is written to {folder_setup.log_file}')
-
     app = QApplication([])
     app.setStyle("Fusion")
     app.setStyleSheet(GLOBAL_STYLESHEET)
@@ -36,7 +41,7 @@ def main():
     setup_error = prepare_runtime_environment()
     if setup_error:
         QMessageBox.critical(None, "Preloader Setup Failed", setup_error)
-        return
+        return 1
 
     # first-time setup
     tf_directory = None
@@ -44,7 +49,7 @@ def main():
         tf_directory = run_first_time_setup()
         if tf_directory is None:
             # user cancelled setup
-            return
+            return 1
 
     # splash screen
     splash_pixmap = QPixmap('gui/icons/cueki_splash.png')
@@ -81,41 +86,35 @@ def main():
     elif platform == 'linux':
         window.setWindowIcon(QIcon(str(folder_setup.install_dir / 'gui/icons/cueki_icon.svg')))
     else:
-        log.warning(f"We don't know how to set an icon for platform type: {platform}")
+        logging.warning(f"We don't know how to set an icon for platform type: {platform}")
 
     splash.finish(window)
     window.show()
 
     app.exec()
     delete(folder_setup.temp_dir, not_exist_ok=True)
+    return 0
 
-def run():
-    try:
-        from rich.logging import RichHandler
-        from rich.traceback import install
+def main():
+    from rich.logging import RichHandler
+    from rich.traceback import install
 
-        stream_handler = RichHandler(rich_tracebacks=True)
-        install(show_locals=True)
-    except ModuleNotFoundError:
-        stream_handler = logging.StreamHandler()
+    logger = logging.getLogger()
 
-    def fmt_time(t: datetime.datetime) -> str:
-        return t.strftime('[%Y-%m-%d %H:%M:%S]')
+    handler = RichHandler(rich_tracebacks=True)
+    handler.setFormatter(logging.Formatter(datefmt='[%Y-%m-%d %H:%M:%S]'))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
-    folder_setup.log_file.parent.mkdir(parents=True, exist_ok=True)
+    from core.config import config, subcommand
 
-    verbose = False
-    logging.basicConfig(
-        level=(verbose and logging.DEBUG or logging.INFO),
-        format='%(message)s',
-        datefmt=fmt_time,
-        handlers=[logging.FileHandler(folder_setup.log_file, mode='a', encoding='utf-8'), stream_handler],
-    )
+    install(show_locals=config.verbose, max_frames=(not config.verbose and 100 or 0 )) # install the rich traceback handler
 
-    import core.migrations
-    core.migrations.migrate()
+    config.log_file.parent.mkdir(parents=True, exist_ok=True)
+    logger.addHandler(logging.FileHandler(config.log_file, mode='a', encoding='utf-8'))
+    logger.setLevel(config.verbose and logging.DEBUG or logging.INFO),
 
-    main()
+    raise SystemExit(subcommand(config))
 
 if __name__ == "__main__":
-    run()
+    main()
