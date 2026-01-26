@@ -194,7 +194,7 @@ class ModDropZone(QFrame):
                 validation_result = self.validator.validate_folder(path_obj)
                 if not self.validate_and_show_warnings(validation_result, path_obj.name):
                     continue
-                dropped_items.append(item_path)
+                dropped_items.append(path_obj)
             elif item_path.lower().endswith('.zip'):
                 # ZIP file
                 if path_obj.name.count('.') > 1:
@@ -206,7 +206,7 @@ class ModDropZone(QFrame):
                 validation_result = self.validator.validate_zip(path_obj)
                 if not self.validate_and_show_warnings(validation_result, path_obj.stem):
                     continue
-                dropped_items.append(item_path)
+                dropped_items.append(path_obj)
             elif item_path.lower().endswith('.vpk'):
                 # VPK file
                 if path_obj.name.count('.') > 1:
@@ -214,7 +214,7 @@ class ModDropZone(QFrame):
                                         f"File '{path_obj.name}' contains multiple periods.\n\n"
                                         f"Please rename the file and try again.")
                     continue
-                vpk_paths.append(item_path)
+                vpk_paths.append(path_obj)
             else:
                 QMessageBox.warning(self, "Unsupported File Type",
                                     f"File type not supported: {path_obj.name}\n\n"
@@ -227,9 +227,9 @@ class ModDropZone(QFrame):
         if not dropped_items:
             return
 
-        has_vpk = any(item.lower().endswith('.vpk') for item in dropped_items)
-        has_zip = any(item.lower().endswith('.zip') for item in dropped_items)
-        has_folder = any(Path(item).is_dir() for item in dropped_items)
+        has_vpk = any(item.suffix.lower() == '.vpk' for item in dropped_items)
+        has_zip = any(item.suffix.lower() == '.zip' for item in dropped_items)
+        has_folder = any(item.is_dir() for item in dropped_items)
 
         if has_vpk and has_zip and has_folder:
             dialog_title = "Processing Mixed Items"
