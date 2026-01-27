@@ -9,8 +9,6 @@ from more_itertools import consume
 from core.folder_setup import folder_setup
 from core.util.file import delete, modeset, modeset_add, move
 
-__all__ = ('migrate',)
-
 """
 This module has a single function, `migrate()`, that ensures that old files are cleaned up or moved into new locations.
 This is so that if we change things, users will have a (hopefully) seamless expereince.
