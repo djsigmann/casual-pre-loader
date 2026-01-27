@@ -1,6 +1,6 @@
-from valve_parsers import PCFElement, PCFFile
+from valve_parsers import PCFElement, PCFFile, AttributeType
 
-from core.constants import ATTRIBUTE_DEFAULTS, ELEMENT_DEFAULTS, AttributeType
+from core.constants import ATTRIBUTE_DEFAULTS, ELEMENT_DEFAULTS
 
 
 

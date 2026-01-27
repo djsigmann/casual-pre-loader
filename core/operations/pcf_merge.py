@@ -1,8 +1,6 @@
 import logging
 
-from valve_parsers import PCFElement, PCFFile
-
-from core.constants import AttributeType
+from valve_parsers import PCFElement, PCFFile, AttributeType
 
 log = logging.getLogger()
 

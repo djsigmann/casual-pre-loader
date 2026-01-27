@@ -2,9 +2,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Set
 
-from valve_parsers import PCFElement, PCFFile
-
-from core.constants import AttributeType
+from valve_parsers import PCFElement, PCFFile, AttributeType
 
 
 def load_particle_system_map(map_path: str) -> Dict[str, List[str]]:
