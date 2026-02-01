@@ -82,10 +82,10 @@ ERR=false
 		printf 'Your version of python (%s) is out of date, the minimum required version is Python 3.11\n' \
 			"$(python3 -V)" | err
 
-	! python3 -m pip --version >/dev/null 2>&1 && ERR=true &&
-		dep_missing pip | err
+	! python3 -m ensurepip --version >/dev/null 2>&1 && ERR=true &&
+		dep_missing ensurepip | err
 
-	! python3 -c 'import venv, ensurepip' 2>/dev/null && ERR=true &&
+	! python3 -c 'import venv' 2>/dev/null && ERR=true &&
 		dep_missing 'python3-venv' | err
 
 	! ${ERR}
@@ -128,6 +128,7 @@ if [ -f 'requirements.txt' ]; then
 	fi
 
 	printf '%s\n' 'Installing and/or updating dependencies' | info
+	python3 -m ensurepip
 	python3 -m pip -q install --upgrade pip
 	python3 -m pip -q install --upgrade -r requirements.txt
 fi
