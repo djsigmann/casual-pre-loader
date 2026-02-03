@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
 
 from core.auto_updater import perform_updates
 from core.settings import SettingsManager
+from gui.theme import SUCCESS
 
 log = logging.getLogger()
 
@@ -110,7 +111,7 @@ class UpdateDialog(QDialog):
 
         self.update_button = QPushButton("Update Now")
         self.update_button.clicked.connect(self.start_update)
-        self.update_button.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; }")
+        self.update_button.setStyleSheet(f"QPushButton {{ background-color: {SUCCESS}; color: white; font-weight: bold; }}")
         button_layout.addWidget(self.update_button)
 
         layout.addLayout(button_layout)

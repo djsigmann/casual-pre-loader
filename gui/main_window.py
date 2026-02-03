@@ -5,22 +5,21 @@ import threading
 from pathlib import Path
 from sys import platform
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import (
     QCheckBox,
-    QDialog,
-    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QProgressDialog,
     QPushButton,
-    QStyle,
-    QTabWidget,
+    QScrollArea,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -31,278 +30,87 @@ from core.services.conflicts import scan_for_legacy_conflicts
 from core.version import VERSION
 from gui.addons_manager import AddonsManager
 from gui.addon_panel import AddonPanel
-from gui.drag_and_drop import ModDropZone
-from gui.first_time_setup import mods_download_group
-from gui.interface import Interface
-from core.settings import SettingsManager
-from core.util.sourcemod import (
-    auto_detect_goldrush,
-    auto_detect_tf2,
-    validate_goldrush_directory,
-    validate_tf_directory,
+from gui.mod_drop_zone import ModDropZone
+from gui.first_time_setup import download_cueki_mods
+from gui.install_controller import InstallController
+from gui.profile_dialog import ProfileDialog
+from gui.theme import (
+    BG_DEFAULT, CODE_BG, FG_DEFAULT, FG_LIGHTER, FG_MUTED,
+    FONT_SIZE_HEADER, FONT_SIZE_NORMAL, FONT_SIZE_SMALL, PRIMARY,
+    BUTTON_STYLE, DANGER_BUTTON_STYLE, PROFILE_ADD_BUTTON_STYLE,
+    PROFILE_BUTTON_STYLE, SIDEBAR_NAV_STYLE,
 )
+from core.settings import SettingsManager
 
 log = logging.getLogger()
 
 
-class SettingsDialog(QDialog):
+class SidebarNav(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ok_button = None
-        self.validation_label = None
-        self.browse_button = None
-        self.tf_path_edit = None
-        self.goldrush_validation_label = None
-        self.goldrush_browse_button = None
-        self.goldrush_path_edit = None
-        self.console_checkbox = None
-        self.suppress_updates_checkbox = None
-        self.skip_launch_popup_checkbox = None
-        self.disable_paint_checkbox = None
-        self.tf_directory = ""
-        self.goldrush_directory = ""
-
-        self.setWindowTitle("Settings")
-        self.setMinimumSize(500, 625)
-        self.setModal(True)
-
-        # get current tf/ directory from parent's install manager
-        if hasattr(parent, 'install_manager') and parent.install_manager.tf_path:
-            self.tf_directory = parent.install_manager.tf_path
-
-        # get current goldrush directory from parent's settings manager
-        if hasattr(parent, 'settings_manager'):
-            self.goldrush_directory = parent.settings_manager.get_goldrush_directory()
-
-        self.setup_ui()
-
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
-
-        # tf/ Directory Group
-        tf_group = QGroupBox("TF2 Directory")
-        tf_layout = QVBoxLayout()
-
-        # directory display
-        current_label = QLabel("Current TF2 directory:")
-        tf_layout.addWidget(current_label)
-
-        # directory selection
-        dir_layout = QHBoxLayout()
-        self.tf_path_edit = QLineEdit()
-        self.tf_path_edit.setReadOnly(True)
-        self.tf_path_edit.setText(self.tf_directory)
-        self.tf_path_edit.setPlaceholderText("No TF2 directory selected...")
-
-        self.browse_button = QPushButton("Browse...")
-        self.browse_button.clicked.connect(self.browse_tf_dir)
-
-        dir_layout.addWidget(self.tf_path_edit)
-        dir_layout.addWidget(self.browse_button)
-        tf_layout.addLayout(dir_layout)
-
-        # auto-detect button
-        auto_detect_tf_button = QPushButton("Auto-Detect TF2")
-        auto_detect_tf_button.clicked.connect(self.auto_detect_tf2_dir)
-        tf_layout.addWidget(auto_detect_tf_button)
-
-        # validation
-        self.validation_label = QLabel("")
-        self.validation_label.setWordWrap(True)
-        tf_layout.addWidget(self.validation_label)
-
-        tf_group.setLayout(tf_layout)
-        layout.addWidget(tf_group)
-
-        # validate initial directory
-        if self.tf_directory:
-            validate_tf_directory(self.tf_directory, self.validation_label)
-
-        # Gold Rush stuff - maybe change this
-        goldrush_group = QGroupBox("Gold Rush Directory (Optional)")
-        goldrush_layout = QVBoxLayout()
-
-        goldrush_label = QLabel("TF2 Gold Rush mod directory:")
-        goldrush_layout.addWidget(goldrush_label)
-
-        # directory selection
-        goldrush_dir_layout = QHBoxLayout()
-        self.goldrush_path_edit = QLineEdit()
-        self.goldrush_path_edit.setReadOnly(True)
-        self.goldrush_path_edit.setText(self.goldrush_directory)
-        self.goldrush_path_edit.setPlaceholderText("No Gold Rush directory selected...")
-
-        self.goldrush_browse_button = QPushButton("Browse...")
-        self.goldrush_browse_button.clicked.connect(self.browse_goldrush_dir)
-
-        goldrush_dir_layout.addWidget(self.goldrush_path_edit)
-        goldrush_dir_layout.addWidget(self.goldrush_browse_button)
-        goldrush_layout.addLayout(goldrush_dir_layout)
-
-        # auto-detect button
-        auto_detect_gr_button = QPushButton("Auto-Detect Gold Rush")
-        auto_detect_gr_button.clicked.connect(self.auto_detect_goldrush_dir)
-        goldrush_layout.addWidget(auto_detect_gr_button)
-
-        # validation
-        self.goldrush_validation_label = QLabel("")
-        self.goldrush_validation_label.setWordWrap(True)
-        goldrush_layout.addWidget(self.goldrush_validation_label)
-
-        goldrush_group.setLayout(goldrush_layout)
-        layout.addWidget(goldrush_group)
-
-        # validate initial goldrush directory
-        if self.goldrush_directory:
-            validate_goldrush_directory(self.goldrush_directory, self.goldrush_validation_label)
-
-        # mods download group
-        layout.addWidget(mods_download_group(self))
-
-        # preloader settings group
-        preloader_group = QGroupBox("Preloader Settings")
-        preloader_layout = QVBoxLayout()
-
-        self.console_checkbox = QCheckBox("Enable TF2 console on startup")
-        self.suppress_updates_checkbox = QCheckBox("Suppress update notifications")
-        self.skip_launch_popup_checkbox = QCheckBox("Suppress launch options reminder")
-        self.disable_paint_checkbox = QCheckBox("Disable paint colors on cosmetics")
-
-        # load current settings from parent's settings_manager
-        parent_widget = self.parent()
-        if parent_widget and hasattr(parent_widget, 'settings_manager'):
-            self.console_checkbox.setChecked(parent_widget.settings_manager.get_show_console_on_startup())
-            self.suppress_updates_checkbox.setChecked(parent_widget.settings_manager.get_suppress_update_notifications())
-            self.skip_launch_popup_checkbox.setChecked(parent_widget.settings_manager.get_skip_launch_options_popup())
-            self.disable_paint_checkbox.setChecked(parent_widget.settings_manager.get_disable_paint_colors())
-        else:
-            # defaults
-            self.console_checkbox.setChecked(True)
-            self.suppress_updates_checkbox.setChecked(False)
-            self.skip_launch_popup_checkbox.setChecked(False)
-            self.disable_paint_checkbox.setChecked(False)
-
-        preloader_layout.addWidget(self.console_checkbox)
-        preloader_layout.addWidget(self.suppress_updates_checkbox)
-        preloader_layout.addWidget(self.skip_launch_popup_checkbox)
-        preloader_layout.addWidget(self.disable_paint_checkbox)
-
-        preloader_group.setLayout(preloader_layout)
-        layout.addWidget(preloader_group)
-        layout.addStretch()
-
-        # buttons with version in bottom left
-        button_layout = QHBoxLayout()
-        version_label = QLabel(f"Version: {VERSION}")
-        version_label.setStyleSheet("color: gray;")
-        button_layout.addWidget(version_label)
-        button_layout.addStretch()
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_button)
-
-        self.ok_button = QPushButton("OK")
-        self.ok_button.clicked.connect(self.save_and_accept)
-        button_layout.addWidget(self.ok_button)
-        layout.addLayout(button_layout)
-
-    def browse_tf_dir(self):
-        directory = QFileDialog.getExistingDirectory(self, "Select tf/ Directory")
-        if directory:
-            self.tf_directory = directory
-            self.tf_path_edit.setText(directory)
-            validate_tf_directory(directory, self.validation_label)
-
-    def browse_goldrush_dir(self):
-        directory = QFileDialog.getExistingDirectory(self, "Select tf_goldrush/ Directory")
-        if directory:
-            self.goldrush_directory = directory
-            self.goldrush_path_edit.setText(directory)
-            validate_goldrush_directory(directory, self.goldrush_validation_label)
-
-    def auto_detect_tf2_dir(self):
-        path = auto_detect_tf2()
-        if path:
-            self.tf_directory = path
-            self.tf_path_edit.setText(path)
-            validate_tf_directory(path, self.validation_label)
-            QMessageBox.information(self, "Auto-Detection Successful", f"Found TF2 installation at:\n{path}")
-        else:
-            QMessageBox.information(self, "Auto-Detection Failed",
-                                    "Could not automatically detect TF2 installation.\n"
-                                    "Please manually select your tf/ directory.")
-
-    def auto_detect_goldrush_dir(self):
-        path = auto_detect_goldrush()
-        if path:
-            self.goldrush_directory = path
-            self.goldrush_path_edit.setText(path)
-            validate_goldrush_directory(path, self.goldrush_validation_label)
-            QMessageBox.information(self, "Auto-Detection Successful", f"Found Gold Rush installation at:\n{path}")
-        else:
-            QMessageBox.information(self, "Auto-Detection Failed",
-                                    "Could not automatically detect Gold Rush installation.\n"
-                                    "Please manually select your tf_goldrush/ directory.")
-
-    def get_tf_directory(self):
-        return self.tf_directory
-
-    def get_goldrush_directory(self):
-        return self.goldrush_directory
-
-    def get_show_console_on_startup(self):
-        return self.console_checkbox.isChecked()
-
-    def get_suppress_update_notifications(self):
-        return self.suppress_updates_checkbox.isChecked()
-
-    def get_skip_launch_options_popup(self):
-        return self.skip_launch_popup_checkbox.isChecked()
-
-    def get_disable_paint_colors(self):
-        return self.disable_paint_checkbox.isChecked()
-
-    def save_and_accept(self):
-        self.accept()
+        self.setIconSize(QSize(20, 20))
+        self.setSpacing(2)
+        self.setStyleSheet(SIDEBAR_NAV_STYLE)
 
 
 class ParticleManagerGUI(QMainWindow):
     def __init__(self, tf_directory=None):
         super().__init__()
-        # store initial tf directory from first-time setup
-        self.simple_mode_action = None
-        self.addon_panel = None
         self.initial_tf_directory = tf_directory
 
         # managers
         self.settings_manager = SettingsManager()
         self.addon_manager = AddonsManager(self.settings_manager)
-        self.install_manager = Interface(self.settings_manager)
+        self.install_manager = InstallController(self.settings_manager)
 
         # UI components
-        self.restore_button = None
-        self.install_button = None
-        self.addons_list = None
-        self.addon_description = None
         self.progress_dialog = None
         self.mod_drop_zone: ModDropZone | None = None
+        self.addon_panel: AddonPanel | None = None
+        self.addons_list = None
+        self.addon_description = None
+        self.install_button = None
+        self.download_mods_button = None
+        self.nav_list = None
+        self.content_stack = None
+        self.profile_add_btn = None
 
-        # setup UI and connect signals
+        # settings page widgets
+        self.console_checkbox = None
+        self.suppress_updates_checkbox = None
+        self.skip_launch_popup_checkbox = None
+        self.disable_paint_checkbox = None
+        self.restore_button = None
+        self.current_profile_label = None
+
+        # profile UI
+        self.profile_btn = None
+        self.profile_menu = None
+
+        # simple mode toggle
+        self.simple_mode_btn = None
+
+        # setup
         self.setWindowTitle("cukei's casual pre-loader :)")
         self.setMinimumSize(1200, 700)
         self.resize(1200, 700)
         self.setAcceptDrops(True)
-        self.setup_menu_bar()
         self.setup_ui()
         self.setup_signals()
 
-        # load initial data
+        # ensure a profile exists (first-time setup creates tf_directory but not profile)
         if self.initial_tf_directory:
-            # set tf/ directory from first-time setup and save it
-            self.install_manager.set_tf_path(self.initial_tf_directory)
-            self.settings_manager.set_tf_directory(self.initial_tf_directory)
-        else:
-            self.load_tf_directory()
+            profiles = self.settings_manager.get_profiles()
+            if not profiles:
+                self.settings_manager.create_profile("TF2", self.initial_tf_directory)
+            else:
+                # set the active profile's game_path if needed
+                active = self.settings_manager.get_active_profile()
+                if active and not active.game_path:
+                    self.settings_manager.set_tf_directory(self.initial_tf_directory)
+
+        # load initial data
+        self.load_tf_directory()
 
         # migrate old particle files to new split format
         migrate_old_particle_files()
@@ -311,6 +119,7 @@ class ParticleManagerGUI(QMainWindow):
         saved_mode = self.settings_manager.get_simple_particle_mode()
         if saved_mode:
             self.mod_drop_zone.conflict_matrix.set_simple_mode(True)
+        self.update_simple_mode_button()
 
         self.mod_drop_zone.update_matrix()
 
@@ -318,162 +127,414 @@ class ParticleManagerGUI(QMainWindow):
         self.scan_for_mcp_files()
         self.rescan_addon_contents()
 
-        # update install target dropdown based on Gold Rush availability
-        self.update_install_target_dropdown()
+        # update profile selector
+        self.rebuild_profile_menu()
 
         # ensure load order display is updated on startup
         self.update_load_order_display()
 
-
-    def setup_menu_bar(self):
-        menubar = self.menuBar()
-
-        # options menu
-        options_menu = menubar.addMenu("Options")
-
-        # jank simple mode toggle because checkbox breaks formatting
-        saved_mode = self.settings_manager.get_simple_particle_mode()
-        simple_mode_icon = self.style().standardIcon(
-            QStyle.StandardPixmap.SP_DialogYesButton if saved_mode else QStyle.StandardPixmap.SP_DialogNoButton
-        )
-        simple_mode_action = QAction(simple_mode_icon, "Simple Particle Mode", self)
-        simple_mode_action.triggered.connect(self.toggle_particle_mode)
-        options_menu.addAction(simple_mode_action)
-        self.simple_mode_action = simple_mode_action
-
-        # separator
-        options_menu.addSeparator()
-
-        # refresh all
-        refresh_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload)
-        refresh_action = QAction(refresh_icon, "Refresh All", self)
-        refresh_action.triggered.connect(self.refresh_all)
-        options_menu.addAction(refresh_action)
-
-        # open addons folder
-        folder_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon)
-        open_folder_action = QAction(folder_icon, "Open Addons Folder", self)
-        open_folder_action.triggered.connect(self.open_addons_folder)
-        options_menu.addAction(open_folder_action)
-
-        # separator
-        options_menu.addSeparator()
-
-        # settings action
-        settings_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
-        settings_action = QAction(settings_icon, "Settings...", self)
-        settings_action.triggered.connect(self.open_settings_dialog)
-        options_menu.addAction(settings_action)
-
-    def toggle_particle_mode(self):
-        # toggle current state
-        current_state = self.settings_manager.get_simple_particle_mode()
-        new_state = not current_state
-
-        # update icon
-        new_icon = self.style().standardIcon(
-            QStyle.StandardPixmap.SP_DialogYesButton if new_state else QStyle.StandardPixmap.SP_DialogNoButton
-        )
-        self.simple_mode_action.setIcon(new_icon)
-
-        # update mode
-        if self.mod_drop_zone and self.mod_drop_zone.conflict_matrix:
-            self.mod_drop_zone.conflict_matrix.set_simple_mode(new_state)
-        self.settings_manager.set_simple_particle_mode(new_state)
+        # sync settings page with current profile
+        self.sync_settings_page()
 
     def setup_ui(self):
-        # main layout
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
+        central = QWidget()
+        self.setCentralWidget(central)
+        main_layout = QHBoxLayout(central)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
 
-        # tab widget for particles and install
-        tab_widget = QTabWidget()
-        particles_tab = self.setup_particles_tab(tab_widget)
-        tab_widget.addTab(particles_tab, "Particles")
-        install_tab = self.setup_install_tab()
-        tab_widget.addTab(install_tab, "Install")
-        main_layout.addWidget(tab_widget)
+        # --- Sidebar ---
+        sidebar = QWidget()
+        sidebar.setFixedWidth(150)
+        sidebar.setStyleSheet(f"background-color: {CODE_BG};")
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(0, 8, 0, 8)
+        sidebar_layout.setSpacing(0)
 
-    def setup_particles_tab(self, parent):
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
-
-        # mod drop zone
-        self.mod_drop_zone = ModDropZone(self, self.settings_manager, self.rescan_addon_contents)
-        layout.addWidget(self.mod_drop_zone)
-        # don't call update_matrix here - it will be called after setting simple mode in __init__
-
-        # nav buttons
-        nav_container = QWidget()
-        nav_layout = QHBoxLayout(nav_container)
-        nav_layout.setContentsMargins(0, 0, 0, 0)
-
-        # Deselect All
-        deselect_all_button = QPushButton("Deselect All")
-        deselect_all_button.setFixedWidth(100)
-        deselect_all_button.clicked.connect(lambda: self.mod_drop_zone.conflict_matrix.deselect_all())
-        nav_layout.addWidget(deselect_all_button)
+        # nav list
+        self.nav_list = SidebarNav()
+        for name, icon_char in [("Particles", "\u25C6"), ("Addons", "\u25C8"), ("Settings", "\u2699")]:
+            item = QListWidgetItem(f"  {icon_char}  {name}")
+            self.nav_list.addItem(item)
+        self.nav_list.setCurrentRow(0)
+        sidebar_layout.addWidget(self.nav_list)
 
         # spacer
-        nav_layout.addStretch()
+        sidebar_layout.addStretch()
 
-        # next button
-        next_button = QPushButton("Next")
-        next_button.setFixedWidth(100)
-        next_button.clicked.connect(lambda: parent.setCurrentIndex(1))
-        nav_layout.addWidget(next_button)
+        # profile selector
+        profile_group = QWidget()
+        profile_layout = QVBoxLayout(profile_group)
+        profile_layout.setContentsMargins(10, 10, 10, 10)
 
-        layout.addWidget(nav_container)
-        return tab
+        profile_label = QLabel("Profile")
+        profile_label.setStyleSheet(f"color: {FG_MUTED}; font-size: {FONT_SIZE_SMALL};")
+        profile_layout.addWidget(profile_label)
 
-    def setup_install_tab(self):
-        tab = QWidget()
-        layout = QVBoxLayout(tab)
+        profile_row = QHBoxLayout()
+        profile_row.setSpacing(0)
 
-        # addon panel with install buttons
+        self.profile_btn = QPushButton(" TF2")
+        self.profile_btn.setFixedHeight(28)
+        self.profile_btn.setStyleSheet(PROFILE_BUTTON_STYLE)
+        self.profile_menu = QMenu(self)
+        self.profile_btn.setMenu(self.profile_menu)
+        profile_row.addWidget(self.profile_btn, 1)
+
+        self.profile_add_btn = QPushButton("+")
+        self.profile_add_btn.setFixedSize(28, 28)
+        self.profile_add_btn.setStyleSheet(PROFILE_ADD_BUTTON_STYLE)
+        self.profile_add_btn.clicked.connect(self.create_new_profile)
+        profile_row.addWidget(self.profile_add_btn, 0)
+
+        profile_layout.addLayout(profile_row)
+        sidebar_layout.addWidget(profile_group)
+
+        # install button
+        install_container = QWidget()
+        install_layout = QVBoxLayout(install_container)
+        install_layout.setContentsMargins(10, 0, 10, 10)
+
+        self.install_button = QPushButton("Install")
+        self.install_button.setFixedHeight(36)
+        self.install_button.setProperty("primary", True)
+        self.install_button.setStyleSheet(
+            f"background-color: {PRIMARY}; color: white; font-weight: bold; font-size: {FONT_SIZE_NORMAL};"
+        )
+        install_layout.addWidget(self.install_button)
+        sidebar_layout.addWidget(install_container)
+
+        main_layout.addWidget(sidebar, 0)
+
+        self.content_stack = QStackedWidget()
+        self.content_stack.setStyleSheet(f"background-color: {BG_DEFAULT};")
+
+        self.content_stack.addWidget(self.create_particles_page())
+        self.content_stack.addWidget(self.create_addons_page())
+        self.content_stack.addWidget(self.create_settings_page())
+
+        main_layout.addWidget(self.content_stack, 1)
+
+        # nav connection
+        self.nav_list.currentRowChanged.connect(self.content_stack.setCurrentIndex)
+
+    def create_particles_page(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        header = QLabel("Particle Selection")
+        header.setStyleSheet(f"font-size: {FONT_SIZE_HEADER}; font-weight: bold; color: {FG_DEFAULT};")
+        layout.addWidget(header)
+
+        # mod drop zone (contains conflict matrix)
+        self.mod_drop_zone = ModDropZone(self, self.settings_manager, self.rescan_addon_contents)
+        layout.addWidget(self.mod_drop_zone, 1)
+
+        # bottom bar
+        btn_layout = QHBoxLayout()
+
+        deselect_btn = QPushButton("Deselect All")
+        deselect_btn.setStyleSheet(BUTTON_STYLE)
+        deselect_btn.clicked.connect(lambda: self.mod_drop_zone.conflict_matrix.deselect_all())
+        btn_layout.addWidget(deselect_btn)
+
+        btn_layout.addStretch()
+
+        self.simple_mode_btn = QPushButton("Simple Mode: ON")
+        self.simple_mode_btn.setStyleSheet(BUTTON_STYLE)
+        self.simple_mode_btn.setCheckable(True)
+        self.simple_mode_btn.setChecked(True)
+        self.simple_mode_btn.clicked.connect(self.toggle_particle_mode)
+        btn_layout.addWidget(self.simple_mode_btn)
+
+        layout.addLayout(btn_layout)
+        return page
+
+    def create_addons_page(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+        header = QLabel("Addon Management")
+        header.setStyleSheet(f"font-size: {FONT_SIZE_HEADER}; font-weight: bold; color: {FG_DEFAULT};")
+        layout.addWidget(header)
+
+        # addon panel
         self.addon_panel = AddonPanel()
         self.addons_list = self.addon_panel.addons_list
         self.addon_description = self.addon_panel.addon_description
-        self.install_button = self.addon_panel.install_button
-        self.restore_button = self.addon_panel.restore_button
 
-        # linking addon signals to main
         self.addon_panel.delete_button_clicked.connect(self.delete_selected_addons)
         self.addon_panel.addon_selection_changed.connect(self.on_addon_click)
         self.addon_panel.addon_checkbox_changed.connect(self.on_addon_checkbox_changed)
         self.addon_panel.load_order_changed.connect(self.on_load_order_changed)
-        self.addon_panel.target_changed.connect(self.update_restore_button_state)
+        self.addon_panel.open_folder_clicked.connect(self.open_addons_folder)
         self.addon_description.addon_modified.connect(self.load_addons)
 
         layout.addWidget(self.addon_panel)
-        return tab
+        return page
+
+    def create_settings_page(self):
+        page = QWidget()
+        page_layout = QVBoxLayout(page)
+        page_layout.setContentsMargins(20, 20, 20, 20)
+
+        header = QLabel("Settings")
+        header.setStyleSheet(f"font-size: {FONT_SIZE_HEADER}; font-weight: bold; color: {FG_DEFAULT};")
+        page_layout.addWidget(header)
+
+        # scroll area for settings content
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; }")
+
+        scroll_content = QWidget()
+        layout = QVBoxLayout(scroll_content)
+
+        profile_group = QGroupBox("Profile Settings")
+        profile_group_layout = QVBoxLayout(profile_group)
+
+        self.current_profile_label = QLabel("Current profile: TF2")
+        self.current_profile_label.setStyleSheet(f"color: {FG_MUTED};")
+        profile_group_layout.addWidget(self.current_profile_label)
+
+        profile_btn_layout = QHBoxLayout()
+        edit_profile_btn = QPushButton("Edit Profile...")
+        edit_profile_btn.setStyleSheet(BUTTON_STYLE)
+        edit_profile_btn.clicked.connect(self.edit_current_profile)
+        profile_btn_layout.addWidget(edit_profile_btn)
+
+        delete_profile_btn = QPushButton("Delete Profile")
+        delete_profile_btn.setStyleSheet(BUTTON_STYLE)
+        delete_profile_btn.clicked.connect(self.delete_current_profile)
+        profile_btn_layout.addWidget(delete_profile_btn)
+        profile_btn_layout.addStretch()
+        profile_group_layout.addLayout(profile_btn_layout)
+
+        layout.addWidget(profile_group)
+
+        preloader_group = QGroupBox("Preloader Settings")
+        preloader_layout = QVBoxLayout(preloader_group)
+
+        self.console_checkbox = QCheckBox("Enable TF2 console on startup")
+        self.console_checkbox.stateChanged.connect(
+            lambda: self.settings_manager.set_show_console_on_startup(self.console_checkbox.isChecked())
+        )
+        preloader_layout.addWidget(self.console_checkbox)
+
+        self.suppress_updates_checkbox = QCheckBox("Suppress update notifications")
+        self.suppress_updates_checkbox.stateChanged.connect(
+            lambda: self.settings_manager.set_suppress_update_notifications(self.suppress_updates_checkbox.isChecked())
+        )
+        preloader_layout.addWidget(self.suppress_updates_checkbox)
+
+        self.skip_launch_popup_checkbox = QCheckBox("Suppress launch options reminder")
+        self.skip_launch_popup_checkbox.stateChanged.connect(
+            lambda: self.settings_manager.set_skip_launch_options_popup(self.skip_launch_popup_checkbox.isChecked())
+        )
+        preloader_layout.addWidget(self.skip_launch_popup_checkbox)
+
+        self.disable_paint_checkbox = QCheckBox("Disable paint colors on cosmetics")
+        self.disable_paint_checkbox.stateChanged.connect(
+            lambda: self.settings_manager.set_disable_paint_colors(self.disable_paint_checkbox.isChecked())
+        )
+        preloader_layout.addWidget(self.disable_paint_checkbox)
+
+        layout.addWidget(preloader_group)
+
+        # downloads group
+        downloads_group = QGroupBox("Recommended Mods")
+        downloads_layout = QHBoxLayout(downloads_group)
+
+        self.download_mods_button = QPushButton("Download cueki's Mods")
+        self.download_mods_button.setStyleSheet(BUTTON_STYLE)
+        self.download_mods_button.clicked.connect(lambda: download_cueki_mods(self, self.download_mods_button))
+        downloads_layout.addWidget(self.download_mods_button)
+
+        downloads_desc = QLabel("TF2 particles + addons personally fixed to work with this preloader (~77 MB)")
+        downloads_desc.setStyleSheet(f"color: {FG_MUTED};")
+        downloads_desc.setWordWrap(True)
+        downloads_layout.addWidget(downloads_desc, 1)
+
+        layout.addWidget(downloads_group)
+
+        # restore group
+        restore_group = QGroupBox("Restore")
+        restore_layout = QHBoxLayout(restore_group)
+
+        self.restore_button = QPushButton("Restore Game Files")
+        self.restore_button.setStyleSheet(DANGER_BUTTON_STYLE)
+        self.restore_button.clicked.connect(self.start_restore)
+        restore_layout.addWidget(self.restore_button)
+
+        restore_desc = QLabel("Remove all installed mods and restore the game to its original state.")
+        restore_desc.setStyleSheet(f"color: {FG_MUTED};")
+        restore_desc.setWordWrap(True)
+        restore_layout.addWidget(restore_desc, 1)
+
+        layout.addWidget(restore_group)
+
+        layout.addStretch()
+
+        # version label
+        version_label = QLabel(f"Version: {VERSION}")
+        version_label.setStyleSheet(f"color: {FG_LIGHTER};")
+        layout.addWidget(version_label)
+
+        scroll.setWidget(scroll_content)
+        page_layout.addWidget(scroll)
+        return page
 
     def setup_signals(self):
-        # button signals
         self.install_button.clicked.connect(self.start_install)
-        self.restore_button.clicked.connect(self.start_restore)
 
-        # addon signals - handled by addon_panel connections
         self.mod_drop_zone.addon_updated.connect(self.load_addons)
 
-        # installation signals
         self.install_manager.progress_update.connect(self.update_progress)
         self.install_manager.operation_error.connect(self.show_error)
         self.install_manager.operation_success.connect(self.show_success)
         self.install_manager.operation_finished.connect(self.on_operation_finished)
 
+    def toggle_particle_mode(self):
+        current_state = self.settings_manager.get_simple_particle_mode()
+        new_state = not current_state
+
+        if self.mod_drop_zone and self.mod_drop_zone.conflict_matrix:
+            self.mod_drop_zone.conflict_matrix.set_simple_mode(new_state)
+        self.settings_manager.set_simple_particle_mode(new_state)
+        self.update_simple_mode_button()
+
+    def update_simple_mode_button(self):
+        is_simple = self.settings_manager.get_simple_particle_mode()
+        self.simple_mode_btn.blockSignals(True)
+        self.simple_mode_btn.setChecked(is_simple)
+        self.simple_mode_btn.setText(f"Simple Mode: {'ON' if is_simple else 'OFF'}")
+        self.simple_mode_btn.blockSignals(False)
+
+    def rebuild_profile_menu(self):
+        self.profile_menu.clear()
+        profiles = self.settings_manager.get_profiles()
+        active = self.settings_manager.get_active_profile()
+
+        for p in profiles:
+            action = self.profile_menu.addAction(p.name)
+            action.triggered.connect(lambda checked, pid=p.id: self.switch_profile(pid))
+
+        if active:
+            self.profile_btn.setText(f" {active.name}")
+
+    def switch_profile(self, profile_id):
+        active = self.settings_manager.get_active_profile()
+        if active and active.id == profile_id:
+            return
+
+        # save current state
+        load_order = self.addon_panel.get_load_order()
+        self.settings_manager.set_addon_selections(load_order)
+
+        # switch
+        self.settings_manager.set_active_profile(profile_id)
+
+        new_profile = self.settings_manager.get_active_profile()
+        if new_profile:
+            self.profile_btn.setText(f" {new_profile.name}")
+
+            # update install manager path
+            self.install_manager.set_tf_path(new_profile.game_path)
+
+            # reload addons (different selections per profile)
+            self.load_addons()
+
+            # reload conflict matrix (simple mode may differ per profile)
+            new_simple = self.settings_manager.get_simple_particle_mode()
+            if self.mod_drop_zone and self.mod_drop_zone.conflict_matrix:
+                self.mod_drop_zone.conflict_matrix.set_simple_mode(new_simple)
+            self.update_simple_mode_button()
+            self.mod_drop_zone.update_matrix()
+
+            # sync settings page
+            self.sync_settings_page()
+
+            self.update_load_order_display()
+
+    def create_new_profile(self):
+        dialog = ProfileDialog(self)
+        if dialog.exec():
+            name = dialog.get_name()
+            game_path = dialog.get_game_path()
+            game_target = dialog.get_game_target()
+            profile = self.settings_manager.create_profile(name, game_path, game_target)
+            self.rebuild_profile_menu()
+            self.switch_profile(profile.id)
+
+    def edit_current_profile(self):
+        active = self.settings_manager.get_active_profile()
+        if not active:
+            return
+        dialog = ProfileDialog(self, name=active.name, game_path=active.game_path, game_target=active.game_target)
+        if dialog.exec():
+            self.settings_manager.update_profile(
+                active.id,
+                name=dialog.get_name(),
+                game_path=dialog.get_game_path(),
+                game_target=dialog.get_game_target(),
+            )
+            self.rebuild_profile_menu()
+
+            # update path if changed
+            updated = self.settings_manager.get_active_profile()
+            if updated:
+                self.install_manager.set_tf_path(updated.game_path)
+                self.sync_settings_page()
+
+    def delete_current_profile(self):
+        active = self.settings_manager.get_active_profile()
+        if not active:
+            return
+        profiles = self.settings_manager.get_profiles()
+        if len(profiles) <= 1:
+            QMessageBox.warning(self, "Cannot Delete", "You must have at least one profile.")
+            return
+        result = QMessageBox.question(
+            self, "Delete Profile",
+            f"Delete profile '{active.name}'? This cannot be undone.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if result == QMessageBox.StandardButton.Yes:
+            self.settings_manager.delete_profile(active.id)
+            self.rebuild_profile_menu()
+            new_active = self.settings_manager.get_active_profile()
+            if new_active:
+                self.switch_profile(new_active.id)
+
+    def sync_settings_page(self):
+        active = self.settings_manager.get_active_profile()
+        if not active:
+            return
+
+        self.current_profile_label.setText(f"Current profile: {active.name}")
+
+        # block signals while syncing checkboxes
+        for cb in [self.console_checkbox, self.suppress_updates_checkbox,
+                    self.skip_launch_popup_checkbox, self.disable_paint_checkbox]:
+            cb.blockSignals(True)
+
+        self.console_checkbox.setChecked(self.settings_manager.get_show_console_on_startup())
+        self.suppress_updates_checkbox.setChecked(self.settings_manager.get_suppress_update_notifications())
+        self.skip_launch_popup_checkbox.setChecked(self.settings_manager.get_skip_launch_options_popup())
+        self.disable_paint_checkbox.setChecked(self.settings_manager.get_disable_paint_colors())
+
+        for cb in [self.console_checkbox, self.suppress_updates_checkbox,
+                    self.skip_launch_popup_checkbox, self.disable_paint_checkbox]:
+            cb.blockSignals(False)
+
+        self.update_restore_button_state()
 
     def load_tf_directory(self):
         tf_dir = self.settings_manager.get_tf_directory()
         if tf_dir and Path(tf_dir).exists():
             self.install_manager.set_tf_path(tf_dir)
-            self.update_restore_button_state()
-
-    def update_install_target_dropdown(self):
-        goldrush_dir = self.settings_manager.get_goldrush_directory()
-        goldrush_available = bool(goldrush_dir and Path(goldrush_dir).exists())
-        self.addon_panel.update_target_options(goldrush_available)
 
     def load_addons(self):
         self.addon_manager.service.scan_addon_contents()
@@ -481,14 +542,11 @@ class ParticleManagerGUI(QMainWindow):
         self.apply_saved_addon_selections()
 
     def refresh_all(self):
-        # refresh both particles and addons
         self.mod_drop_zone.update_matrix()
         self.load_addons()
 
     def get_selected_addons(self):
-        # get addons from load order list (which preserves user's drag-drop order)
         load_order = self.addon_panel.get_load_order()
-
         file_paths = []
         for name in load_order:
             if name in self.addon_manager.addons_file_paths:
@@ -496,7 +554,6 @@ class ParticleManagerGUI(QMainWindow):
         return file_paths
 
     def on_addon_click(self):
-        # when user clicks an addon, show its description
         try:
             selected_items = self.addons_list.selectedItems()
             if selected_items:
@@ -510,38 +567,26 @@ class ParticleManagerGUI(QMainWindow):
                     self.addon_description.clear()
             else:
                 self.addon_description.clear()
-
         except Exception:
             log.exception("Error in on_addon_click")
 
     def on_addon_checkbox_changed(self):
-        # when checkboxes change, update load order and save
         try:
-            # update load order list with numbering and conflicts
             self.update_load_order_display()
-
-            # save load order
             load_order = self.addon_panel.get_load_order()
             self.settings_manager.set_addon_selections(load_order)
-
         except Exception:
             log.exception("Error in on_addon_checkbox_changed")
 
     def on_load_order_changed(self):
-        # when user drags to reorder, update display and save
         try:
-            # update numbering and conflicts for new order
             self.update_load_order_display()
-
-            # save the new order
             load_order = self.addon_panel.get_load_order()
             self.settings_manager.set_addon_selections(load_order)
-
         except Exception:
             log.exception("Error in on_load_order_changed")
 
     def update_load_order_display(self):
-        # delegate to load order panel
         addon_contents = self.settings_manager.get_addon_contents()
         addon_name_mapping = self.addon_manager.addons_file_paths
         self.addon_panel.load_order_panel.update_display(addon_contents, addon_name_mapping)
@@ -551,27 +596,22 @@ class ParticleManagerGUI(QMainWindow):
         if not saved_selections:
             return
 
-        # block signals temporarily
         self.addons_list.blockSignals(True)
 
-        # apply saved checkbox states
         item_map = {}
         for i in range(self.addons_list.count()):
             item = self.addons_list.item(i)
             if item and item.flags() & Qt.ItemFlag.ItemIsUserCheckable:
                 item_map[item.text()] = item
 
-        # only include addons that still exist
         valid_selections = []
         for addon_name in saved_selections:
             if addon_name in item_map:
                 item_map[addon_name].setCheckState(Qt.CheckState.Checked)
                 valid_selections.append(addon_name)
 
-        # restore load order with only valid addons
         self.addon_panel.load_order_panel.restore_order(valid_selections)
 
-        # save the selections if any were removed
         if len(valid_selections) != len(saved_selections):
             self.settings_manager.set_addon_selections(valid_selections)
 
@@ -584,16 +624,14 @@ class ParticleManagerGUI(QMainWindow):
             return
 
         custom_dir = Path(tf_path) / 'custom'
-
-        # use conflicts service to scan for legacy MCP files
         found_conflicts = scan_for_legacy_conflicts(custom_dir)
 
         if found_conflicts:
-            conflict_list = "\n• ".join(found_conflicts)
+            conflict_list = "\n\u2022 ".join(found_conflicts)
             QMessageBox.warning(
                 self,
                 "Conflicting Files Detected",
-                f"The following items in your custom folder may conflict with this method:\n\n• {conflict_list}\n\nIt's recommended to remove these to avoid issues."
+                f"The following items in your custom folder may conflict with this method:\n\n\u2022 {conflict_list}\n\nIt's recommended to remove these to avoid issues."
             )
 
     def show_launch_options_popup(self):
@@ -624,33 +662,24 @@ class ParticleManagerGUI(QMainWindow):
     def start_install(self):
         selected_addons = self.get_selected_addons()
 
-        # warn if no addons selected
         if not selected_addons:
             result = QMessageBox.question(
-                self,
-                "No Addons Selected",
-                "No addons selected. Continue?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                self, "No Addons Selected", "No addons selected. Continue?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
-
             if result != QMessageBox.StandardButton.Yes:
                 return
 
-        # determine target path based on dropdown selection
-        selected_target = self.addon_panel.get_selected_target()
-        if selected_target == "goldrush":
-            target_path = self.settings_manager.get_goldrush_directory()
-            target_name = "Gold Rush"
-        else:
-            target_path = self.install_manager.tf_path
-            target_name = "TF2"
-
+        target_path = self.install_manager.tf_path
         if not target_path:
-            log.error(f"No {target_name} directory configured!", stack_info=True)
-            self.show_error(f"No {target_name} directory configured!")
+            log.error("No game directory configured!", stack_info=True)
+            self.show_error("No game directory configured! Set it in Settings.")
             return
 
         self.set_processing_state(True)
+
+        active = self.settings_manager.get_active_profile()
+        target_name = active.name if active else "game"
 
         self.progress_dialog = QProgressDialog(f"Installing to {target_name}...", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Installing")
@@ -663,23 +692,26 @@ class ParticleManagerGUI(QMainWindow):
         self.install_manager.install(selected_addons, self.mod_drop_zone, target_path)
 
     def start_restore(self):
-        # determine target path based on dropdown selection
-        selected_target = self.addon_panel.get_selected_target()
-        if selected_target == "goldrush":
-            target_path = self.settings_manager.get_goldrush_directory()
-            target_name = "Gold Rush"
-        else:
-            target_path = self.install_manager.tf_path
-            target_name = "TF2"
-
+        target_path = self.install_manager.tf_path
         if not target_path:
-            log.error(f"No {target_name} directory configured!", stack_info=True)
-            self.show_error(f"No {target_name} directory configured!")
+            log.error("No game directory configured!", stack_info=True)
+            self.show_error("No game directory configured!")
+            return
+
+        active = self.settings_manager.get_active_profile()
+        target_name = active.name if active else Path(target_path).name
+
+        result = QMessageBox.question(
+            self,
+            "Confirm Restore",
+            f"This will revert all changes made to {target_name} by this app.\nAre you sure?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if result != QMessageBox.StandardButton.Yes:
             return
 
         if self.install_manager.uninstall(target_path):
             self.set_processing_state(True)
-
             self.progress_dialog = QProgressDialog(f"Restoring {target_name}...", None, 0, 100, self)
             self.progress_dialog.setWindowTitle("Restoring")
             self.progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
@@ -688,13 +720,7 @@ class ParticleManagerGUI(QMainWindow):
             self.progress_dialog.show()
 
     def update_restore_button_state(self):
-        # check based on selected target
-        selected_target = self.addon_panel.get_selected_target()
-        if selected_target == "goldrush":
-            target_path = self.settings_manager.get_goldrush_directory()
-        else:
-            target_path = self.install_manager.tf_path
-
+        target_path = self.install_manager.tf_path
         is_modified = self.install_manager.is_modified(target_path)
         self.restore_button.setEnabled(is_modified)
 
@@ -739,11 +765,9 @@ class ParticleManagerGUI(QMainWindow):
         if success is None:
             return
         elif success:
-            # remove deleted addons from saved load order
             current_load_order = self.settings_manager.get_addon_selections()
             updated_load_order = [name for name in current_load_order if name not in deleted_addon_names]
             self.settings_manager.set_addon_selections(updated_load_order)
-
             self.load_addons()
         else:
             log.error(message, stack_info=True)
@@ -765,28 +789,6 @@ class ParticleManagerGUI(QMainWindow):
         except Exception:
             log.exception("Failed to open addons folder")
             self.show_error("Failed to open addons folder")
-
-    def open_settings_dialog(self):
-        dialog = SettingsDialog(self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            # update TF directory if changed
-            new_tf_dir = dialog.get_tf_directory()
-            if new_tf_dir and new_tf_dir != self.install_manager.tf_path:
-                self.install_manager.set_tf_path(new_tf_dir)
-                self.settings_manager.set_tf_directory(new_tf_dir)
-                self.update_restore_button_state()
-                self.scan_for_mcp_files()
-
-            # update Gold Rush directory
-            new_goldrush_dir = dialog.get_goldrush_directory()
-            self.settings_manager.set_goldrush_directory(new_goldrush_dir)
-            self.update_install_target_dropdown()
-
-            # update preloader settings
-            self.settings_manager.set_show_console_on_startup(dialog.get_show_console_on_startup())
-            self.settings_manager.set_suppress_update_notifications(dialog.get_suppress_update_notifications())
-            self.settings_manager.set_skip_launch_options_popup(dialog.get_skip_launch_options_popup())
-            self.settings_manager.set_disable_paint_colors(dialog.get_disable_paint_colors())
 
     def dragEnterEvent(self, event):
         if hasattr(self, 'mod_drop_zone') and self.mod_drop_zone:

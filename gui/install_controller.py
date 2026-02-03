@@ -1,17 +1,15 @@
 import logging
 import threading
-from pathlib import Path
 
 from PyQt6.QtCore import QObject, pyqtSignal
-from PyQt6.QtWidgets import QMessageBox
 
 from core.services.install import InstallService
-from core.util.sourcemod import validate_goldrush_directory, validate_tf_directory
+from core.util.sourcemod import validate_game_directory
 
 log = logging.getLogger()
 
 
-class Interface(QObject):
+class InstallController(QObject):
     progress_update = pyqtSignal(int, str)
     operation_error = pyqtSignal(str)
     operation_success = pyqtSignal(str)
@@ -90,10 +88,7 @@ class Interface(QObject):
     def install(self, selected_addons: list[str], mod_drop_zone=None, target_path=None):
         install_path = target_path if target_path else self.tf_path
 
-        if Path(install_path).name == "tf_goldrush":
-            is_valid = validate_goldrush_directory(install_path)
-        else:
-            is_valid = validate_tf_directory(install_path)
+        is_valid = validate_game_directory(install_path)
 
         if not is_valid:
             self.operation_error.emit("Invalid target directory!")
@@ -122,22 +117,11 @@ class Interface(QObject):
             self.operation_finished.emit()
 
     def uninstall(self, target_path=None):
+        """Start uninstall operation. Caller should confirm with user first."""
         restore_path = target_path if target_path else self.tf_path
 
         if not restore_path:
             self.operation_error.emit("Please select a target directory!")
-            return False
-
-        target_name = "Gold Rush" if Path(restore_path).name == "tf_goldrush" else "TF2"
-
-        result = QMessageBox.question(
-            None,
-            "Confirm Uninstall",
-            f"This will revert all changes that have been made to {target_name} by this app.\nAre you sure?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-
-        if result != QMessageBox.StandardButton.Yes:
             return False
 
         self.processing = True
