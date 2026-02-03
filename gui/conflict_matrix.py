@@ -2,6 +2,7 @@ import logging
 import webbrowser
 
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -9,6 +10,7 @@ from PyQt6.QtWidgets import (
     QHeaderView,
     QPushButton,
     QTableWidget,
+    QTableWidgetItem,
     QWidget,
 )
 
@@ -17,6 +19,7 @@ from core.services.particles import (
     calculate_particle_availability,
     expand_group_selections,
 )
+from gui.theme import BG_DEFAULT, BUTTON_STYLE_ALT, CODE_BG, FONT_SIZE_NORMAL
 
 log = logging.getLogger()
 
@@ -24,9 +27,9 @@ log = logging.getLogger()
 class ConflictMatrix(QTableWidget):
     def __init__(self, settings_manager=None):
         super().__init__()
-        self.setStyleSheet("QTableWidget { border: 1px solid #ccc; }")
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self.settings_manager = settings_manager
         self.mod_urls = {}
@@ -172,54 +175,55 @@ class ConflictMatrix(QTableWidget):
         self._setup_matrix_cells(mods, pcf_files)
 
     def _setup_matrix_cells(self, mods, columns):
-        # make vertical header interactive
-        self.verticalHeader().setStyleSheet("""
-            QHeaderView::section {
-                background-color: lightgray;
-                border-style: outset;
-                border-width: 2px;
-                border-color: gray;
-                color: black;
-            }
-            QHeaderView::section:hover {
-                color: blue;
-                text-decoration: underline;
-                background-color: #e0e0e0;
-            }
-        """)
-
         saved_checkboxes_to_check = []
         saved_selections = self.load_selections()
 
+        # first pass: create Select All buttons and set up alternating column colors
         for row, mod in enumerate(mods):
-            select_all_widget = QWidget()
-            select_all_layout = QHBoxLayout(select_all_widget)
-            select_all_layout.setContentsMargins(0, 0, 0, 0)
-
-            select_all_button = QPushButton("Select All (0/0)")
-            select_all_button.setFixedWidth(102)
+            select_all_button = QPushButton("Select All")
+            select_all_button.setStyleSheet(BUTTON_STYLE_ALT + f"QPushButton {{ padding: 4px 8px; font-size: {FONT_SIZE_NORMAL}; }}")
             select_all_button.clicked.connect(lambda checked=False, r=row: self.select_all_row(r))
-            select_all_layout.addWidget(select_all_button)
-            self.setCellWidget(row, 0, select_all_widget)
+            self.setCellWidget(row, 0, select_all_button)
 
-            # get the particles this mod has
+        # set up alternating column colors for all cells
+        for col in range(self.columnCount()):
+            bg_color = CODE_BG if col % 2 == 0 else BG_DEFAULT
+
+            header_item = self.horizontalHeaderItem(col)
+            if header_item:
+                header_item.setBackground(QColor(bg_color))
+
+            for row in range(self.rowCount()):
+                item = QTableWidgetItem()
+                item.setBackground(QColor(bg_color))
+                item.setFlags(Qt.ItemFlag.NoItemFlags)
+                self.setItem(row, col, item)
+
+        # second pass: add checkboxes only where the mod has that particle/group
+        for row, mod in enumerate(mods):
             mod_particles_set = set(self.mod_particles_cache.get(mod, []))
 
             for col_idx, column_name in enumerate(columns):
                 col = col_idx + 1  # actual table column index (col 0 is Select All)
+
+                # determine if checkbox should exist based on whether mod has this particle/group
+                should_enable, should_check = calculate_particle_availability(
+                    mod, column_name, self.simple_mode, mod_particles_set, saved_selections
+                )
+
+                # only add checkbox if this mod has the particle/group
+                if not should_enable:
+                    continue
+
+                bg_color = CODE_BG if col % 2 == 0 else BG_DEFAULT
+
                 cell_widget = QWidget()
+                cell_widget.setStyleSheet(f"background: {bg_color};")
                 layout = QHBoxLayout(cell_widget)
                 layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 layout.setContentsMargins(0, 0, 0, 0)
 
                 checkbox = self.create_checkbox(row, col)
-
-                # determine if checkbox should be enabled/checked based on whether mod has this particle/group
-                should_enable, should_check = calculate_particle_availability(
-                    mod, column_name, self.simple_mode, mod_particles_set, saved_selections
-                )
-
-                checkbox.setEnabled(should_enable)
 
                 if should_check:
                     saved_checkboxes_to_check.append(checkbox)
@@ -233,7 +237,7 @@ class ConflictMatrix(QTableWidget):
             checkbox.setChecked(True)
             checkbox.blockSignals(False)
 
-        # this is very retarded
+        # defer resize to ensure proper layout
         from PyQt6.QtCore import QTimer
         QTimer.singleShot(0, self.update_select_all_buttons)
 
@@ -292,30 +296,6 @@ class ConflictMatrix(QTableWidget):
             self.update_select_all_buttons()
 
     def update_select_all_buttons(self):
-        for row in range(self.rowCount()):
-            enabled_count = 0
-            selected_count = 0
-
-            for col in range(1, self.columnCount()):
-                cell_widget = self.cellWidget(row, col)
-                if cell_widget:
-                    layout = cell_widget.layout()
-                    if layout and layout.count() > 0:
-                        checkbox = layout.itemAt(0).widget()
-                        if isinstance(checkbox, QCheckBox):
-                            if checkbox.isEnabled():
-                                enabled_count += 1
-                                if checkbox.isChecked():
-                                    selected_count += 1
-
-            select_all_widget = self.cellWidget(row, 0)
-            if select_all_widget:
-                button_layout = select_all_widget.layout()
-                if button_layout and button_layout.count() > 0:
-                     select_all_button = button_layout.itemAt(0).widget()
-                     if isinstance(select_all_button, QPushButton):
-                        select_all_button.setText(f"Select All ({selected_count}/{enabled_count})")
-
         # force the resize to make sure buttons don't eat each other
         self.resizeColumnToContents(0)
         for row in range(self.rowCount()):

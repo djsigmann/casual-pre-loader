@@ -1,8 +1,10 @@
 import logging
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
-    QGroupBox,
+    QFrame,
+    QLabel,
     QListWidget,
     QListWidgetItem,
     QVBoxLayout,
@@ -10,6 +12,7 @@ from PyQt6.QtWidgets import (
 )
 
 from core.services.conflicts import detect_addon_overwrites
+from gui.theme import FONT_SIZE_NORMAL, FRAME_STYLE, SECTION_LABEL_STYLE, WARNING
 
 log = logging.getLogger()
 
@@ -20,31 +23,36 @@ class LoadOrderPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.load_order_list = None
+        self.conflict_label = None
         self.setup_ui()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        load_order_group = QGroupBox("Load Order (Drag to Modify)")
-        load_order_layout = QVBoxLayout()
+        load_order_frame = QFrame()
+        load_order_frame.setStyleSheet(FRAME_STYLE)
+        load_order_layout = QVBoxLayout(load_order_frame)
+
+        load_order_lbl = QLabel("Load Order (Drag to Reorder)")
+        load_order_lbl.setStyleSheet(SECTION_LABEL_STYLE)
+        load_order_layout.addWidget(load_order_lbl)
 
         self.load_order_list = QListWidget()
         self.load_order_list.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         self.load_order_list.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.load_order_list.model().rowsMoved.connect(self.on_load_order_changed)
-
-        # hide selection highlight completely
-        self.load_order_list.setStyleSheet("""
-            QListWidget::item:selected {
-                background: transparent;
-            }
-        """)
+        self.load_order_list.itemClicked.connect(lambda: self.load_order_list.clearSelection())
 
         load_order_layout.addWidget(self.load_order_list)
-        load_order_group.setLayout(load_order_layout)
 
-        layout.addWidget(load_order_group)
+        self.conflict_label = QLabel("Conflicts detected, hover over ⚠ for details")
+        self.conflict_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.conflict_label.setStyleSheet(f"color: {WARNING}; font-size: {FONT_SIZE_NORMAL}; padding: 8px;")
+        self.conflict_label.hide()
+        load_order_layout.addWidget(self.conflict_label)
+
+        layout.addWidget(load_order_frame)
 
     def on_load_order_changed(self):
         self.load_order_changed.emit()
@@ -53,8 +61,8 @@ class LoadOrderPanel(QWidget):
         load_order = []
         for i in range(self.load_order_list.count()):
             text = self.load_order_list.item(i).text()
-            # strip [#N] prefix and ⚠️suffix if present
-            clean_name = text.split('] ', 1)[-1].replace(' ⚠️', '')
+            # strip [#N] prefix and ⚠ suffix if present
+            clean_name = text.split('] ', 1)[-1].replace(' ⚠', '').strip()
             load_order.append(clean_name)
         # reverse the order so that top item is installed last and wins conflicts
         return list(reversed(load_order))
@@ -68,7 +76,7 @@ class LoadOrderPanel(QWidget):
             # collect all items
             for i in range(self.load_order_list.count()):
                 item = self.load_order_list.item(i)
-                load_order_items.append(item.text().split(' [#')[0].split('] ', 1)[-1].replace(' ⚠️', ''))
+                load_order_items.append(item.text().split('] ', 1)[-1].replace(' ⚠', '').strip())
 
             # rebuild with numbering and conflicts
             self.load_order_list.clear()
@@ -81,6 +89,7 @@ class LoadOrderPanel(QWidget):
                 addon_name_mapping
             )
 
+            has_conflicts = False
             for pos, addon_name in enumerate(load_order_items):
                 priority_number = total_items - pos
                 display_text = f"[#{priority_number}] {addon_name}"
@@ -88,7 +97,8 @@ class LoadOrderPanel(QWidget):
                 # check if this addon has conflicts
                 if addon_name in all_overwrites:
                     overwrites = all_overwrites[addon_name]
-                    display_text += " ⚠️"
+                    display_text += " ⚠"
+                    has_conflicts = True
                     tooltip = "Will overwrite:\n"
                     for overwrite_addon, overwrite_files in overwrites.items():
                         tooltip += f"• {overwrite_addon}: "
@@ -99,9 +109,13 @@ class LoadOrderPanel(QWidget):
 
                     item = QListWidgetItem(display_text)
                     item.setToolTip(tooltip)
+                    item.setForeground(QColor(WARNING))
                     self.load_order_list.addItem(item)
                 else:
                     self.load_order_list.addItem(display_text)
+
+            # show/hide conflict warning
+            self.conflict_label.setVisible(has_conflicts)
 
             self.load_order_list.blockSignals(False)
 
@@ -116,7 +130,7 @@ class LoadOrderPanel(QWidget):
         existing_order = []
         for i in range(self.load_order_list.count()):
             text = self.load_order_list.item(i).text()
-            clean_name = text.split('] ', 1)[-1].replace(' ⚠️', '')
+            clean_name = text.split('] ', 1)[-1].replace(' ⚠', '').strip()
             existing_order.append(clean_name)
 
         # add new items at top, then keep existing order
@@ -139,6 +153,7 @@ class LoadOrderPanel(QWidget):
 
     def clear(self):
         self.load_order_list.clear()
+        self.conflict_label.hide()
 
     def restore_order(self, addon_names):
         # restore load order from saved list

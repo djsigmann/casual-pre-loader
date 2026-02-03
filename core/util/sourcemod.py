@@ -3,121 +3,66 @@ from pathlib import Path
 from typing import Any, Optional
 
 
-def auto_detect_tf2() -> str | None:
+def auto_detect_sourcemod(game_target: str = "Team Fortress 2") -> str | None:
+    """Auto-detect a Source mod installation by looking for a subdirectory with gameinfo.txt.
+
+    Args:
+        game_target: The Steam game folder name. Defaults to "Team Fortress 2".
+
+    Returns:
+        The path to the mod directory, or None if not found.
+    """
     if sys.platform == 'win32':
-        common_paths = [
-            "C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/tf",
-            "D:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/tf",
+        steam_paths = [
+            Path("C:/Program Files (x86)/Steam/steamapps/common"),
+            Path("D:/Program Files (x86)/Steam/steamapps/common"),
         ]
     else:
-        common_paths = [
-            "~/.steam/steam/steamapps/common/Team Fortress 2/tf",
-            "~/.local/share/Steam/steamapps/common/Team Fortress 2/tf",
+        steam_paths = [
+            Path("~/.steam/steam/steamapps/common").expanduser(),
+            Path("~/.local/share/Steam/steamapps/common").expanduser(),
         ]
 
-    for path_str in common_paths:
-        path = Path(path_str).expanduser()
-        if path.exists() and (path / "gameinfo.txt").exists():
-            return str(path)
+    game_target_lower = game_target.lower()
+
+    for steam_path in steam_paths:
+        if not steam_path.exists():
+            continue
+
+        for game_folder in steam_path.iterdir():
+            if not game_folder.is_dir() or game_folder.name.lower() != game_target_lower:
+                continue
+
+            for subdir in game_folder.iterdir():
+                if subdir.is_dir() and (subdir / "gameinfo.txt").exists():
+                    return str(subdir)
+
     return None
 
 
-def auto_detect_goldrush() -> str | None:
-    if sys.platform == 'win32':
-        common_paths = [
-            "C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2 Gold Rush/tf_goldrush",
-            "D:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2 Gold Rush/tf_goldrush",
-        ]
-    else:
-        common_paths = [
-            "~/.steam/steam/steamapps/common/Team Fortress 2 Gold Rush/tf_goldrush",
-            "~/.local/share/Steam/steamapps/common/Team Fortress 2 Gold Rush/tf_goldrush",
-        ]
-
-    for path_str in common_paths:
-        path = Path(path_str).expanduser()
-        if path.exists() and (path / "gameinfo.txt").exists():
-            return str(path)
-    return None
-
-
-def validate_tf_directory(directory: str | None, validation_label: Optional[Any] = None) -> bool:
+def validate_game_directory(directory: str | None, validation_label: Optional[Any] = None) -> bool:
+    """Validate a Source mod directory by checking for gameinfo.txt."""
     if not directory:
         if validation_label:
             validation_label.setText("")
         return False
 
-    tf_path = Path(directory)
+    path = Path(directory)
 
-    # check if directory exists
-    if not tf_path.exists():
+    if not path.exists():
         if validation_label:
             validation_label.setText("Directory does not exist!")
             validation_label.setStyleSheet("color: red;")
         return False
 
-    # check if it's actually a tf directory
-    if not (tf_path.name == "tf" or tf_path.name.endswith("/tf")):
+    if not (path / "gameinfo.txt").exists():
         if validation_label:
-            validation_label.setText("Selected directory should be named 'tf'")
-            validation_label.setStyleSheet("color: orange;")
-
-    # check for gameinfo.txt
-    if not (tf_path / "gameinfo.txt").exists():
-        if validation_label:
-            validation_label.setText("gameinfo.txt not found - this doesn't appear to be a valid tf/ directory")
+            validation_label.setText("gameinfo.txt not found - this doesn't appear to be a valid Source mod directory")
             validation_label.setStyleSheet("color: red;")
         return False
 
-    # check for tf2_misc_dir.vpk
-    if not (tf_path / "tf2_misc_dir.vpk").exists():
-        if validation_label:
-            validation_label.setText("tf2_misc_dir.vpk not found - some features may not work")
-            validation_label.setStyleSheet("color: orange;")
-    else:
-        if validation_label:
-            validation_label.setText("Valid TF2 directory detected!")
-            validation_label.setStyleSheet("color: green;")
-
-    return True
-
-
-def validate_goldrush_directory(directory: str | None, validation_label: Optional[Any] = None) -> bool:
-    if not directory:
-        if validation_label:
-            validation_label.setText("")
-        return False
-
-    gr_path = Path(directory)
-
-    # check if directory exists
-    if not gr_path.exists():
-        if validation_label:
-            validation_label.setText("Directory does not exist!")
-            validation_label.setStyleSheet("color: red;")
-        return False
-
-    # check if it's actually a tf_goldrush directory
-    if not (gr_path.name == "tf_goldrush" or gr_path.name.endswith("/tf_goldrush")):
-        if validation_label:
-            validation_label.setText("Selected directory should be named 'tf_goldrush'")
-            validation_label.setStyleSheet("color: orange;")
-
-    # check for gameinfo.txt
-    if not (gr_path / "gameinfo.txt").exists():
-        if validation_label:
-            validation_label.setText("gameinfo.txt not found - this doesn't appear to be a valid tf_goldrush/ directory")
-            validation_label.setStyleSheet("color: red;")
-        return False
-
-    # check for tf_goldrush_dir.vpk
-    if not (gr_path / "tf_goldrush_dir.vpk").exists():
-        if validation_label:
-            validation_label.setText("tf_goldrush_dir.vpk not found - some features may not work")
-            validation_label.setStyleSheet("color: orange;")
-    else:
-        if validation_label:
-            validation_label.setText("Valid Gold Rush directory detected!")
-            validation_label.setStyleSheet("color: green;")
+    if validation_label:
+        validation_label.setText("Valid Source mod directory detected!")
+        validation_label.setStyleSheet("color: green;")
 
     return True

@@ -27,7 +27,6 @@ class ModDropZone(QFrame):
 
     def __init__(self, parent=None, settings_manager=None, rescan_callback=None):
         super().__init__(parent)
-        self.drop_frame = None
         self.conflict_matrix = None
         self.settings_manager = settings_manager
         self.setAcceptDrops(True)
@@ -45,28 +44,10 @@ class ModDropZone(QFrame):
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
-        self.drop_frame = QFrame()
-
-        drop_layout = QVBoxLayout(self.drop_frame)
-        title = QLabel("Drag and drop VPKs, folders, or ZIP files here\n"
-                       "(do not try and install them manually, it will break.)\n"
-                       "Non-particle mods will appear in the addons section under the install tab.")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-size: 14px; font-weight: bold;")
-        drop_layout.addWidget(title)
-
-        self.drop_frame.setStyleSheet("""
-            QFrame {
-                min-height: 50px;
-            }
-            QFrame[dragOver="true"] {
-            }
-        """)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # conflict matrix
         self.conflict_matrix = ConflictMatrix(self.settings_manager)
-
-        layout.addWidget(self.drop_frame)
         layout.addWidget(self.conflict_matrix)
 
     def apply_particle_selections(self):
@@ -110,7 +91,6 @@ class ModDropZone(QFrame):
 
         mods = list(mod_particles.keys())
         self.conflict_matrix.update_matrix(mods, all_particles)
-        # checkbox enable/disable logic is now handled inside update_matrix() / _setup_matrix_cells()
 
     def update_progress(self, value, message):
         if self.progress_dialog:

@@ -15,6 +15,7 @@ from core.util.file import copy, delete
 from core.version import VERSION
 from gui.first_time_setup import run_first_time_setup
 from gui.main_window import ParticleManagerGUI
+from gui.theme import GLOBAL_STYLESHEET
 from core.settings import SettingsManager
 from gui.update_dialog import show_update_dialog
 
@@ -30,9 +31,8 @@ def main():
     copy(folder_setup.install_dir / "backup", folder_setup.project_dir / "backup", noclobber=False)
 
     app = QApplication([])
-    font = app.font()
-    font.setPointSize(10)
-    app.setFont(font)
+    app.setStyle("Fusion")
+    app.setStyleSheet(GLOBAL_STYLESHEET)
 
     # first-time setup
     tf_directory = None

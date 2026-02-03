@@ -1,6 +1,5 @@
 import json
 import logging
-import shutil
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -24,13 +23,13 @@ from PyQt6.QtWidgets import (
 
 from core.download_mods import check_mods, download_mods
 from core.folder_setup import folder_setup
-from core.settings import SettingsManager
 from core.services.setup import (
     find_mods_folder_for_settings,
     import_mods_folder,
     save_initial_settings,
 )
-from core.util.sourcemod import auto_detect_tf2, validate_tf_directory
+from core.util.sourcemod import auto_detect_sourcemod, validate_game_directory
+from gui.theme import BUTTON_STYLE_ALT, FONT_SIZE_HEADER
 
 log = logging.getLogger()
 
@@ -48,11 +47,10 @@ class FirstTimeSetupDialog(QDialog):
         self.finish_button = None
         self.tf_directory = ""
         self.import_settings_path = ""
-        self.settings_manager = SettingsManager()
         self.import_mods_path = ""
 
         self.setWindowTitle("First Time Setup")
-        self.setMinimumSize(750, 500)
+        self.setFixedSize(650, 580)
         self.setModal(True)
 
         self.setup_ui()
@@ -62,7 +60,7 @@ class FirstTimeSetupDialog(QDialog):
 
         # title
         welcome_label = QLabel("Welcome to the casual pre-loader!")
-        welcome_label.setStyleSheet("font-size: 16px; font-weight: bold; margin: 10px;")
+        welcome_label.setStyleSheet(f"font-size: {FONT_SIZE_HEADER}; font-weight: bold; margin: 10px;")
         welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(welcome_label)
 
@@ -75,12 +73,6 @@ class FirstTimeSetupDialog(QDialog):
 
         layout.addWidget(tab_widget)
 
-        # separator
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setFrameShadow(QFrame.Shadow.Sunken)
-        layout.addWidget(separator)
-
         # bottom buttons
         button_layout = QHBoxLayout()
         button_layout.addStretch()
@@ -90,6 +82,7 @@ class FirstTimeSetupDialog(QDialog):
         button_layout.addWidget(cancel_button)
 
         self.finish_button = QPushButton("Finish Setup")
+        self.finish_button.setProperty("primary", True)
         self.finish_button.clicked.connect(self.finish_setup)
         self.finish_button.setEnabled(False)
         button_layout.addWidget(self.finish_button)
@@ -122,6 +115,7 @@ class FirstTimeSetupDialog(QDialog):
         self.tf_path_edit.textChanged.connect(self.validate_setup)
 
         self.browse_button = QPushButton("Browse")
+        self.browse_button.setStyleSheet(BUTTON_STYLE_ALT)
         self.browse_button.clicked.connect(self.browse_tf_dir)
 
         dir_layout.addWidget(self.tf_path_edit)
@@ -130,6 +124,7 @@ class FirstTimeSetupDialog(QDialog):
 
         # auto-detect button
         auto_detect_button = QPushButton("Auto-Detect TF2 Installation")
+        auto_detect_button.setStyleSheet(BUTTON_STYLE_ALT)
         auto_detect_button.clicked.connect(self.auto_detect_tf2_dir)
         tf_layout.addWidget(auto_detect_button)
 
@@ -172,6 +167,7 @@ class FirstTimeSetupDialog(QDialog):
         self.settings_import_edit.setPlaceholderText("Optional: Select app_settings.json...")
 
         settings_browse_button = QPushButton("Browse")
+        settings_browse_button.setStyleSheet(BUTTON_STYLE_ALT)
         settings_browse_button.clicked.connect(self.browse_settings_file)
 
         settings_layout.addWidget(self.settings_import_edit)
@@ -180,6 +176,7 @@ class FirstTimeSetupDialog(QDialog):
 
         # clear imports button
         clear_imports_button = QPushButton("Clear Import Selections")
+        clear_imports_button.setStyleSheet(BUTTON_STYLE_ALT)
         clear_imports_button.clicked.connect(self.clear_import_selections)
         import_layout.addWidget(clear_imports_button)
 
@@ -199,7 +196,7 @@ class FirstTimeSetupDialog(QDialog):
         if directory:
             self.tf_directory = directory
             self.tf_path_edit.setText(directory)
-            self.validate_tf_directory()
+            self.validate_directory()
 
     def browse_settings_file(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -215,11 +212,11 @@ class FirstTimeSetupDialog(QDialog):
 
 
     def auto_detect_tf2_dir(self):
-        path = auto_detect_tf2()
+        path = auto_detect_sourcemod()
         if path:
             self.tf_directory = path
             self.tf_path_edit.setText(path)
-            validate_tf_directory(path, self.validation_label)
+            validate_game_directory(path, self.validation_label)
             QMessageBox.information(self, "Auto-Detection Successful", f"Found TF2 installation at:\n{path}")
         else:
             QMessageBox.information(self, "Auto-Detection Failed",
@@ -233,8 +230,8 @@ class FirstTimeSetupDialog(QDialog):
         self.settings_import_edit.clear()
         self.update_import_status()
 
-    def validate_tf_directory(self):
-        result = validate_tf_directory(self.tf_directory, self.validation_label)
+    def validate_directory(self):
+        result = validate_game_directory(self.tf_directory, self.validation_label)
         self.validate_setup()
         return result
 
@@ -273,7 +270,7 @@ class FirstTimeSetupDialog(QDialog):
             return
 
         # validate tf/ directory one more time
-        if not validate_tf_directory(self.tf_directory):
+        if not validate_game_directory(self.tf_directory):
             QMessageBox.warning(self, "Invalid Directory", "The selected TF2 directory is not valid.")
             return
 
@@ -322,6 +319,7 @@ def mods_download_group(parent_dialog):
     mods_layout.addWidget(mods_description)
 
     download_mods_button = QPushButton("Download cueki's Mods")
+    download_mods_button.setStyleSheet(BUTTON_STYLE_ALT)
     download_mods_button.clicked.connect(lambda: download_cueki_mods(parent_dialog, download_mods_button))
     mods_layout.addWidget(download_mods_button)
 
@@ -357,9 +355,10 @@ def download_cueki_mods(parent=None, button=None):
 
         # refresh main window if not called from first time setup
         if not isinstance(parent, FirstTimeSetupDialog):
-            main_window = parent.parent()
-            if main_window and hasattr(main_window, 'refresh_all'):
-                main_window.refresh_all()
+            if hasattr(parent, 'refresh_all'):
+                parent.refresh_all()
+            elif parent.parent() and hasattr(parent.parent(), 'refresh_all'):
+                parent.parent().refresh_all()
 
         QMessageBox.information(
             parent,
@@ -376,7 +375,7 @@ def download_cueki_mods(parent=None, button=None):
             QMessageBox.critical(
                 parent,
                 'Download Failed',
-
+                f'Failed to download mods: {e}'
             )
 
         return False
