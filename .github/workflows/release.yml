@@ -40,31 +40,31 @@ jobs:
           python-version: '>=3.11'
 
       - name: Create build directory
-        run: mkdir -p build/casual-pre-loader
+        run: mkdir -p build/casual-preloader
 
       - name: Download embeddable Python
         run: |
           curl -L -o python.zip https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip
-          unzip python.zip -d build/casual-pre-loader/
+          unzip python.zip -d build/casual-preloader/
           # Add site-packages to path for embeddable Python
-          printf 'python312.zip\n.\nLib\nLib\\site-packages\n' > build/casual-pre-loader/python312._pth
+          printf 'python312.zip\n.\nLib\nLib\\site-packages\n' > build/casual-preloader/python312._pth
 
-          curl -L -o build/casual-pre-loader/pip.pyz https://bootstrap.pypa.io/pip/pip.pyz
+          curl -L -o build/casual-preloader/pip.pyz https://bootstrap.pypa.io/pip/pip.pyz
 
       - name: Build application
         run: |
-          python scripts/build.py --target_dir build/casual-pre-loader <<< "y"
+          python scripts/build.py --target_dir build/casual-preloader <<< "y"
           find build -name '__pycache__' -exec rm -rf '{}' \; -prune
           cp scripts/RUNME.bat build/
 
       - name: Create release archive
-        run: cd build && zip -r "../casual-pre-loader-${{ github.ref_name }}.zip" .
+        run: cd build && zip -r "../casual-preloader-${{ github.ref_name }}.zip" .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         if: env.ACT != 'true'
         with:
-          name: "casual-pre-loader-${{ github.ref_name }}"
+          name: "casual-preloader-${{ github.ref_name }}"
           path: build
           if-no-files-found: error
           compression-level: 9
@@ -82,6 +82,6 @@ jobs:
         if: env.ACT != 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: "casual-pre-loader-${{ github.ref_name }}.zip"
+          files: "casual-preloader-${{ github.ref_name }}.zip"
           draft: ${{ inputs.draft == '' && true || inputs.draft }}
           generate_release_notes: ${{ inputs.generate-release-notes }}
