@@ -127,6 +127,10 @@ class ParticleManagerGUI(QMainWindow):
         self.scan_for_mcp_files()
         self.rescan_addon_contents()
 
+        # restore addon details collapsed state
+        if self.settings_manager.get_details_collapsed():
+            self.addon_panel.toggle_details_collapse()
+
         # update profile selector
         self.rebuild_profile_menu()
 
@@ -272,6 +276,8 @@ class ParticleManagerGUI(QMainWindow):
         self.addon_panel.addon_checkbox_changed.connect(self.on_addon_checkbox_changed)
         self.addon_panel.load_order_changed.connect(self.on_load_order_changed)
         self.addon_panel.open_folder_clicked.connect(self.open_addons_folder)
+        self.addon_panel.refresh_clicked.connect(self.load_addons)
+        self.addon_panel.details_collapse_changed.connect(self.settings_manager.set_details_collapsed)
         self.addon_description.addon_modified.connect(self.load_addons)
 
         layout.addWidget(self.addon_panel)

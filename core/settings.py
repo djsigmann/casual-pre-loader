@@ -233,6 +233,13 @@ class SettingsManager:
     def set_disable_paint_colors(self, disable):
         self._set_active_profile_field("disable_paint_colors", disable)
 
+    def get_details_collapsed(self):
+        return self.settings.get("details_collapsed", False)
+
+    def set_details_collapsed(self, collapsed):
+        self.settings["details_collapsed"] = collapsed
+        self.save_settings()
+
     def get_skip_launch_options_popup(self):
         return self.settings.get("skip_launch_options_popup", False)
 

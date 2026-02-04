@@ -27,6 +27,7 @@ class AddonPanel(QWidget):
     delete_button_clicked = pyqtSignal()
     open_folder_clicked = pyqtSignal()
     refresh_clicked = pyqtSignal()
+    details_collapse_changed = pyqtSignal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -145,6 +146,7 @@ class AddonPanel(QWidget):
 
     def toggle_details_collapse(self):
         self.details_collapsed = not self.details_collapsed
+        self.details_collapse_changed.emit(self.details_collapsed)
         self.addon_description.setVisible(not self.details_collapsed)
         if self.details_collapsed:
             self.collapse_btn.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TitleBarNormalButton))
