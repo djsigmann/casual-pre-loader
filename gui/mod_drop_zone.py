@@ -101,7 +101,14 @@ class ModDropZone(QFrame):
         QMessageBox.critical(self, "Error", message)
 
     def show_success(self, message):
-        QMessageBox.information(self, "Success", message)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Success")
+        msg_box.setText(message)
+        msg_box.setIcon(QMessageBox.Icon.Information)
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        ok_btn = msg_box.button(QMessageBox.StandardButton.Ok)
+        ok_btn.setProperty("primary", True)
+        msg_box.exec()
 
     def on_process_finished(self):
         if self.progress_dialog:
