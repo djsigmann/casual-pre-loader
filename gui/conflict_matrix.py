@@ -45,7 +45,7 @@ class ConflictMatrix(QTableWidget):
         h_scrollbar.setSingleStep(new_pixel_step)
 
     def on_mod_name_clicked(self, index):
-        mod_name = self.verticalHeaderItem(index).text()
+        mod_name = self.verticalHeaderItem(index).text().split(" (")[0]
         if mod_name in self.mod_urls and self.mod_urls[mod_name]:
             self.open_mod_url(mod_name)
 
@@ -88,7 +88,7 @@ class ConflictMatrix(QTableWidget):
                                 if not v_header_item:
                                     log.warning(f"Missing vertical header item for row {row}")
                                     continue
-                                mod_name = v_header_item.text()
+                                mod_name = v_header_item.text().split(" (")[0]
                                 selections[column_name] = mod_name
                                 break
 
@@ -300,6 +300,34 @@ class ConflictMatrix(QTableWidget):
         self.resizeColumnToContents(0)
         for row in range(self.rowCount()):
             self.resizeRowToContents(row)
+        self._update_row_counts()
+
+    def _update_row_counts(self):
+        for row in range(self.rowCount()):
+            v_header = self.verticalHeaderItem(row)
+            if not v_header:
+                continue
+
+            # strip any existing count suffix to get the base mod name
+            base_name = v_header.text().split(" (")[0]
+
+            total = 0
+            checked = 0
+            for col in range(1, self.columnCount()):
+                cell_widget = self.cellWidget(row, col)
+                if cell_widget:
+                    layout = cell_widget.layout()
+                    if layout and layout.count() > 0:
+                        checkbox = layout.itemAt(0).widget()
+                        if isinstance(checkbox, QCheckBox):
+                            total += 1
+                            if checkbox.isChecked():
+                                checked += 1
+
+            if total > 0:
+                v_header.setText(f"{base_name} ({checked}/{total})")
+            else:
+                v_header.setText(base_name)
 
     def uncheck_column_except(self, col, target_row):
         for row in range(self.rowCount()):
