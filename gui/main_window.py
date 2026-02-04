@@ -173,6 +173,7 @@ class ParticleManagerGUI(QMainWindow):
         profile_layout.addWidget(profile_label)
 
         profile_row = QHBoxLayout()
+        profile_row.setContentsMargins(0, 0, 0, 0)
         profile_row.setSpacing(0)
 
         self.profile_btn = QPushButton(" TF2")

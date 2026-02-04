@@ -376,12 +376,12 @@ PROFILE_ADD_BUTTON_STYLE = f"""
         border-top-right-radius: 4px;
         border-bottom-right-radius: 4px;
         border-left: 1px solid {FG_LIGHTEST};
+        font-size: 16px;
+        font-weight: bold;
+        padding: 0px;
     }}
     QPushButton:hover {{
         background-color: {FG_LIGHTEST};
-    }}
-    QPushButton::menu-indicator {{
-        width: 0px;
     }}
 """
 
