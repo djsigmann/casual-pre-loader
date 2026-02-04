@@ -85,7 +85,7 @@ def perform_updates(updates: Optional[tuple[Update]] = None) -> None:
                 except Exception:
                     log.exception(f'Error extracting update {update.release.tag_name}')
 
-                    delete(folder_setup.install_dir / '.tmp_update')
+                    delete(folder_setup.install_dir.parent / '.tmp_update')
                     delete(renamed_runme)
 
                     break
