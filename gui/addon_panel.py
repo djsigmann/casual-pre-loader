@@ -26,6 +26,7 @@ class AddonPanel(QWidget):
     load_order_changed = pyqtSignal()
     delete_button_clicked = pyqtSignal()
     open_folder_clicked = pyqtSignal()
+    refresh_clicked = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -74,6 +75,13 @@ class AddonPanel(QWidget):
         open_folder_btn.setStyleSheet(BUTTON_STYLE_ALT)
         open_folder_btn.clicked.connect(self.open_folder_clicked.emit)
         header_row.addWidget(open_folder_btn)
+
+        refresh_btn = QToolButton()
+        refresh_btn.setAutoRaise(True)
+        refresh_btn.setToolTip("Refresh all addons")
+        refresh_btn.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload))
+        refresh_btn.clicked.connect(self.refresh_clicked.emit)
+        header_row.addWidget(refresh_btn)
 
         available_layout.addLayout(header_row)
 
