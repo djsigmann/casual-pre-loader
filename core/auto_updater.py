@@ -44,7 +44,7 @@ def check_for_updates() -> tuple[Update]:
         current = version.parse(VERSION)
         # sort by descending chronological order, so we only store the latest patch release for every minor release
         for update in sorted(get_releases_with_asset(REMOTE_REPO, re.compile(r'^casual-pre-?loader.*\.zip')), key=attrgetter('version'), reverse=True):
-            if update.version.major > current.major or (update.version.major == current.major and update.version.minor > current.minor):
+            if update.version > current:
                 updates[update.version.major].setdefault(update.version.minor, update)
 
         return tuple(update for major_updates in updates.values() for update in major_updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
