@@ -91,6 +91,7 @@ class InstallService:
         apply_particle_selections: Optional[Callable[[], None]] = None,
         disable_paint_colors: bool = False,
         show_console_on_startup: bool = True,
+        game_target: str = "Team Fortress 2",
         ) -> None:
         """
         Install selected addons to the game directory.
@@ -111,11 +112,17 @@ class InstallService:
                 on_progress(pct, msg)
 
         try:
-            working_vpk_path = Path(tf_path) / get_vpk_name(tf_path)
-            if not check_writable(working_vpk_path):
-                raise PermissionError("Please close TF2 before installing.")
-            file_handler = FileHandler(str(working_vpk_path))
-            base_default_pcf, base_default_parents  = initialize_pcf(folder_setup.temp_to_be_referenced_dir)
+            is_tf2 = game_target == "Team Fortress 2"
+
+            file_handler = None
+            base_default_pcf = None
+            base_default_parents = None
+            if is_tf2:
+                working_vpk_path = Path(tf_path) / get_vpk_name(tf_path)
+                if not check_writable(working_vpk_path):
+                    raise PermissionError("Please close TF2 before installing.")
+                file_handler = FileHandler(str(working_vpk_path))
+                base_default_pcf, base_default_parents = initialize_pcf(folder_setup.temp_to_be_referenced_dir)
             progress(0, "Installing addons...")
 
             total_files = 0
@@ -158,7 +165,6 @@ class InstallService:
             custom_dir.mkdir(exist_ok=True)
 
             tf_path_obj = Path(tf_path)
-            is_tf2 = tf_path_obj.name == "tf"
 
             if is_tf2:
                 self.cleanup_huds(custom_dir)
@@ -408,7 +414,7 @@ class InstallService:
         finally:
             prepare_working_copy()
 
-    def uninstall(self, tf_path: str, on_progress: Optional[ProgressCallback] = None):
+    def uninstall(self, tf_path: str, on_progress: Optional[ProgressCallback] = None, game_target: str = "Team Fortress 2"):
         # resets everything
         def progress(pct: int, msg: str):
             if on_progress:
@@ -420,7 +426,7 @@ class InstallService:
             custom_dir.mkdir(exist_ok=True)
 
             tf_path_obj = Path(tf_path)
-            is_tf2 = tf_path_obj.name == "tf"
+            is_tf2 = game_target == "Team Fortress 2"
 
             game_type(Path(tf_path) / 'gameinfo.txt', uninstall=True)
 

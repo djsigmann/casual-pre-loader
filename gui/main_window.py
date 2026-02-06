@@ -688,6 +688,7 @@ class ParticleManagerGUI(QMainWindow):
 
         active = self.settings_manager.get_active_profile()
         target_name = active.name if active else "game"
+        game_target = active.game_target if active else "Team Fortress 2"
 
         self.progress_dialog = QProgressDialog(f"Installing to {target_name}...", "Cancel", 0, 100, self)
         self.progress_dialog.setWindowTitle("Installing")
@@ -697,7 +698,7 @@ class ParticleManagerGUI(QMainWindow):
         self.progress_dialog.canceled.connect(self.install_manager.cancel_operation)
         self.progress_dialog.show()
 
-        self.install_manager.install(selected_addons, self.mod_drop_zone, target_path)
+        self.install_manager.install(selected_addons, self.mod_drop_zone, target_path, game_target)
 
     def start_restore(self):
         target_path = self.install_manager.tf_path
@@ -708,6 +709,7 @@ class ParticleManagerGUI(QMainWindow):
 
         active = self.settings_manager.get_active_profile()
         target_name = active.name if active else Path(target_path).name
+        game_target = active.game_target if active else "Team Fortress 2"
 
         result = QMessageBox.question(
             self,
@@ -718,7 +720,7 @@ class ParticleManagerGUI(QMainWindow):
         if result != QMessageBox.StandardButton.Yes:
             return
 
-        if self.install_manager.uninstall(target_path):
+        if self.install_manager.uninstall(target_path, game_target):
             self.set_processing_state(True)
             self.progress_dialog = QProgressDialog(f"Restoring {target_name}...", None, 0, 100, self)
             self.progress_dialog.setWindowTitle("Restoring")

@@ -39,7 +39,7 @@ class InstallController(QObject):
     def _on_progress(self, progress: int, message: str):
         self.progress_update.emit(progress, message)
 
-    def _run_install(self, install_path, selected_addons, mod_drop_zone):
+    def _run_install(self, install_path, selected_addons, mod_drop_zone, game_target="Team Fortress 2"):
         try:
             disable_paint_colors = False
             show_console = True
@@ -58,6 +58,7 @@ class InstallController(QObject):
                 apply_particle_selections=apply_particles,
                 disable_paint_colors=disable_paint_colors,
                 show_console_on_startup=show_console,
+                game_target=game_target,
             )
             self.operation_success.emit("Mods installed successfully!")
             self._on_progress(0, "Installation complete")
@@ -70,7 +71,7 @@ class InstallController(QObject):
                 self._on_progress(0, "Installation failed, attempting cleanup...")
 
             try:
-                self.service.uninstall(tf_path=install_path)
+                self.service.uninstall(tf_path=install_path, game_target=game_target)
                 if not was_cancelled:
                     self.operation_error.emit(f"Installation failed: {str(e)}\n\nFiles have been restored to default state.")
             except Exception as cleanup_error:
@@ -85,7 +86,7 @@ class InstallController(QObject):
             self.processing = False
             self.operation_finished.emit()
 
-    def install(self, selected_addons: list[str], mod_drop_zone=None, target_path=None):
+    def install(self, selected_addons: list[str], mod_drop_zone=None, target_path=None, game_target="Team Fortress 2"):
         install_path = target_path if target_path else self.tf_path
 
         is_valid = validate_game_directory(install_path)
@@ -98,16 +99,17 @@ class InstallController(QObject):
         self.processing = True
         thread = threading.Thread(
             target=self._run_install,
-            args=(install_path, selected_addons, mod_drop_zone),
+            args=(install_path, selected_addons, mod_drop_zone, game_target),
             daemon=True
         )
         thread.start()
 
-    def _run_uninstall(self, restore_path):
+    def _run_uninstall(self, restore_path, game_target="Team Fortress 2"):
         try:
             self.service.uninstall(
                 tf_path=restore_path,
                 on_progress=self._on_progress,
+                game_target=game_target,
             )
             self.operation_success.emit("Mods uninstalled successfully!")
         except Exception as e:
@@ -116,7 +118,7 @@ class InstallController(QObject):
             self.processing = False
             self.operation_finished.emit()
 
-    def uninstall(self, target_path=None):
+    def uninstall(self, target_path=None, game_target="Team Fortress 2"):
         """Start uninstall operation. Caller should confirm with user first."""
         restore_path = target_path if target_path else self.tf_path
 
@@ -127,7 +129,7 @@ class InstallController(QObject):
         self.processing = True
         thread = threading.Thread(
             target=self._run_uninstall,
-            args=(restore_path,),
+            args=(restore_path, game_target),
             daemon=True
         )
         thread.start()
