@@ -12,7 +12,10 @@ If you want a video supplement, please refer to the [**Video Supplement**](#vide
 ### Step 1: Installation
 
 1. **Install the latest version of the preloader from [GitHub]({{ config.repo_url }}/releases) or [Gamebanana]({{ gamebanana_url }}).**
-2. **Once you have the zip file, extract it, and put the folder anywhere you'd like (OTHER THAN CUSTOM, <u>DO NOT PUT IT IN CUSTOM!</u>). Personally, I keep mine on my desktop.**
+2. **Once you have the zip file, extract it, and put the folder anywhere you'd like.**
+
+!!! note
+    Ensure it is not in a Onedrive shared folder or in your game's `custom` folder.
 
 ### Step 2: Adding your mods
 
