@@ -4,24 +4,25 @@ import datetime
 import logging
 from sys import platform
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtWidgets import QApplication, QSplashScreen
-
-from core.auto_updater import check_for_updates
-from core.backup_manager import prepare_working_copy
 from core.folder_setup import folder_setup
 from core.util.file import copy, delete
 from core.version import VERSION
-from gui.first_time_setup import run_first_time_setup
-from gui.main_window import ParticleManagerGUI
-from gui.theme import GLOBAL_STYLESHEET
-from core.settings import SettingsManager
-from gui.update_dialog import show_update_dialog
 
 log = logging.getLogger()
 
 def main():
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QIcon, QPixmap
+    from PyQt6.QtWidgets import QApplication, QSplashScreen
+
+    from core.auto_updater import check_for_updates
+    from core.backup_manager import prepare_working_copy
+    from core.settings import SettingsManager
+    from gui.first_time_setup import run_first_time_setup
+    from gui.main_window import ParticleManagerGUI
+    from gui.theme import GLOBAL_STYLESHEET
+    from gui.update_dialog import show_update_dialog
+
     log.info(f'Version {VERSION} on {platform} {"(portable)" if folder_setup.portable else ""}')
     log.info(f'Application files are located in {folder_setup.install_dir}')
     log.info(f'Project files are written to {folder_setup.project_dir}')
