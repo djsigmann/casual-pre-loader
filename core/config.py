@@ -3,6 +3,7 @@ import sys
 from dataclasses import dataclass, field, fields
 from functools import cache
 from pathlib import Path
+from textwrap import dedent
 from typing import Annotated, ClassVar, cast
 
 from cappa import Arg, ArgAction, Destructured, Group, Subcommand, command, parse
@@ -143,7 +144,37 @@ class Gui:
         return gui()
 
 
-_Subcommand = Gui
+@command
+@dataclass
+class Reset:
+    """Reset settings to defaults."""
+    def __call__(self, config: Config) -> int:
+        _perform_migrations(config)
+
+        if not (config.app_settings_file.is_file() or config.addon_metadata_file.is_file()):
+            logging.warning('Nothing to reset')
+            return 0
+
+        from rich.prompt import Confirm
+
+        if Confirm.ask(
+            dedent('''
+            This will delete your saved profiles and settings.
+            Your installed mods will not be affected.
+            Are you sure?''')
+        ):
+            from core.util.file import delete
+
+            delete(config.app_settings_file, not_exist_ok=True)
+            delete(config.addon_metadata_file, not_exist_ok=True)
+            logging.warning('Settings have been reset')
+            return 0
+        else:
+            logging.critical('Reset cancelled')
+            return 1
+
+
+_Subcommand = Gui | Reset
 
 
 config: Config
