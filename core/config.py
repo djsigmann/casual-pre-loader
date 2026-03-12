@@ -67,6 +67,33 @@ class Gui:
         return gui()
 
 
+@command
+@dataclass
+class Reset:
+    """Reset settings to defaults."""
+    def __call__(self, config: Config) -> int:
+        if not (config.app_settings_file.is_file() or config.addon_metadata_file.is_file()):
+            logging.warning('Nothing to reset')
+            return 0
+
+        from rich.prompt import Confirm
+
+        if Confirm.ask(
+            'This will delete your saved profiles and settings.\n'
+            'Your installed mods will not be affected.\n'
+            'Are you sure?'
+        ):
+            from core.util.file import delete
+
+            delete(config.app_settings_file, not_exist_ok=True)
+            delete(config.addon_metadata_file, not_exist_ok=True)
+            logging.warning('Settings have been reset')
+            return 0
+        else:
+            logging.critical('Reset cancelled')
+            return 1
+
+
 # create a class that inherits all config dataclasess, initialize it using a union of an instance of each
 # based on https://github.com/omni-us/jsonargparse/pull/796
 @dataclass
@@ -75,7 +102,7 @@ class Config(Args, FolderConfig):
         pass
 
 
-_Subcommand = Gui
+_Subcommand = Gui | Reset
 
 
 config: Config
