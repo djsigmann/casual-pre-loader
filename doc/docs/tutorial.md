@@ -78,6 +78,27 @@ If you'd rather store user files in the regular locations (like the AUR package 
 !!! warning
     Linux users should use `scripts/run.sh` to launch the application. Do **NOT** use `RUNME.bat` - that's for Windows only.
 
+### Aditional steps for immutable distros (e.g. steamos, bazzite, etc.)
+Since installing packages is quite a hassle on most immutable distros - and usually has some downsides - using something like [`flatpak`](https://flatpak.org/) to install `wine` is recommended.
+```sh
+flatpak install "$(flatpak remote-ls flathub --app --columns=ref | grep org.winehq.Wine | grep stable | sort -Vr | head -n1)"
+```
+
+However, the wine flatpak requires you to invoke it as `flatpak run org.winehq.Wine`, and since the preloader expects a binary named `wine` to be on the `PATH`, we need to put a small script on the `PATH` that just calls the correct invocation.
+
+It is recommended to add `~/.local/bin` to the `PATH` if it hasn't been already:
+```sh
+echo 'PATH="${PATH+"${PATH}:"}${HOME}/.local/bin"' >>~/.bash_profile
+```
+
+Then we simply create a small wrapper script:
+```sh
+mkdir -p ~/.local/bin
+echo '#!/bin/sh
+exec flatpak run org.winehq.Wine "${@}"' >~/.local/bin/wine
+chmod +x ~/.local/bin/wine
+```
+
 ### Additional steps for Ubuntu or similar distros
 If you're on Ubuntu, or an Ubuntu derivative (such as Mint or PopOS), you may get an error similiar to the following:
 ```
