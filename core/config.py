@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, fields
 from typing import cast
 
-from cappa import Arg, Destructured, Group, Subcommand, command, parse
+from cappa import Arg, ArgAction, Destructured, Group, Subcommand, command, parse
 from typing_extensions import Annotated
 
 from core.constants import DESCRIPTION, PROGRAM_AUTHOR, PROGRAM_NAME
@@ -16,6 +16,10 @@ from core.version import VERSION
 class Args:
     migrate: Annotated[bool, Arg(short='-M', long='--no-migrate')] = True
     """Migrate userdata from old locations to new ones."""
+
+    # we may only be portable if the application was not packaged with a dummy `.noportable` file
+    portable: Annotated[bool, Arg(short='-P', long='--no-portable', action=ArgAction.store_false)] = FolderConfig.portable
+    """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS. Has no effect and is always false if installed via package manager."""
 
     verbose: Annotated[bool, Arg(short=True, propagate=True)] = False
     """Increase the verbosity of log messages."""
