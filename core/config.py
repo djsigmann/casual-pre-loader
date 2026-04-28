@@ -5,7 +5,7 @@ from functools import cache
 from pathlib import Path
 from typing import Annotated, ClassVar, cast
 
-from cappa import Arg, Destructured, Group, Subcommand, command, parse
+from cappa import Arg, ArgAction, Destructured, Group, Subcommand, command, parse
 
 from core.constants import DESCRIPTION, PROGRAM_AUTHOR, PROGRAM_NAME
 from core.util.dep import Dep
@@ -21,6 +21,13 @@ _may_be_portable: bool = not (_install_dir / '.noportable').is_file()
 # The meat and potatoes
 @dataclass
 class Args:
+    if _may_be_portable: # we may only be portable if the application was not packaged with a dummy `.noportable` file
+        portable: Annotated[bool, Arg(short='-P', long='--no-portable', action=ArgAction.store_false)] = True
+        """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS."""
+    else:
+        portable: ClassVar[bool] = False
+        """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS."""
+
     migrate: Annotated[bool, Arg(short='-M', long='--no-migrate')] = True
     """Migrate userdata from old locations to new ones."""
 
@@ -88,7 +95,7 @@ class Config(Args, FolderConfig):
 
 
 def _log_start(config: Config) -> None:
-    logging.info(f'Version {VERSION} on {sys.platform} {"(portable)" if _may_be_portable else ""}')
+    logging.info(f'Version {VERSION} on {sys.platform} {"(portable)" if config.portable else ""}')
     logging.info(f'Application files are located in {config.install_dir}')
     logging.info(f'Project files are written to {config.project_dir}')
     logging.info(f'Settings files are in {config.settings_dir}')
@@ -162,7 +169,7 @@ def _get_config() -> None:
     # NOTE: This is some fucking cursed-ass metaprogramming bullshit - but it works, but it works...
     # Perhaps weakly-typed dynamic languages *can* give one *too* much freedom...
 
-    if _may_be_portable:
+    if args.args.portable:
         @dataclass
         class FolderConfig(FolderConfig):
             project_dir:  ClassVar[Path] = _install_dir / 'userdata' / 'data'
