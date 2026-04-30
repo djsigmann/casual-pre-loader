@@ -21,6 +21,9 @@ class Args:
     portable: Annotated[bool, Arg(short='-P', long='--no-portable', action=ArgAction.store_false)] = FolderConfig.portable
     """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS. Has no effect and is always false if installed via package manager."""
 
+    update: Annotated[bool, Arg(short='-U', long='--no-update', action=ArgAction.store_false)] = FolderConfig.portable
+    """Automatically check for updates on startup. Has no effect and is always false if installed via package manager."""
+
     verbose: Annotated[bool, Arg(short=True, propagate=True)] = False
     """Increase the verbosity of log messages."""
 
