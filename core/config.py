@@ -14,6 +14,9 @@ from core.version import VERSION
 # The meat and potatoes
 @dataclass
 class Args:
+    migrate: Annotated[bool, Arg(short='-M', long='--no-migrate')] = True
+    """Migrate userdata from old locations to new ones."""
+
     verbose: Annotated[bool, Arg(short=True, propagate=True)] = False
     """Increase the verbosity of log messages."""
 
@@ -23,12 +26,13 @@ class Args:
 class Gui:
     """Opens the GUI (default)"""
     def __call__(self, config: Config) -> int:
-        import core.migrations
         from main import gui, log_start
 
         log_start()
 
-        core.migrations.migrate()
+        if config.migrate:
+            import core.migrations
+            core.migrations.migrate()
 
         return gui()
 
