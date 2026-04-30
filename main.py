@@ -64,7 +64,7 @@ def gui() -> int:
 
     window = ParticleManagerGUI(tf_dir)
 
-    if settings.done_initial_setup:
+    if config.update and settings.done_initial_setup:
         updates = check_for_updates()
 
         # TODO: update this once we can update multiple at a time
