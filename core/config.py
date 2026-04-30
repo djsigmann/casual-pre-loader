@@ -21,6 +21,9 @@ _may_be_portable: bool = not (_install_dir / '.noportable').is_file()
 # The meat and potatoes
 @dataclass
 class Args:
+    migrate: Annotated[bool, Arg(short='-M', long='--no-migrate')] = True
+    """Migrate userdata from old locations to new ones."""
+
     verbose: Annotated[bool, Arg(short=True, propagate=True)] = False
     """Increase the verbosity of log messages."""
 
@@ -95,9 +98,10 @@ def _log_start(config: Config) -> None:
 
 
 def _perform_migrations(config: Config) -> None:
-    import core.migrations
+    if config.migrate:
+        import core.migrations
 
-    core.migrations.migrate()
+        core.migrations.migrate()
 
 
 @command
