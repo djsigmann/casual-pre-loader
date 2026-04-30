@@ -1,13 +1,20 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field, fields
+from pathlib import Path
 from typing import cast
 
 from cappa import Arg, ArgAction, Destructured, Group, Subcommand, command, parse
 from typing_extensions import Annotated
 
-from core.constants import DESCRIPTION, PROGRAM_AUTHOR, PROGRAM_NAME
+from core.constants import DESCRIPTION, PROGRAM_AUTHOR, PROGRAM_NAME, Sourcemods
 from core.folder_setup import FolderConfig
+from core.util.sourcemod import (
+    auto_detect_sourcemod,
+    get_sourcemod,
+    validate_game_directory,
+)
 from core.version import VERSION
 
 
@@ -21,11 +28,27 @@ class Args:
     portable: Annotated[bool, Arg(short='-P', long='--no-portable', action=ArgAction.store_false)] = FolderConfig.portable
     """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS. Has no effect and is always false if installed via package manager."""
 
+    # NOTE: probably best to remove and replace with `--profile`
+    sourcemod: Annotated[Sourcemods, Arg(parse=get_sourcemod)] = Sourcemods.DEFAULT
+    """Specify which sourcemod to target. Takes either a name or a steam id."""
+
+    # NOTE: probably best to remove and replace with `--profile`
+    tf_dir: Path = None # ty: ignore[invalid-assignment]
+    """Override the tf directory path."""
+
     update: Annotated[bool, Arg(short='-U', long='--no-update', action=ArgAction.store_false)] = FolderConfig.portable
     """Automatically check for updates on startup. Has no effect and is always false if installed via package manager."""
 
     verbose: Annotated[bool, Arg(short=True, propagate=True)] = False
     """Increase the verbosity of log messages."""
+
+    def __post_init__(self) -> None:
+        if self.tf_dir is None:
+            self.tf_dir = auto_detect_sourcemod(self.sourcemod)
+        else:
+            if not validate_game_directory(self.tf_dir):
+                logging.critical(f'--tf-dir is not a valid Source mod directory: {self.tf_dir}')
+                raise SystemExit(1)
 
 
 @command
