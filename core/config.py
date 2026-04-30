@@ -24,9 +24,15 @@ class Args:
     if _may_be_portable: # we may only be portable if the application was not packaged with a dummy `.noportable` file
         portable: Annotated[bool, Arg(short='-P', long='--no-portable', action=ArgAction.store_false)] = True
         """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS."""
+
+        update: Annotated[bool, Arg(short='-U', long='--no-update', action=ArgAction.store_false)] = True
+        """Automatically check for updates on startup."""
     else:
         portable: ClassVar[bool] = False
         """Run portably, i.e. keep all userdata in `userdata/` instead of the appropriate user-specific locations depending on the OS."""
+
+        update: ClassVar[bool] = False
+        """Automatically check for updates on startup."""
 
     migrate: Annotated[bool, Arg(short='-M', long='--no-migrate')] = True
     """Migrate userdata from old locations to new ones."""
