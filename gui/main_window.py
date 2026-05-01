@@ -444,27 +444,28 @@ class ParticleManagerGUI(QMainWindow):
         # switch
         self.settings_manager.set_active_profile(profile_id)
 
+        self._sync_to_active_profile()
+
+    def _sync_to_active_profile(self):
         new_profile = self.settings_manager.get_active_profile()
-        if new_profile:
-            self.profile_btn.setText(f" {new_profile.name}")
+        if not new_profile:
+            return
 
-            # update install manager path
-            self.install_manager.set_tf_path(new_profile.game_path)
+        self.profile_btn.setText(f" {new_profile.name}")
+        self.install_manager.set_tf_path(new_profile.game_path)
 
-            # reload addons (different selections per profile)
-            self.load_addons()
+        # reload addons (different selections per profile)
+        self.load_addons()
 
-            # reload conflict matrix (simple mode may differ per profile)
-            new_simple = self.settings_manager.get_simple_particle_mode()
-            if self.mod_drop_zone and self.mod_drop_zone.conflict_matrix:
-                self.mod_drop_zone.conflict_matrix.set_simple_mode(new_simple)
-            self.update_simple_mode_button()
-            self.mod_drop_zone.update_matrix()
+        # reload conflict matrix (simple mode may differ per profile)
+        new_simple = self.settings_manager.get_simple_particle_mode()
+        if self.mod_drop_zone and self.mod_drop_zone.conflict_matrix:
+            self.mod_drop_zone.conflict_matrix.set_simple_mode(new_simple)
+        self.update_simple_mode_button()
+        self.mod_drop_zone.update_matrix()
 
-            # sync settings page
-            self.sync_settings_page()
-
-            self.update_load_order_display()
+        self.sync_settings_page()
+        self.update_load_order_display()
 
     def create_new_profile(self):
         dialog = ProfileDialog(self)
@@ -512,9 +513,7 @@ class ParticleManagerGUI(QMainWindow):
         if result == QMessageBox.StandardButton.Yes:
             self.settings_manager.delete_profile(active.id)
             self.rebuild_profile_menu()
-            new_active = self.settings_manager.get_active_profile()
-            if new_active:
-                self.switch_profile(new_active.id)
+            self._sync_to_active_profile()
 
     def sync_settings_page(self):
         active = self.settings_manager.get_active_profile()
