@@ -111,7 +111,8 @@ QUICKPRECACHE_MODEL_LIST = [
     "ammo_box",
     "ammopack",
     "medkit",
-    "currencypack"
+    "currencypack",
+    "cappoint_hologram",
 ]
 
 
