@@ -67,6 +67,19 @@ class Gui:
         return gui()
 
 
+@command(name='print_sourcemods')
+@dataclass
+class PrintSourcemods:
+    """Print all known sourcemods, their aliases and steam IDs."""
+    def __call__(self, config: Config) -> int:
+        from rich import print as pprint
+
+        for sourcemod in Sourcemods:
+            pprint(sourcemod)
+
+        return 0
+
+
 @command
 @dataclass
 class Reset:
@@ -102,7 +115,7 @@ class Config(Args, FolderConfig):
         pass
 
 
-_Subcommand = Gui | Reset
+_Subcommand = Gui | PrintSourcemods | Reset
 
 
 config: Config
