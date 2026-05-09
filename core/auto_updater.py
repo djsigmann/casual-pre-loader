@@ -2,7 +2,6 @@ import logging
 import os
 import re
 import sys
-from collections import defaultdict
 from operator import attrgetter
 from zipfile import Path as ZipFilePath
 
@@ -40,16 +39,16 @@ def check_for_updates() -> tuple[Update, ...]:
     """
 
     try: # get the latest version of each minor release that we are behind of
-        updates = defaultdict(dict)
+        updates = {}
         current = Version(VERSION)
         platform_name = 'linux' if sys.platform == 'linux' else 'win'
 
-        # sort by descending chronological order, so we only store the latest patch release for every minor release
+        # sort by descending chronological order, so we only store the latest patch release for every major release
         for update in sorted(get_releases_with_asset(REMOTE_REPO, re.compile(fr'^casual-pre-?loader(-{platform_name})?.*\.zip')), key=attrgetter('version'), reverse=True):
-            if update.version > current:
-                updates[update.version.major].setdefault(update.version.minor, update)
+            if update.version > current: # we could opt to break if conditional fails, but we'd probably only save milliseconds at most
+                updates.setdefault(update.version.major, update)
 
-        return tuple(update for major_updates in updates.values() for update in major_updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
+        return tuple(update for update in updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
 
     except Exception:
         log.exception('Error checking for updates')
