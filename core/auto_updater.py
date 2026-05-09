@@ -2,7 +2,6 @@ import logging
 import os
 import re
 import sys
-from collections import defaultdict
 from operator import attrgetter
 from zipfile import Path as ZipFilePath
 
@@ -58,13 +57,15 @@ def check_for_updates() -> tuple[Update, ...]:
     # sort by descending chronological order, so we only store the latest patch release for every minor release
     releases.sort(key=attrgetter('version'), reverse=True)
 
-    updates = defaultdict(dict)
+    updates = {}
     current = Version(VERSION)
     for update in releases:
         if update.version > current:
-            updates[update.version.major].setdefault(update.version.minor, update)
+            updates.setdefault(update.version.major, update)
+        else:
+            break
 
-    return tuple(update for major_updates in updates.values() for update in major_updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
+    return tuple(update for update in updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
 
 
 def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
