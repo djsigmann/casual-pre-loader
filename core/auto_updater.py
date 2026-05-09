@@ -3,6 +3,7 @@ import os
 import re
 import sys
 from operator import attrgetter
+from pathlib import Path
 from zipfile import Path as ZipFilePath
 
 from packaging.version import Version
@@ -27,7 +28,6 @@ One can assume that any functions in this file will only run if the application 
 # - be able to tell if we were ran with a wrapper script [scripts/run.sh] (simplest method would be to use an envvar)
 # - programatically get min python version (pyproject.toml)
 # - programatically get dependency information (pyproject.toml)
-# - be able to determine if there are pending updates before running the main app (extract them to a tmpdir, check that on startup, apply them one by one, execing each time to relaod the runscript/interpreter)
 
 
 def check_for_updates() -> tuple[Update, ...]:
@@ -55,19 +55,23 @@ def check_for_updates() -> tuple[Update, ...]:
         return tuple()
 
 
-def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
+def download_updates(updates: tuple[Update, ...] | None = None) -> None:
     """
-    Download and apply all available updates.
+    Download all available updates.
 
     Args:
         updates: An optional tuple of updates. If this is not supplied, the output of `check_for_updates()` is used.
     """
 
-    updates = updates or check_for_updates()
-
     # TODO: update this once we can update multiple at a time
+
+    if updates is None:
+        updates = check_for_updates()
+
+    archive_paths: dict = {}
     for update in updates:
         archive_path = config.temp_dir / 'update' / f'{update.release.tag_name}.zip'
+        archive_paths[update.release.tag_name] = archive_path
 
         try:
             log.info(f'Downloading application update ({update.release.tag_name})')
@@ -76,45 +80,77 @@ def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
             log.exception(f'Error downloading update {update.release.tag_name}')
             break
 
-        match sys.platform:
-            case 'win32':
-                renamed_runme = config.install_dir.parent / 'RUNME.tmp.bat'
+    state_file = config.temp_dir / 'update' / 'state.json'
+    state: dict = {'args': sys.argv, 'pending': archive_paths}
 
-                try:
-                    extract(archive_path, config.install_dir.parent / '.tmp_update', 0, False, None)
-                    copy(config.install_dir.parent / 'RUNME.bat', renamed_runme) # INFO: we need to rename RUNME to avoid file lock issues
-                except Exception:
-                    log.exception(f'Error extracting update {update.release.tag_name}')
+    import json
+    with state_file.open('w') as fd:
+        json.dump(state, fd)
 
-                    delete(config.install_dir.parent / '.tmp_update')
-                    delete(renamed_runme)
+    perform_update()
 
-                    break
-                finally:
-                    delete(archive_path)
 
-                os.chdir('..')
-                os.execvpe('cmd.exe', ['cmd.exe', '/c', '.\\' + renamed_runme.name] + sys.argv[1:], os.environ) # NOTE: quits the interpreter and executes renamed RUNME
+def perform_update() -> None:
+    import json
 
-            case 'linux':
-                include = tuple((*BUILD_FILES, *BUILD_DIRS))
-                def _filter(root: ZipFilePath) -> FilterPredicate:
-                    def __filter(path: ZipFilePath) -> bool:
-                        rel = path.relative_to(root)
-                        return any(map(lambda x: rel.startswith(x), include))
+    state_file = config.temp_dir / 'update' / 'state.json'
+    try:
+        with state_file.open('r') as fd:
+            state: dict = json.load(fd)
+    except FileNotFoundError:
+        log.exception('Could not find state file in temporary dir')
 
-                    return __filter
+    tag_name = sorted(state['pending'].keys(), key=Version)[0]
+    archive_path = Path(state['pending'][tag_name])
+    del state['pending'][tag_name]
 
-                try:
-                    extract(archive_path, config.install_dir, 1, False, _filter)
-                except Exception:
-                    log.exception(f'Error extracting update {update.release.tag_name}')
+    match sys.platform:
+        case 'win32':
+            renamed_runme = config.install_dir.parent / 'RUNME.tmp.bat'
 
-                    break
-                finally:
-                    delete(archive_path)
+            try:
+                extract(archive_path, config.install_dir.parent / '.tmp_update', 0, False, None)
+                copy(config.install_dir.parent / 'RUNME.bat', renamed_runme) # INFO: we need to rename RUNME on windows to avoid file lock issues
+            except Exception:
+                log.exception(f'Error extracting update {tag_name}')
 
-                os.execve(sys.executable, [sys.executable] + sys.argv, os.environ) # NOTE: calls `exec()` and restarts the program
+                delete(config.install_dir.parent / '.tmp_update')
+                delete(renamed_runme)
 
-            case _:
-                raise NotImplementedError
+            os.chdir('..')
+
+            eexec_args = ('cmd.exe', ['cmd.exe', '/c', '.\\' + renamed_runme.name])
+            if not state['pending']:
+                eexec_args[1].extend(state['args'][1:])
+
+        case 'linux':
+            include = tuple((*BUILD_FILES, *BUILD_DIRS))
+            def _filter(root: ZipFilePath) -> FilterPredicate:
+                def __filter(path: ZipFilePath) -> bool:
+                    rel = path.relative_to(root)
+                    return any(map(lambda x: rel.startswith(x), include))
+
+                return __filter
+
+            try:
+                extract(archive_path, config.install_dir, 1, False, _filter)
+            except Exception:
+                log.exception(f'Error extracting update {tag_name}')
+
+            exec_args = (sys.executable, [sys.executable])
+            if not state['pending']:
+                exec_args[1].extend(state['args'])
+
+    delete(archive_path)
+
+    if state['pending']:
+        with state_file.open('w'):
+            json.dump(state,fd)
+
+        if config.verbose:
+            exec_args[1].append('-v')
+    else:
+        delete(state_file.parent)
+        exec_args[1].append('update')
+
+    os.execve(*exec_args, os.environ) # NOTE: quits the interpreter and re-executes
