@@ -11,7 +11,7 @@ on:
         type: boolean
         default: true
         required: false
-      generate-release-notes:
+      generate_release_notes:
         description: 'Generate release notes?'
         type: boolean
         default: true
@@ -29,42 +29,92 @@ jobs:
       ${{ inputs.generate_release_notes }}
 
     steps:
-      - name: Chekout code
+      - name: Silence Git
+        run: git config --global advice.defaultBranchName false
+
+      - name: Checkout tag ${{ github.ref_name }}
         uses: actions/checkout@v5
+        if: ${{ github.ref_type == 'tag' }}
         with:
           ref: ${{ github.ref }} # required, otherwise we checkout to HEAD
+
+      - name: Checkout branch ${{ github.ref_name }}
+        uses: actions/checkout@v5
+        if: ${{ github.ref_type == 'branch' }}
+        with:
+          ref: ${{ github.ref }} # required, otherwise we checkout to HEAD
+          fetch-depth: 0        # fetch full history + tags
+          fetch-tags: true
+
+      - name: Get Repo Name
+        id: get_repo_name
+        run: echo "repo_name=${GITHUB_REPOSITORY#*/}" >>$GITHUB_OUTPUT
+
+      - name: Get Release Name
+        id: get_release_name
+        run: |
+          case "${GITHUB_REF_TYPE}" in
+            branch)
+              echo "release_name=$(git describe --tags --long --abbrev=7 --first-parent --match 'v[0-9]*' |
+                sed 's/^v//;s/\([^-]*\)-\(g[a-zA-Z0-9]\+\)$/'"${GITHUB_REF_NAME}"'.r\1.\2/')"
+            ;;
+            tag)
+              echo "release_name=${GITHUB_REF_NAME}"
+            ;;
+          esac >>$GITHUB_OUTPUT
+
+      - name: Create build directory
+        id: create_build_dir
+        env:
+          REPO_NAME: ${{ steps.get_repo_name.outputs.repo_name }}
+        run: |
+          build_dir=build
+          echo "build_dir=${build_dir}" >>$GITHUB_OUTPUT
+          mkdir -p "${build_dir}/${REPO_NAME}"
 
       - name: Set up python
         uses: actions/setup-python@v6
         with:
           python-version: '>=3.12'
 
-      - name: Create build directory
-        run: mkdir -p build/casual-preloader
-
       - name: Download embeddable Python
+        env:
+          BUILD_DIR: ${{ steps.create_build_dir.outputs.build_dir }}
+          REPO_NAME: ${{ steps.get_repo_name.outputs.repo_name }}
         run: |
           curl -L -o python.zip https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip
-          unzip python.zip -d build/casual-preloader/
-          # Add site-packages to path for embeddable Python
-          printf 'python312.zip\n.\nLib\nLib\\site-packages\n' > build/casual-preloader/python312._pth
+          unzip python.zip -d "${BUILD_DIR}/${REPO_NAME}"
 
-          curl -L -o build/casual-preloader/pip.pyz https://bootstrap.pypa.io/pip/pip.pyz
+          # Add site-packages to path for embeddable Python
+          printf 'python312.zip\n.\nLib\nLib\\site-packages\n' >"${BUILD_DIR}/${REPO_NAME}/python312._pth"
+
+          curl -L -o "${BUILD_DIR}/${REPO_NAME}/pip.pyz" https://bootstrap.pypa.io/pip/pip.pyz
 
       - name: Build application
+        env:
+          BUILD_DIR: ${{ steps.create_build_dir.outputs.build_dir }}
+          REPO_NAME: ${{ steps.get_repo_name.outputs.repo_name }}
         run: |
-          python scripts/build.py --target_dir build/casual-preloader <<< "y"
-          find build -name '__pycache__' -exec rm -rf '{}' \; -prune
-          cp scripts/RUNME.bat build/
+          python scripts/build.py --target_dir "${BUILD_DIR}/${REPO_NAME}" <<< "y"
+          find "${BUILD_DIR}" -name '__pycache__' -exec rm -rf '{}' \; -prune
+          cp scripts/RUNME.bat "${BUILD_DIR}"
 
       - name: Create release archive
-        run: cd build && zip -r "../casual-preloader-${{ github.ref_name }}.zip" .
+        id: create_release_archive
+        env:
+          BUILD_DIR: ${{ steps.create_build_dir.outputs.build_dir }}
+          RELEASE_NAME: ${{ steps.get_release_name.outputs.release_name }}
+        run: |
+          cd "${BUILD_DIR}"
+          release_archive="casual-preloader-${RELEASE_NAME}+win.zip"
+          echo "release_archive=${release_archive}" >>$GITHUB_OUTPUT
+          zip -r "../${release_archive}" .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         with:
-          name: "casual-preloader-${{ github.ref_name }}"
+          name: ${{ steps.create_release_archive.outputs.release_archive }}
           path: build
           if-no-files-found: error
           compression-level: 9
@@ -72,16 +122,21 @@ jobs:
           include-hidden-files: true
 
       - name: Copy artifact
-        if: env.ACT == 'true'
+        if: ${{ env.ACT == 'true' }}
+        env:
+          RELEASE_NAME: ${{ steps.get_release_name.outputs.release_name }}
         run: |
-          mkdir -p /tmp/artifacts
-          rm -rf /tmp/artifacts/${{ github.ref_name }}
-          cp  -av build /artifacts/${{ github.ref_name }}
+          release_path="/tmp/artifacts/releases/${RELEASE_NAME}"
+
+          rm -rf "${release_path}"
+          mkdir -p "${release_path}"
+          printf 'Copying build dir to %s\n' "${release_path}"
+          cp -a build "${release_path}"
 
       - name: Create GitHub Release
-        if: env.ACT != 'true'
+        if: ${{ env.ACT != 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          files: "casual-preloader-${{ github.ref_name }}.zip"
+          files: ${{ steps.create_release_archive.release_archive }}
           draft: ${{ inputs.draft == '' && true || inputs.draft }}
-          generate_release_notes: ${{ inputs.generate-release-notes }}
+          generate_release_notes: ${{ inputs.generate_release_notes }}
