@@ -3,7 +3,6 @@
 import logging
 from sys import platform
 
-from core.folder_setup import folder_setup
 from core.util.file import delete
 
 
@@ -15,6 +14,7 @@ def gui() -> int:
 
     from core.auto_updater import check_for_updates
     from core.backup_manager import prepare_runtime_environment
+    from core.config import _may_be_portable, config
     from core.settings import SettingsManager
     from gui.first_time_setup import run_first_time_setup
     from gui.main_window import ParticleManagerGUI
@@ -54,7 +54,7 @@ def gui() -> int:
 
     window = ParticleManagerGUI(tf_directory)
 
-    if not SettingsManager.is_first_time_setup() and folder_setup.portable:
+    if not SettingsManager.is_first_time_setup() and _may_be_portable:
         settings_manager = SettingsManager()
 
         updates = check_for_updates()
@@ -70,9 +70,9 @@ def gui() -> int:
         import ctypes
         my_app_id = 'cool.app.id.yes'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(my_app_id)
-        window.setWindowIcon(QIcon(str(folder_setup.install_dir / 'gui/icons/cueki_icon.svg')))
+        window.setWindowIcon(QIcon(str(config.install_dir / 'gui/icons/cueki_icon.svg')))
     elif platform == 'linux':
-        window.setWindowIcon(QIcon(str(folder_setup.install_dir / 'gui/icons/cueki_icon.svg')))
+        window.setWindowIcon(QIcon(str(config.install_dir / 'gui/icons/cueki_icon.svg')))
     else:
         logging.warning(f"We don't know how to set an icon for platform type: {platform}")
 
@@ -80,7 +80,7 @@ def gui() -> int:
     window.show()
 
     app.exec()
-    delete(folder_setup.temp_dir, not_exist_ok=True)
+    delete(config.temp_dir, not_exist_ok=True)
     return 0
 
 def main():

@@ -15,14 +15,14 @@ from pathlib import Path
 
 from valve_parsers import PCFFile
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.operations.pcf_rebuild import extract_elements, get_pcf_element_names
 
 log = logging.getLogger()
 
 
 def load_particle_system_map() -> dict[str, list[str]]:
-    map_path = folder_setup.data_dir / "particle_system_map.json"
+    map_path = config.data_dir / "particle_system_map.json"
     with open(map_path, 'r') as f:
         return json.load(f)
 

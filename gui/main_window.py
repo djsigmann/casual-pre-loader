@@ -5,7 +5,7 @@ import threading
 from pathlib import Path
 from sys import platform
 
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import (
     QCheckBox,
     QGroupBox,
@@ -24,24 +24,34 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.particle_splits import migrate_old_particle_files
 from core.services.conflicts import scan_for_legacy_conflicts
+from core.settings import SettingsManager
 from core.version import VERSION
-from gui.addons_manager import AddonsManager
 from gui.addon_panel import AddonPanel
+from gui.addons_manager import AddonsManager
 from gui.dialogs import confirm_action, show_error, show_success
-from gui.mod_drop_zone import ModDropZone
 from gui.first_time_setup import download_cueki_mods
 from gui.install_controller import InstallController
+from gui.mod_drop_zone import ModDropZone
 from gui.profile_dialog import ProfileDialog
 from gui.theme import (
-    BG_DEFAULT, CODE_BG, FG_DEFAULT, FG_LIGHTER, FG_MUTED,
-    FONT_SIZE_HEADER, FONT_SIZE_NORMAL, FONT_SIZE_SMALL, PRIMARY,
-    BUTTON_STYLE, DANGER_BUTTON_STYLE, PROFILE_ADD_BUTTON_STYLE,
-    PROFILE_BUTTON_STYLE, SIDEBAR_NAV_STYLE,
+    BG_DEFAULT,
+    BUTTON_STYLE,
+    CODE_BG,
+    DANGER_BUTTON_STYLE,
+    FG_DEFAULT,
+    FG_LIGHTER,
+    FG_MUTED,
+    FONT_SIZE_HEADER,
+    FONT_SIZE_NORMAL,
+    FONT_SIZE_SMALL,
+    PRIMARY,
+    PROFILE_ADD_BUTTON_STYLE,
+    PROFILE_BUTTON_STYLE,
+    SIDEBAR_NAV_STYLE,
 )
-from core.settings import SettingsManager
 
 log = logging.getLogger()
 
@@ -798,7 +808,7 @@ class ParticleManagerGUI(QMainWindow):
             self.show_error(message)
 
     def open_addons_folder(self):
-        addons_path = folder_setup.addons_dir
+        addons_path = config.addons_dir
 
         if not addons_path.exists():
             log.error("Addons folder does not exist!", stack_info=True)

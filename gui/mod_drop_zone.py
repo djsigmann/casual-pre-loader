@@ -3,9 +3,8 @@ import threading
 from pathlib import Path
 
 from PyQt6.QtCore import QObject, Qt, pyqtSignal
-from PyQt6.QtWidgets import QFrame, QLabel, QMessageBox, QProgressDialog, QVBoxLayout
+from PyQt6.QtWidgets import QFrame, QMessageBox, QProgressDialog, QVBoxLayout
 
-from core.folder_setup import folder_setup
 from core.services.importer import ImportService, normalize_vpk_paths
 from core.structure_validator import StructureValidator, ValidationResult
 from core.util.pcf_path_walk import apply_particle_selections, get_mod_particles

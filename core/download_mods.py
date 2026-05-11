@@ -4,8 +4,8 @@ from collections.abc import Callable
 
 from packaging.version import Version
 
+from core.config import config
 from core.constants import REMOTE_REPO
-from core.folder_setup import folder_setup
 from core.util.net import download_file, download_reporthook
 from core.util.repo import Update
 from core.util.repo.github_api import get_releases_with_asset
@@ -40,12 +40,12 @@ def check_mods() -> Update | None:
 
     modsinfo = None
     try:
-        with folder_setup.modsinfo_file.open('r') as fd:
+        with config.modsinfo_file.open('r') as fd:
             modsinfo = json.load(fd)
     except FileNotFoundError:
         pass
     except json.JSONDecodeError:
-        log.exception(f'Could not parse {folder_setup.modsinfo_file}') # ignore this error and act as if the file didn't exist at all
+        log.exception(f'Could not parse {config.modsinfo_file}') # ignore this error and act as if the file didn't exist at all
 
     for update in get_releases_with_asset(REMOTE_REPO, 'mods.zip'):
         if modsinfo:
@@ -82,10 +82,10 @@ def download_mods(
     """
 
     # INFO:
-    # the archive containing the mods has the same structure as `folder_setup.mods_dir`.
+    # the archive containing the mods has the same structure as `config.mods_dir`.
     # Its contents are wrapped in a `mods/` directory.
 
-    archive_path = folder_setup.temp_dir / update.asset.name
+    archive_path = config.temp_dir / update.asset.name
     download_file(update.asset.browser_download_url, archive_path, 10, download_reporthook(set_value, process, was_canceled))
 
     set_label("Extracting mods")
@@ -94,10 +94,10 @@ def download_mods(
         process()
 
     try:
-        extract(archive_path, folder_setup.mods_dir, 1, False)
+        extract(archive_path, config.mods_dir, 1, False)
 
-        folder_setup.modsinfo_file.parent.mkdir(parents=True, exist_ok=True)
-        with folder_setup.modsinfo_file.open('w') as fd:
+        config.modsinfo_file.parent.mkdir(parents=True, exist_ok=True)
+        with config.modsinfo_file.open('w') as fd:
             json.dump({'tag': update.release.tag_name, 'digest': update.asset.digest}, fd)
     finally:
         archive_path.unlink()

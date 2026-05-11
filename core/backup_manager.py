@@ -2,7 +2,7 @@ import logging
 import shutil
 from pathlib import Path
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.operations.pcf_rebuild import load_particle_system_map
 from core.util.file import copy, delete
 
@@ -15,10 +15,10 @@ def prepare_working_copy() -> str | None:
     failure, or None if the staging folder is ready."""
 
     try:
-        delete(folder_setup.temp_dir, not_exist_ok=True)
+        delete(config.temp_dir, not_exist_ok=True)
 
-        backup_particles_dir = folder_setup.backup_dir / "particles"
-        particle_dest_dir = folder_setup.temp_to_be_referenced_dir
+        backup_particles_dir = config.backup_dir / "particles"
+        particle_dest_dir = config.temp_to_be_referenced_dir
         backup_particles_dir.mkdir(parents=True, exist_ok=True)
         particle_dest_dir.mkdir(parents=True, exist_ok=True)
 
@@ -29,10 +29,10 @@ def prepare_working_copy() -> str | None:
         return (
             f"Failed to populate the temp staging folder.\n\n"
             f"{e}\n\n"
-            f"See the log for details:\n{folder_setup.log_file}"
+            f"See the log for details:\n{config.log_file}"
         )
 
-    map_path = folder_setup.particle_system_map_file
+    map_path = config.particle_system_map_file
     try:
         particle_map = load_particle_system_map(map_path)
     except Exception as e:
@@ -45,7 +45,7 @@ def prepare_working_copy() -> str | None:
         )
 
     expected = {Path(key).name for key in particle_map.keys()}
-    dest = folder_setup.temp_to_be_referenced_dir
+    dest = config.temp_to_be_referenced_dir
     missing = sorted(name for name in expected if not (dest / name).exists())
 
     if not missing:
@@ -78,8 +78,8 @@ def prepare_runtime_environment() -> str | None:
     """Run all startup setup steps that populate the staging folder. Returns a
     user-facing error message on failure, or None if everything is ready."""
 
-    bundled_backup = folder_setup.install_dir / "backup"
-    project_backup = folder_setup.project_dir / "backup"
+    bundled_backup = config.install_dir / "backup"
+    project_backup = config.project_dir / "backup"
     try:
         copy(bundled_backup, project_backup, noclobber=False)
     except Exception as e:

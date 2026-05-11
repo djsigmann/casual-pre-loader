@@ -6,7 +6,7 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.util.file import move
 
 log = logging.getLogger()
@@ -27,8 +27,8 @@ def download_file(url: str, path: Path, timeout: int | None = None, reporthook: 
         noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
     """
 
-    folder_setup.temp_dir.mkdir(parents=True, exist_ok=True)
-    tmp_file = tempfile.NamedTemporaryFile(prefix=path.name[:128], suffix='.part', dir=folder_setup.temp_dir, delete_on_close=False)
+    config.temp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_file = tempfile.NamedTemporaryFile(prefix=path.name[:128], suffix='.part', dir=config.temp_dir, delete_on_close=False)
     tmp_path = Path(tmp_file.name)
 
     old_timeout = socket.getdefaulttimeout()
