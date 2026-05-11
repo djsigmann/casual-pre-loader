@@ -8,8 +8,8 @@ from zipfile import Path as ZipFilePath
 
 from packaging.version import Version
 
+from core.config import config
 from core.constants import BUILD_DIRS, BUILD_FILES, REMOTE_REPO
-from core.folder_setup import folder_setup
 from core.util.file import copy, delete
 from core.util.net import download_file
 from core.util.repo import Update
@@ -68,7 +68,7 @@ def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
 
     # TODO: update this once we can update multiple at a time
     for update in updates:
-        archive_path = folder_setup.temp_dir / 'update' / f'{update.release.tag_name}.zip'
+        archive_path = config.temp_dir / 'update' / f'{update.release.tag_name}.zip'
 
         try:
             log.info(f'Downloading application update ({update.release.tag_name})')
@@ -79,15 +79,15 @@ def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
 
         match sys.platform:
             case 'win32':
-                renamed_runme = folder_setup.install_dir.parent / 'RUNME.tmp.bat'
+                renamed_runme = config.install_dir.parent / 'RUNME.tmp.bat'
 
                 try:
-                    extract(archive_path, folder_setup.install_dir.parent / '.tmp_update', 0, False, None)
-                    copy(folder_setup.install_dir.parent / 'RUNME.bat', renamed_runme) # INFO: we need to rename RUNME to avoid file lock issues
+                    extract(archive_path, config.install_dir.parent / '.tmp_update', 0, False, None)
+                    copy(config.install_dir.parent / 'RUNME.bat', renamed_runme) # INFO: we need to rename RUNME to avoid file lock issues
                 except Exception:
                     log.exception(f'Error extracting update {update.release.tag_name}')
 
-                    delete(folder_setup.install_dir.parent / '.tmp_update')
+                    delete(config.install_dir.parent / '.tmp_update')
                     delete(renamed_runme)
 
                     break
@@ -107,7 +107,7 @@ def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
                     return __filter
 
                 try:
-                    extract(archive_path, folder_setup.install_dir, 1, False, _filter)
+                    extract(archive_path, config.install_dir, 1, False, _filter)
                 except Exception:
                     log.exception(f'Error extracting update {update.release.tag_name}')
 

@@ -6,7 +6,7 @@ from typing import Callable
 
 from valve_parsers import VPKFile
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.operations.advanced_particle_merger import AdvancedParticleMerger
 from core.structure_validator import StructureValidator
 from core.util.file import copy, delete, move
@@ -53,7 +53,7 @@ class ImportService:
             has_particles = any((folder_path / "particles").glob("*.pcf"))
 
             if has_particles:
-                destination = folder_setup.particles_dir / folder_name
+                destination = config.particles_dir / folder_name
                 delete(destination, not_exist_ok=True)
                 copy(folder_path, destination)
 
@@ -64,7 +64,7 @@ class ImportService:
                 particle_merger.preprocess_vpk(destination)
             else:
                 # it is an addon
-                destination = folder_setup.addons_dir / folder_name
+                destination = config.addons_dir / folder_name
                 delete(destination, not_exist_ok=True)
                 copy(folder_path, destination)
 
@@ -168,8 +168,8 @@ class ImportService:
                 progress_callback(5, "Validating VPK structure...")
             validation_result = self.validator.validate_vpk(file_path)
 
-            extracted_particles_dir = folder_setup.particles_dir / vpk_name
-            extracted_addons_dir = folder_setup.addons_dir / vpk_name
+            extracted_particles_dir = config.particles_dir / vpk_name
+            extracted_addons_dir = config.addons_dir / vpk_name
             extracted_particles_dir.mkdir(parents=True, exist_ok=True)
 
             if progress_callback:
