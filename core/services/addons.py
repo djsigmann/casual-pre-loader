@@ -2,7 +2,7 @@ import collections
 import json
 import logging
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.util.file import delete
 
 log = logging.getLogger()
@@ -15,7 +15,7 @@ class AddonService:
 
     def load_addon_info(self, addon_name: str) -> dict:
         # load mod.json for a single addon, eturns default dict if not found
-        addon_path = folder_setup.addons_dir / addon_name
+        addon_path = config.addons_dir / addon_name
         try:
             mod_json_path = addon_path / 'mod.json'
             if mod_json_path.exists():
@@ -38,7 +38,7 @@ class AddonService:
         }
 
     def get_addons_grouped(self) -> dict[str, list[dict]]:
-        addons_dir = folder_setup.addons_dir
+        addons_dir = config.addons_dir
         addon_groups = collections.defaultdict(list)
 
         self.addons_cache = {}
@@ -64,7 +64,7 @@ class AddonService:
     def scan_addon_contents(self) -> bool:
         # scan all addon directories and cache file lists, returns True if any addons were updated
         addon_metadata = self.settings_manager.get_addon_metadata() or {}
-        addons_dir = folder_setup.addons_dir
+        addons_dir = config.addons_dir
         addons_dir.mkdir(parents=True, exist_ok=True)
         addons = [d for d in addons_dir.iterdir() if d.is_dir()]
         processed = 0
@@ -109,7 +109,7 @@ class AddonService:
     def delete_addons(self, addon_dir_names: list[str]) -> tuple[bool, str]:
         errors = []
         for folder_name in addon_dir_names:
-            addon_path = folder_setup.addons_dir / folder_name
+            addon_path = config.addons_dir / folder_name
             if addon_path.exists() and addon_path.is_dir():
                 try:
                     delete(addon_path)

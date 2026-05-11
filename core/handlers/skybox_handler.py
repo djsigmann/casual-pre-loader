@@ -4,7 +4,7 @@ from pathlib import Path
 
 from valve_parsers import VPKFile
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.handlers.file_handler import FileHandler
 from core.util.vpk import get_vpk_name
 
@@ -67,7 +67,7 @@ def handle_skybox_mods(temp_dir: Path, tf_path) -> int:
 
 
 def restore_skybox_files(tf_path: str) -> int:
-    backup_skybox_dir = folder_setup.install_dir / "backup/materials/skybox"
+    backup_skybox_dir = config.install_dir / "backup/materials/skybox"
     if not backup_skybox_dir.exists():
         return 0
 

@@ -4,8 +4,8 @@ from pathlib import Path
 
 from valve_parsers import PCFFile
 
+from core.config import config
 from core.constants import PARTICLE_SPLITS
-from core.folder_setup import folder_setup
 from core.operations.pcf_merge import merge_pcf_files
 from core.operations.pcf_rebuild import (
     extract_elements,
@@ -71,7 +71,7 @@ def save_split_files(merged_pcf: PCFFile, out_dir: Path, split_filters: dict) ->
 class AdvancedParticleMerger:
     def __init__(self, progress_callback=None):
         self.progress_callback = progress_callback
-        self.particle_map = load_particle_system_map(folder_setup.data_dir / "particle_system_map.json")
+        self.particle_map = load_particle_system_map(config.data_dir / "particle_system_map.json")
         self.vpk_groups = defaultdict(lambda: defaultdict(list))  # {vpk_name: {particle_file: [paths]}}
 
     def update_progress(self, progress, message: str):
@@ -80,7 +80,7 @@ class AdvancedParticleMerger:
 
     def preprocess_vpk(self, vpk_path: Path) -> None:
         vpk_folder_name = vpk_path.stem
-        out_dir = folder_setup.particles_dir / vpk_folder_name
+        out_dir = config.particles_dir / vpk_folder_name
 
         # lazy copy whatever
         excluded_patterns = ['dx80', 'dx90']
@@ -92,7 +92,7 @@ class AdvancedParticleMerger:
             for particle_file_target, elements_to_extract, source_pcf in (
                     rebuild_particle_files(particle, self.particle_map)):
                 output_path = (
-                    folder_setup.temp_to_be_processed_dir
+                    config.temp_to_be_processed_dir
                     / f"{len(self.vpk_groups[vpk_folder_name][particle_file_target])}_{particle_file_target}"
                 )
                 output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -122,7 +122,7 @@ class AdvancedParticleMerger:
                     elements_we_still_need.add(element)
 
             if elements_we_still_need:
-                game_file_path = folder_setup.temp_to_be_referenced_dir / particle_group
+                game_file_path = config.temp_to_be_referenced_dir / particle_group
                 game_file_path.parent.mkdir(parents=True, exist_ok=True)
                 game_file_in = PCFFile(game_file_path).decode()
                 game_elements = extract_elements(game_file_in, elements_we_still_need)
@@ -146,5 +146,5 @@ class AdvancedParticleMerger:
                 actual_particles.parent.mkdir(parents=True, exist_ok=True)
                 result.encode(actual_particles)
 
-        for file in folder_setup.temp_to_be_processed_dir.glob('*'):
+        for file in config.temp_to_be_processed_dir.glob('*'):
             file.unlink()

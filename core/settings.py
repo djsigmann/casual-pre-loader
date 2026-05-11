@@ -2,7 +2,7 @@ import json
 import logging
 import uuid
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.profile import Profile
 
 log = logging.getLogger()
@@ -11,7 +11,7 @@ log = logging.getLogger()
 class SettingsManager:
     @staticmethod
     def is_first_time_setup() -> bool:
-        return not folder_setup.app_settings_file.exists()
+        return not config.app_settings_file.exists()
 
     def __init__(self):
         self.settings = self._load_settings()
@@ -26,9 +26,9 @@ class SettingsManager:
             "skipped_update_version": None,
         }
 
-        if folder_setup.app_settings_file.exists():
+        if config.app_settings_file.exists():
             try:
-                with open(folder_setup.app_settings_file, "r") as f:
+                with open(config.app_settings_file, "r") as f:
                     data = json.load(f)
 
                 # migrate old flat format to profile format
@@ -88,9 +88,9 @@ class SettingsManager:
             "addon_metadata": {}
         }
 
-        if folder_setup.addon_metadata_file.exists():
+        if config.addon_metadata_file.exists():
             try:
-                with open(folder_setup.addon_metadata_file, "r") as f:
+                with open(config.addon_metadata_file, "r") as f:
                     content = f.read()
                     if content:
                         return json.loads(content)
@@ -101,16 +101,16 @@ class SettingsManager:
 
     def save_settings(self):
         try:
-            folder_setup.app_settings_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(folder_setup.app_settings_file, "w") as f:
+            config.app_settings_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(config.app_settings_file, "w") as f:
                 json.dump(self.settings, f, indent=2)
         except Exception:
             log.exception("Error saving settings")
 
     def save_metadata(self):
         try:
-            folder_setup.addon_metadata_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(folder_setup.addon_metadata_file, "w") as f:
+            config.addon_metadata_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(config.addon_metadata_file, "w") as f:
                 json.dump(self.addon_metadata, f, indent=2)
         except Exception:
             log.exception("Error saving addon metadata")
@@ -293,9 +293,9 @@ class SettingsManager:
 
     @staticmethod
     def get_mod_urls():
-        if folder_setup.mod_urls_file.exists():
+        if config.mod_urls_file.exists():
             try:
-                with open(folder_setup.mod_urls_file, "r") as f:
+                with open(config.mod_urls_file, "r") as f:
                     return json.load(f)
             except Exception:
                 log.exception("Error loading mod URLs")
@@ -304,7 +304,7 @@ class SettingsManager:
     @staticmethod
     def set_mod_urls(urls):
         try:
-            with open(folder_setup.mod_urls_file, "w") as f:
+            with open(config.mod_urls_file, "w") as f:
                 json.dump(urls, f, indent=2)
         except Exception:
             log.exception("Error saving mod URLs")
