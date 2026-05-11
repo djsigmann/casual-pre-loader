@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from core.config import config
 from core.download_mods import check_mods, download_mods
 from core.services.setup import (
     import_userdata,

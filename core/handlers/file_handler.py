@@ -5,7 +5,7 @@ from pathlib import Path
 
 from valve_parsers import PCFFile, VPKFile
 
-from core.folder_setup import folder_setup
+from core.config import config
 
 log = logging.getLogger()
 
@@ -33,18 +33,18 @@ def copy_config_files(custom_content_dir):
     # config copy
     config_dest_dir = custom_content_dir / "cfg" / "w"
     config_dest_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(folder_setup.install_dir / 'backup/cfg/w/config.cfg', config_dest_dir)
-    shutil.copy2(folder_setup.install_dir / 'backup/cfg/w/kitty.cfg', config_dest_dir)
+    shutil.copy2(config.install_dir / 'backup/cfg/w/config.cfg', config_dest_dir)
+    shutil.copy2(config.install_dir / 'backup/cfg/w/kitty.cfg', config_dest_dir)
 
     # vscript copy
     vscript_dest_dir = custom_content_dir / "scripts" / "vscripts"
     vscript_dest_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(folder_setup.install_dir / 'backup/scripts/vscripts/randommenumusic.nut', vscript_dest_dir)
+    shutil.copy2(config.install_dir / 'backup/scripts/vscripts/randommenumusic.nut', vscript_dest_dir)
 
     # vgui copy
     vgui_dest_dir = custom_content_dir / "resource" / "ui"
     vgui_dest_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(folder_setup.install_dir / 'backup/resource/ui/vguipreload.res', vgui_dest_dir)
+    shutil.copy2(config.install_dir / 'backup/resource/ui/vguipreload.res', vgui_dest_dir)
 
 
 class FileHandler:
@@ -68,7 +68,7 @@ class FileHandler:
             full_path = file_name
 
         # create temp file for processing in working directory
-        temp_path = folder_setup.temp_dir / f"temp_{Path(file_name).name}"
+        temp_path = config.temp_dir / f"temp_{Path(file_name).name}"
         temp_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
