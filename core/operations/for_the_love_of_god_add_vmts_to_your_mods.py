@@ -3,7 +3,7 @@ from pathlib import Path
 
 from valve_parsers import VPKFile
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.util.vpk import get_vpk_name
 
 log = logging.getLogger()
@@ -68,7 +68,7 @@ def generate_vmt_content(texture_path: str, game_vpk: VPKFile | None = None) -> 
 
 def generate_missing_vmt_files(temp_mods_dir: Path = None, tf_path: str = None) -> int:
     if temp_mods_dir is None:
-        temp_mods_dir = folder_setup.temp_to_be_vpk_dir
+        temp_mods_dir = config.temp_to_be_vpk_dir
 
     if not temp_mods_dir.exists():
         log.info(f"Directory {temp_mods_dir} does not exist")
