@@ -6,6 +6,7 @@ from typing import Callable
 from valve_parsers import PCFFile, VPKFile
 
 from core.backup_manager import prepare_working_copy
+from core.config import config
 from core.constants import (
     BACKUP_MAINMENU_FOLDER,
     CUSTOM_VPK_NAME,
@@ -13,7 +14,6 @@ from core.constants import (
     CUSTOM_VPK_SPLIT_PATTERN,
     DX8_LIST,
 )
-from core.folder_setup import folder_setup
 from core.handlers.file_handler import FileHandler, copy_config_files, generate_config
 from core.handlers.paint_handler import disable_paints, enable_paints
 from core.handlers.pcf_handler import (
@@ -125,7 +125,7 @@ class InstallService:
                 if not check_writable(working_vpk_path):
                     raise PermissionError("Please close TF2 before installing.")
                 file_handler = FileHandler(str(working_vpk_path))
-                base_default_pcf, base_default_parents = initialize_pcf(folder_setup.temp_to_be_referenced_dir)
+                base_default_pcf, base_default_parents = initialize_pcf(config.temp_to_be_referenced_dir)
             progress(0, "Installing addons...")
 
             total_files = 0
@@ -133,7 +133,7 @@ class InstallService:
             hud_addons = {}
 
             for addon_index, addon_path in enumerate(selected_addons):
-                addon_dir = folder_setup.addons_dir / addon_path
+                addon_dir = config.addons_dir / addon_path
                 if addon_dir.exists() and addon_dir.is_dir():
                     mod_json_path = addon_dir / 'mod.json'
                     if mod_json_path.exists():
@@ -216,9 +216,9 @@ class InstallService:
 
                     rel_path = src_path.relative_to(addon_dir)
                     if src_path.suffix.lower() == '.pcf':
-                        dest_path = folder_setup.temp_to_be_patched_dir / rel_path
+                        dest_path = config.temp_to_be_patched_dir / rel_path
                     else:
-                        dest_path = folder_setup.temp_to_be_vpk_dir / rel_path
+                        dest_path = config.temp_to_be_vpk_dir / rel_path
 
                     copy(src_path, dest_path)
                     file_origin[dest_path] = addon_index
@@ -229,7 +229,7 @@ class InstallService:
 
                 if is_tf2:
                     progress(35, "Processing sound mods...")
-                    backup_scripts_dir = folder_setup.backup_dir / 'scripts'
+                    backup_scripts_dir = config.backup_dir / 'scripts'
 
                     vpk_paths = []
                     misc_vpk = tf_path_obj / "tf2_sound_misc_dir.vpk"
@@ -239,7 +239,7 @@ class InstallService:
                     vpk_paths.extend(vo_vpks)
 
                     sound_result = self.sound_handler.process_temp_sound_mods(
-                        folder_setup.temp_to_be_vpk_dir,
+                        config.temp_to_be_vpk_dir,
                         backup_scripts_dir,
                         vpk_paths
                     )
@@ -249,7 +249,7 @@ class InstallService:
                 self._check_cancelled()
 
                 if is_tf2:
-                    handle_skybox_mods(folder_setup.temp_to_be_vpk_dir, tf_path)
+                    handle_skybox_mods(config.temp_to_be_vpk_dir, tf_path)
 
                 if is_tf2 and disable_paint_colors:
                     progress(52, "Disabling paint colors...")
@@ -263,20 +263,20 @@ class InstallService:
                     "dirty_explode.pcf",
                 ]
                 for duplicate_effect in duplicate_effects:
-                    target_path = folder_setup.temp_to_be_patched_dir / duplicate_effect
+                    target_path = config.temp_to_be_patched_dir / duplicate_effect
                     if not target_path.exists():
-                        source_path = folder_setup.temp_to_be_referenced_dir / duplicate_effect
+                        source_path = config.temp_to_be_referenced_dir / duplicate_effect
                         target_path.parent.mkdir(parents=True, exist_ok=True)
                         if source_path.exists():
                             extract_elements(PCFFile(source_path).decode(),
-                                             load_particle_system_map(folder_setup.particle_system_map_file)
+                                             load_particle_system_map(config.particle_system_map_file)
                                              [f'particles/{target_path.name}']).encode(target_path)
 
-                if (folder_setup.temp_to_be_patched_dir / "blood_trail.pcf").exists():
-                    move(folder_setup.temp_to_be_patched_dir / "blood_trail.pcf",
-                         folder_setup.temp_to_be_patched_dir / "npc_fx.pcf")
+                if (config.temp_to_be_patched_dir / "blood_trail.pcf").exists():
+                    move(config.temp_to_be_patched_dir / "blood_trail.pcf",
+                         config.temp_to_be_patched_dir / "npc_fx.pcf")
 
-                particle_files = list(folder_setup.temp_to_be_patched_dir.glob("*.pcf"))
+                particle_files = list(config.temp_to_be_patched_dir.glob("*.pcf"))
                 dx8_files = sum(1 for pcf_file in particle_files if pcf_file.stem in DX8_LIST)
                 total_files = len(particle_files) + dx8_files
                 start_progress = 55
@@ -314,9 +314,9 @@ class InstallService:
                     current_progress = start_progress + int((completed_files / total_files) * progress_range)
                     progress(current_progress, f"Processing particle files... ({completed_files}/{total_files})")
             else:
-                particle_files = list(folder_setup.temp_to_be_patched_dir.glob("*.pcf"))
+                particle_files = list(config.temp_to_be_patched_dir.glob("*.pcf"))
                 if particle_files:
-                    particles_dir = folder_setup.temp_to_be_vpk_dir / 'particles'
+                    particles_dir = config.temp_to_be_vpk_dir / 'particles'
                     particles_dir.mkdir(parents=True, exist_ok=True)
 
                     total_files = len(particle_files)
@@ -350,7 +350,7 @@ class InstallService:
                 if cache_path.exists():
                     cache_path.unlink()
 
-            custom_content_dir = folder_setup.temp_to_be_vpk_dir
+            custom_content_dir = config.temp_to_be_vpk_dir
             copy_config_files(custom_content_dir)
 
             if is_tf2:
@@ -402,7 +402,7 @@ class InstallService:
                             progress_callback=on_progress
                             )
                         precache.run(auto=True)
-                        copy(folder_setup.install_dir / 'core/quickprecache/_QuickPrecache.vpk', custom_dir / '_QuickPrecache.vpk')
+                        copy(config.install_dir / 'core/quickprecache/_QuickPrecache.vpk', custom_dir / '_QuickPrecache.vpk')
 
                 self._check_cancelled()
 
