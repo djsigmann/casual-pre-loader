@@ -1,5 +1,6 @@
 import logging
 import threading
+from pathlib import Path
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
@@ -79,12 +80,12 @@ class InstallController(QObject):
             try:
                 self.service.uninstall(tf_path=install_path, game_target=game_target)
                 if not was_cancelled:
-                    self.operation_error.emit(f"Installation failed: {str(e)}\n\nFiles have been restored to default state.")
+                    self.operation_error.emit(f"Installation failed: {e!s}\n\nFiles have been restored to default state.")
             except Exception as cleanup_error:
                 self.operation_error.emit(
                     f"Installation failed and cleanup also failed.\n\n"
-                    f"Original error: {str(e)}\n"
-                    f"Cleanup error: {str(cleanup_error)}\n\n"
+                    f"Original error: {e!s}\n"
+                    f"Cleanup error: {cleanup_error!s}\n\n"
                     f"Please verify your game files through Steam:\n"
                     f"Library > Right-click Team Fortress 2 > Properties > Installed Files > Verify integrity of game files"
                 )
@@ -95,7 +96,7 @@ class InstallController(QObject):
     def install(self, selected_addons: list[str], mod_drop_zone=None, target_path=None, game_target="Team Fortress 2"):
         install_path = target_path if target_path else self.tf_path
 
-        is_valid = validate_game_directory(install_path)
+        is_valid = validate_game_directory(Path(install_path))
 
         if not is_valid:
             self.operation_error.emit("Invalid target directory!")
@@ -119,7 +120,7 @@ class InstallController(QObject):
             )
             self.operation_success.emit("Mods uninstalled successfully!")
         except Exception as e:
-            self.operation_error.emit(f"An error occurred while uninstalling: {str(e)}")
+            self.operation_error.emit(f"An error occurred while uninstalling: {e!s}")
         finally:
             self.processing = False
             self.operation_finished.emit()
