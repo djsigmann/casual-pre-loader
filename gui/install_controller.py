@@ -1,5 +1,6 @@
 import logging
 import threading
+from pathlib import Path
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
@@ -95,7 +96,7 @@ class InstallController(QObject):
     def install(self, selected_addons: list[str], mod_drop_zone=None, target_path=None, game_target="Team Fortress 2"):
         install_path = target_path if target_path else self.tf_path
 
-        is_valid = validate_game_directory(install_path)
+        is_valid = validate_game_directory(Path(install_path))
 
         if not is_valid:
             self.operation_error.emit("Invalid target directory!")

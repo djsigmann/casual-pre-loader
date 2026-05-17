@@ -1,3 +1,7 @@
+from dataclasses import dataclass
+from enum import Enum, auto, pickle_by_enum_name
+from typing import Any
+
 ELEMENT_DEFAULTS = [
     ("max_particles", 1000),
     ("initial_particles", 0),
@@ -207,6 +211,35 @@ MOD_TYPE_COLORS = {
 PROGRAM_AUTHOR = 'cueki'
 PROGRAM_NAME = 'casual-pre-loader'
 REMOTE_REPO = f'{PROGRAM_AUTHOR}/{PROGRAM_NAME}'
+
+
+@dataclass(frozen=True)
+class Sourcemod:
+    """Dataclass to represent a sourcemod"""
+
+    appid: int
+    """Sourcemod's Steam appid"""
+
+    full_name: str
+    """Sourcemod's Full name as it appears in 'steamapps/common'"""
+
+
+class Sourcemods(Sourcemod, Enum):
+    """
+    Enum defining known sourcemods that the tool is compatible with.
+    Names are the full names' abbreviations for clarity.
+    """
+
+    __reduce_ex__ = pickle_by_enum_name
+
+    @staticmethod
+    def _generate_next_value_[T: Any](name: str, start: int, count: int, last_values: list[T]) -> T:
+        return last_values[-1]
+
+    TF2 = 440, 'Team Fortress 2'
+    DEFAULT = auto()
+    TF2C = 3545060, 'Team Fortress 2 Classified'
+    TF2GR = 3826520, 'Team Fortress 2: Gold Rush'
 
 
 # directories and files to include in releases
