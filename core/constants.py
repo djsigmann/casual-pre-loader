@@ -1,6 +1,5 @@
-from enum import IntEnum, StrEnum
-from typing import Dict
-
+from dataclasses import dataclass
+from enum import Enum, IntEnum, StrEnum
 
 ELEMENT_DEFAULTS = [
     ("max_particles", 1000),
@@ -211,6 +210,31 @@ MOD_TYPE_COLORS = {
 PROGRAM_AUTHOR = 'cueki'
 PROGRAM_NAME = 'casual-pre-loader'
 REMOTE_REPO = f'{PROGRAM_AUTHOR}/{PROGRAM_NAME}'
+
+
+@dataclass(frozen=True)
+class Sourcemod:
+    """Dataclass to represent a sourcemod"""
+
+    appid: int
+    """Sourcemod's Steam appid"""
+
+    full_name: str
+    """Sourcemod's Full name as it appears in 'steamapps/common'"""
+
+
+class SOURCEMOD(Sourcemod, Enum):
+    """
+    Enum defining known sourcemods that the tool is compatible with.
+    Keys are the full names' abbreviations for clarity.
+    """
+
+    TF2 = 440, 'Team Fortress 2'
+    TF2C = 3545060, 'Team Fortress 2 Classified'
+    TF2GR = 3826520, 'Team Fortreess 2: Gold Rush'
+
+
+DEFAULT_SOURCEMOD = SOURCEMOD.TF2
 
 
 # directories and files to include in releases
