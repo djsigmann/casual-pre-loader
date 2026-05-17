@@ -13,7 +13,7 @@ def setup_test_data():
     test_settings = Settings()
     tf2_path = test_settings.game_path
 
-    if tf2_path:
+    if tf2_path is not None:
         log.info(f"Found TF2 installation at: {tf2_path}")
 
         # Copy essential files for testing
