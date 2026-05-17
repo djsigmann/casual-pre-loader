@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PyQt6.QtWidgets import (
     QDialog,
     QFileDialog,
@@ -10,7 +12,14 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from core.util.sourcemod import auto_detect_sourcemod, validate_game_directory
+from core.constants import Sourcemods
+from core.util.sourcemod import (
+    InvalidSourcemod,
+    InvalidSourcemodInstallationPath,
+    auto_detect_sourcemod,
+    get_sourcemod,
+    validate_game_directory,
+)
 
 
 class ProfileDialog(QDialog):
@@ -64,7 +73,7 @@ class ProfileDialog(QDialog):
         layout.addWidget(self.validation_label)
 
         if game_path:
-            validate_game_directory(game_path, self.validation_label)
+            validate_game_directory(Path(game_path), self.validation_label)
 
         btn_row = QHBoxLayout()
         btn_row.addStretch()
@@ -83,20 +92,29 @@ class ProfileDialog(QDialog):
         if directory:
             self._game_path = directory
             self.path_edit.setText(directory)
-            validate_game_directory(directory, self.validation_label)
+            validate_game_directory(Path(directory), self.validation_label)
 
     def auto_detect(self):
-        game_target = self.game_target_edit.text().strip() or "Team Fortress 2"
-        path = auto_detect_sourcemod(game_target)
-        if path:
-            self._game_path = path
-            self.path_edit.setText(path)
-            validate_game_directory(path, self.validation_label)
-            QMessageBox.information(self, "Auto-Detection Successful", f"Found {game_target} at:\n{path}")
-        else:
+        game_target = self.game_target_edit.text().strip()
+        try:
+            game_target = get_sourcemod(game_target) if game_target else Sourcemods.DEFAULT
+        except InvalidSourcemod:
             QMessageBox.information(self, "Auto-Detection Failed",
-                                    f"Could not find '{game_target}' in common Steam locations.\n"
-                                    "Please check the game target name or manually select your game directory.")
+                                    f"Unknown sourcemod '{game_target}'.\n"
+                                    "Please check the game target name.")
+            return
+
+        try:
+            path = auto_detect_sourcemod(game_target)
+            self._game_path = str(path)
+
+            self.path_edit.setText(self._game_path)
+            validate_game_directory(path, self.validation_label)
+            QMessageBox.information(self, "Auto-Detection Successful", f"Found {game_target.full_name} at:\n{path}")
+        except InvalidSourcemodInstallationPath:
+            QMessageBox.information(self, "Auto-Detection Failed",
+                                    f"Could not find sourcemod '{game_target.full_name}' in common Steam locations.\n"
+                                    "Please manually select your game directory.")
 
     def try_accept(self):
         name = self.name_edit.text().strip()

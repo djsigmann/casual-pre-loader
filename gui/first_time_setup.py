@@ -26,7 +26,11 @@ from core.services.setup import (
     is_valid_userdata_folder,
     save_initial_settings,
 )
-from core.util.sourcemod import auto_detect_sourcemod, validate_game_directory
+from core.util.sourcemod import (
+    InvalidSourcemodInstallationPath,
+    auto_detect_sourcemod,
+    validate_game_directory,
+)
 from gui.theme import BUTTON_STYLE_ALT, FONT_SIZE_HEADER
 
 log = logging.getLogger()
@@ -205,13 +209,15 @@ class FirstTimeSetupDialog(QDialog):
 
 
     def auto_detect_tf2_dir(self):
-        path = auto_detect_sourcemod()
-        if path:
-            self.tf_directory = path
-            self.tf_path_edit.setText(path)
+        try:
+            path = auto_detect_sourcemod()
+            path_s = str(path)
+
+            self.tf_directory = path_s
+            self.tf_path_edit.setText(path_s)
             validate_game_directory(path, self.validation_label)
             QMessageBox.information(self, "Auto-Detection Successful", f"Found TF2 installation at:\n{path}")
-        else:
+        except InvalidSourcemodInstallationPath:
             QMessageBox.information(self, "Auto-Detection Failed",
                                     "Could not automatically detect TF2 installation.\n"
                                     "Please manually select your tf/ directory.")
@@ -223,7 +229,7 @@ class FirstTimeSetupDialog(QDialog):
         self.update_import_status()
 
     def validate_directory(self):
-        result = validate_game_directory(self.tf_directory, self.validation_label)
+        result = validate_game_directory(Path(self.tf_directory), self.validation_label)
         self.validate_setup()
         return result
 
@@ -269,7 +275,7 @@ class FirstTimeSetupDialog(QDialog):
             return
 
         # validate tf/ directory one more time
-        if not validate_game_directory(self.tf_directory):
+        if not validate_game_directory(Path(self.tf_directory)):
             QMessageBox.warning(self, "Invalid Directory", "The selected TF2 directory is not valid.")
             return
 
