@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 from valve_parsers import PCFFile, VPKFile
 
@@ -88,8 +88,8 @@ class InstallService:
         self,
         tf_path: Path | str,
         selected_addons: list[str],
-        on_progress: Optional[ProgressCallback] = None,
-        apply_particle_selections: Optional[Callable[[], None]] = None,
+        on_progress: ProgressCallback | None = None,
+        apply_particle_selections: Callable[[], None] | None = None,
         disable_paint_colors: bool = False,
         show_console_on_startup: bool = True,
         fix_mdl_paths: bool = True,
@@ -432,7 +432,7 @@ class InstallService:
         finally:
             prepare_working_copy()
 
-    def uninstall(self, tf_path: str, on_progress: Optional[ProgressCallback] = None, game_target: str = "Team Fortress 2"):
+    def uninstall(self, tf_path: str, on_progress: ProgressCallback | None = None, game_target: str = "Team Fortress 2"):
         # resets everything
         def progress(pct: int, msg: str):
             if on_progress:

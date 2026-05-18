@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
 
 from valve_parsers import PCFFile
 
@@ -18,7 +17,7 @@ from core.operations.pcf_rebuild import (
 log = logging.getLogger()
 
 
-def sequential_merge(pcf_files: List[PCFFile]):
+def sequential_merge(pcf_files: list[PCFFile]):
     if not pcf_files:
         return None
     result = pcf_files[0]
@@ -31,13 +30,13 @@ def sequential_merge(pcf_files: List[PCFFile]):
     return result
 
 
-def default_max_size_for_mod_merge(pcf_files: List[Path]) -> int:
+def default_max_size_for_mod_merge(pcf_files: list[Path]) -> int:
     # this is just for simplicity’s sake, might change this later
     file_sizes = [(i, Path(file).stat().st_size) for i, file in enumerate(pcf_files)]
     return max(file_sizes, key=lambda x: x[1])[0]
 
 
-def find_duplicate_elements(pcf_files: List[PCFFile]) -> Dict[str, List[int]]:
+def find_duplicate_elements(pcf_files: list[PCFFile]) -> dict[str, list[int]]:
     element_sources = defaultdict(list)
     for i, pcf in enumerate(pcf_files):
         for element_name in get_pcf_element_names(pcf):

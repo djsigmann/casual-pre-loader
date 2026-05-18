@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 def auto_detect_sourcemod(game_target: str = "Team Fortress 2") -> str | None:
@@ -40,7 +40,7 @@ def auto_detect_sourcemod(game_target: str = "Team Fortress 2") -> str | None:
     return None
 
 
-def validate_game_directory(directory: str | None, validation_label: Optional[Any] = None) -> bool:
+def validate_game_directory(directory: str | None, validation_label: Any | None = None) -> bool:
     """Validate a Source mod directory by checking for gameinfo.txt."""
     if not directory:
         if validation_label:

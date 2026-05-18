@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from core.constants import PROGRAM_AUTHOR, PROGRAM_NAME
 
@@ -70,7 +69,7 @@ class FolderConfig:
             for attr, setter in props.items():
                 super().__setattr__(attr, setter(self))
 
-    def update_deps(self, attr: str, deps: Optional[set] = None):
+    def update_deps(self, attr: str, deps: set | None = None):
         log.debug(f'updating all attrs dependent on {attr}')
 
         deps = deps is None and {attr} or deps

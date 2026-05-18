@@ -1,7 +1,3 @@
-from enum import IntEnum, StrEnum
-from typing import Dict
-
-
 ELEMENT_DEFAULTS = [
     ("max_particles", 1000),
     ("initial_particles", 0),

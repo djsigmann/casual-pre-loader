@@ -2,7 +2,7 @@ import json
 import logging
 import tempfile
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 from valve_parsers import VPKFile
 
@@ -42,7 +42,7 @@ class ImportService:
         self,
         folder_path: Path,
         override_name: str = None,
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[bool, str]:
         # attempt to process a folder
         folder_name = override_name if override_name else folder_path.name
@@ -89,7 +89,7 @@ class ImportService:
     def process_zip_file(
         self,
         zip_path: Path,
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[bool, str]:
         # attempt to process and extract a zip file
         zip_name = zip_path.stem
@@ -155,7 +155,7 @@ class ImportService:
     def process_vpk_file(
         self,
         file_path: Path,
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[bool, str]:
         # mod VPK extraction
         try:
@@ -226,7 +226,7 @@ class ImportService:
     def process_dropped_items(
         self,
         item_paths: list[Path],
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[list[str], list[tuple[str, str]]]:
 
         total_items = len(item_paths)

@@ -2,7 +2,6 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import List
 
 from valve_parsers import PCFFile, VPKFile
 
@@ -52,10 +51,10 @@ class FileHandler:
     def __init__(self, vpk_file_path: str):
         self.vpk = VPKFile(vpk_file_path)
 
-    def list_pcf_files(self) -> List[str]:
+    def list_pcf_files(self) -> list[str]:
         return self.vpk.find_files('*.pcf')
 
-    def list_vmt_files(self) -> List[str]:
+    def list_vmt_files(self) -> list[str]:
         return self.vpk.find_files('*.vmt')
 
     def process_file(self, file_name: str, content) -> bool | None:
