@@ -2,9 +2,8 @@ import logging
 import os
 import shutil
 import stat
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Optional, Sequence
 
 log = logging.getLogger()
 
@@ -31,7 +30,7 @@ def _get_next_new_file(file: Path) -> Path:
             file = file.with_name(file.name + '_')
 
 
-def delete(file: Path, not_exist_ok: Optional[bool] = False) -> None:
+def delete(file: Path, not_exist_ok: bool = False) -> None:
     """
     Delete a file or directory.
 
@@ -63,9 +62,9 @@ def delete(file: Path, not_exist_ok: Optional[bool] = False) -> None:
 def copy(
     src: Path,
     dst: Path,
-    not_exist_ok: Optional[bool] = False,
-    noclobber: Optional[bool] = False,
-    ignore: Optional[Callable[[str, list[str]], Sequence]] = None,
+    not_exist_ok: bool = False,
+    noclobber: bool | None = False,
+    ignore: Callable[[str, list[str]], Sequence] | None = None,
 ) -> Path | None:
     """
     Copy a file or directory.
@@ -74,7 +73,7 @@ def copy(
         src: The source file.
         dst: The destination file.
         not_exist_ok: Do not throw an error if the source does not exist.
-        noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files). A value of `None` tries to append a suffix to the filename.
         ignore: A callable that is passed to the `ignore` argument of `shutil.copytree()`.
 
     Returns:
@@ -113,9 +112,9 @@ def copy(
 def move(
     src: Path,
     dst: Path,
-    not_exist_ok: Optional[bool] = False,
-    noclobber: Optional[bool] = False,
-    ignore: Optional[Callable[[str, list[str]], Sequence]] = None,
+    not_exist_ok: bool = False,
+    noclobber: bool | None = False,
+    ignore: Callable[[str, list[str]], Sequence] | None = None,
 ) -> Path | None:
     """
     Move a file or directory.
@@ -124,7 +123,7 @@ def move(
         src: The source file.
         dst: The destination file.
         not_exist_ok: Do not throw an error if the source does not exist.
-        noclobber: Throw an error if the destination exists (i.e. do not overwrite files).
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files). A value of `None` tries to append a suffix to the filename.
         ignore: A callable that is passed to the `ignore` argument of `shutil.copytree()`.
 
     Returns:
@@ -205,7 +204,7 @@ def _modeget(file: Path) -> tuple[int, str]:
     return mode, f_mode
 
 
-def modeset(file: Path, mode: int, not_exist_ok: Optional[bool] = False) -> None:
+def modeset(file: Path, mode: int, not_exist_ok: bool = False) -> None:
     """
     Change a file's mode bits.
 
@@ -226,7 +225,7 @@ def modeset(file: Path, mode: int, not_exist_ok: Optional[bool] = False) -> None
         raise Exception(f'unable to get/set mode for {file}') from e
 
 
-def modeset_add(file: Path, mode: int, not_exist_ok: Optional[bool] = False) -> None:
+def modeset_add(file: Path, mode: int, not_exist_ok: bool = False) -> None:
     """
     Additively change a file's mode bits.
 

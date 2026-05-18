@@ -1,8 +1,8 @@
 import json
 import logging
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
 
 from valve_parsers import VPKFile
 
@@ -41,8 +41,8 @@ class ImportService:
     def process_folder(
         self,
         folder_path: Path,
-        override_name: str = None,
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        override_name: str | None = None,
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[bool, str]:
         # attempt to process a folder
         folder_name = override_name if override_name else folder_path.name
@@ -84,12 +84,12 @@ class ImportService:
 
         except Exception as e:
             log.exception(f"Error processing folder {folder_name}")
-            return False, f"Error processing folder {folder_name}: {str(e)}"
+            return False, f"Error processing folder {folder_name}: {e!s}"
 
     def process_zip_file(
         self,
         zip_path: Path,
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[bool, str]:
         # attempt to process and extract a zip file
         zip_name = zip_path.stem
@@ -150,12 +150,12 @@ class ImportService:
 
         except Exception as e:
             log.exception(f"Error processing ZIP file {zip_name}")
-            return False, f"Error processing ZIP file {zip_name}: {str(e)}"
+            return False, f"Error processing ZIP file {zip_name}: {e!s}"
 
     def process_vpk_file(
         self,
         file_path: Path,
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[bool, str]:
         # mod VPK extraction
         try:
@@ -219,14 +219,14 @@ class ImportService:
             return True, f"Successfully processed VPK {vpk_name}"
 
         except Exception as e:
-            error_msg = f"Error processing VPK {file_path.name}: {str(e)}"
+            error_msg = f"Error processing VPK {file_path.name}: {e!s}"
             log.exception(error_msg)
             return False, error_msg
 
     def process_dropped_items(
         self,
         item_paths: list[Path],
-        progress_callback: Optional[Callable[[int, str], None]] = None
+        progress_callback: Callable[[int, str], None] | None = None
     ) -> tuple[list[str], list[tuple[str, str]]]:
 
         total_items = len(item_paths)
@@ -258,7 +258,7 @@ class ImportService:
                     failed_items.append((item_name, message))
 
             except Exception as e:
-                error_msg = f"Error processing {item_name}: {str(e)}"
+                error_msg = f"Error processing {item_name}: {e!s}"
                 log.exception(error_msg)
                 failed_items.append((item_name, error_msg))
 
