@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, Set
 
 from valve_parsers import VPKFile
 
@@ -10,7 +9,7 @@ from core.util.vpk import get_vpk_name
 log = logging.getLogger()
 
 
-def find_material_files(directory: Path) -> tuple[List[Path], Set[str]]:
+def find_material_files(directory: Path) -> tuple[list[Path], set[str]]:
     vtf_files = []
     vmt_stems = set()
 
@@ -52,7 +51,7 @@ def get_texture_path(vtf_path: Path, base_dir: Path) -> str:
     return texture_path
 
 
-def generate_vmt_content(texture_path: str, game_vpk: Optional[VPKFile] = None) -> str:
+def generate_vmt_content(texture_path: str, game_vpk: VPKFile | None = None) -> str:
     # try to find matching VMT in game VPK
     if game_vpk:
         vmt_path = f"materials/{texture_path}.vmt"
