@@ -59,7 +59,7 @@ class StudioMDL:
         else:
             exe_path = str(self.game_path / self.studio_mdl_version.value)
 
-        tf_path = str(Path(self.game_path) / 'tf')
+        tf_path = str(self.game_path / 'tf')
 
         # use wine on not windows
         if platform != "win32":

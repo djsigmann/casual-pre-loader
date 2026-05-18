@@ -169,8 +169,9 @@ class UpdateDialog(QDialog):
 
     def save_skipped_version(self):
         try:
-            self.settings_manager.set_skipped_update_version(self.updates[-1].release.tag_name)
-            log.info(f'Skipped version {self.updates[-1].release.tag_name}')
+            skipped_version = self.updates[-1].version
+            self.settings_manager.set_skipped_update_version(str(skipped_version))
+            log.info(f'Skipped version {skipped_version}')
         except Exception:
             log.exception("Error saving skipped version")
 

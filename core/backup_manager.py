@@ -1,7 +1,6 @@
 import logging
 import shutil
 from pathlib import Path
-from typing import Optional
 
 from core.folder_setup import folder_setup
 from core.operations.pcf_rebuild import load_particle_system_map
@@ -10,7 +9,7 @@ from core.util.file import copy, delete
 log = logging.getLogger()
 
 
-def prepare_working_copy() -> Optional[str]:
+def prepare_working_copy() -> str | None:
     """Populate the temp staging folder with vanilla PCFs from backup_dir/particles,
     then verify all expected files landed. Returns a user-facing error message on
     failure, or None if the staging folder is ready."""
@@ -75,7 +74,7 @@ def prepare_working_copy() -> Optional[str]:
     )
 
 
-def prepare_runtime_environment() -> Optional[str]:
+def prepare_runtime_environment() -> str | None:
     """Run all startup setup steps that populate the staging folder. Returns a
     user-facing error message on failure, or None if everything is ready."""
 

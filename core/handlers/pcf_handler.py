@@ -3,8 +3,8 @@ from pathlib import Path
 
 from valve_parsers import PCFElement, PCFFile, VPKFile
 
-from core.util.vpk import get_vpk_name
 from core.folder_setup import folder_setup
+from core.util.vpk import get_vpk_name
 
 log = logging.getLogger()
 
