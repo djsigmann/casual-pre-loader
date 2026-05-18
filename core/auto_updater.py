@@ -4,9 +4,9 @@ import re
 import sys
 from collections import defaultdict
 from operator import attrgetter
-from typing import Optional
+from zipfile import Path as ZipFilePath
 
-from packaging import version
+from packaging.version import Version
 
 from core.constants import BUILD_DIRS, BUILD_FILES, REMOTE_REPO
 from core.folder_setup import folder_setup
@@ -14,7 +14,7 @@ from core.util.file import copy, delete
 from core.util.net import download_file
 from core.util.repo import Update
 from core.util.repo.github_api import get_releases_with_asset
-from core.util.zip import extract
+from core.util.zip import FilterPredicate, extract
 from core.version import VERSION
 
 log = logging.getLogger()
@@ -31,7 +31,7 @@ One can assume that any functions in this file will only run if the application 
 # - be able to determine if there are pending updates before running the main app (extract them to a tmpdir, check that on startup, apply them one by one, execing each time to relaod the runscript/interpreter)
 
 
-def check_for_updates() -> tuple[Update]:
+def check_for_updates() -> tuple[Update, ...]:
     """
     Check the source repository for new releases.
 
@@ -41,7 +41,7 @@ def check_for_updates() -> tuple[Update]:
 
     try: # get the latest version of each minor release that we are behind of
         updates = defaultdict(dict)
-        current = version.parse(VERSION)
+        current = Version(VERSION)
         platform_name = 'linux' if sys.platform == 'linux' else 'win'
 
         # sort by descending chronological order, so we only store the latest patch release for every minor release
@@ -56,7 +56,7 @@ def check_for_updates() -> tuple[Update]:
         return tuple()
 
 
-def perform_updates(updates: Optional[tuple[Update]] = None) -> None:
+def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
     """
     Download and apply all available updates.
 
@@ -99,10 +99,10 @@ def perform_updates(updates: Optional[tuple[Update]] = None) -> None:
 
             case 'linux':
                 include = tuple((*BUILD_FILES, *BUILD_DIRS))
-                def _filter(root) -> bool:
-                    def __filter(path) -> bool:
-                        path = path.relative_to(root)
-                        return any(map(lambda x: path.startswith(x), include))
+                def _filter(root: ZipFilePath) -> FilterPredicate:
+                    def __filter(path: ZipFilePath) -> bool:
+                        rel = path.relative_to(root)
+                        return any(map(lambda x: rel.startswith(x), include))
 
                     return __filter
 

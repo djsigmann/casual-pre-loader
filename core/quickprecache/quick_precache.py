@@ -2,7 +2,6 @@ import itertools
 import logging
 import tempfile
 from pathlib import Path
-from typing import Set
 
 from core.folder_setup import folder_setup
 from core.quickprecache.precache_list import make_precache_list
@@ -32,7 +31,7 @@ def handle_string(input_str: str) -> str:
     return input_str
 
 
-def load_list_from_file(list_file: str) -> Set[str]:
+def load_list_from_file(list_file: str) -> set[str]:
     # load the model list from a file
     model_list = set()
 
@@ -120,7 +119,7 @@ class QuickPrecache:
             log.exception(f"Error saving model list to {output_file}")
             return False
 
-    def make_precache_sub_list(self, strings: Set[str]) -> None:
+    def make_precache_sub_list(self, strings: set[str]) -> None:
         # create subdivided QC files for the model list
         builder = get_precache_string_builder(self.builder_index)
         passed_strings = set()
