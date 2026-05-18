@@ -67,7 +67,7 @@ def main():
         updates = check_for_updates()
 
         # TODO: update this once we can update multiple at a time
-        if updates and settings_manager.should_show_update_dialog(updates[0].release.tag_name.lstrip('v')):
+        if updates and settings_manager.should_show_update_dialog(str(updates[0].version)):
             splash.hide()
             show_update_dialog(updates) # NOTE: may eventually re-execute the interpreter
             splash.show()
