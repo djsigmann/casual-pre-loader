@@ -6,7 +6,7 @@ from typing import Generator, Iterable, Optional
 from github import Github
 from github.GitRelease import GitRelease
 from github.Repository import Repository
-from packaging import version
+from packaging.version import Version
 
 from core.util import all_predicates
 from core.util.repo import Update
@@ -111,5 +111,5 @@ def get_releases_with_asset(
     for release in get_releases(repo, prerelease, draft):
         for _asset in release.assets:
             if test(_asset.name):
-                yield Update(release, _asset, version.parse(release.tag_name))
+                yield Update(_asset, release, Version(release.tag_name))
                 break

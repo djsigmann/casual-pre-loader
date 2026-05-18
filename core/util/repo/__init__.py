@@ -1,6 +1,8 @@
-from typing import Iterable, NamedTuple, Protocol
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Protocol
 
-from packaging import version
+from packaging.version import Version
 
 
 class Asset(Protocol):
@@ -15,5 +17,8 @@ class Release(Protocol):
     tag_name: str
     assets: Iterable[Asset]
 
-
-Update = NamedTuple('Update', release=Release, asset=Asset, version=version.Version)
+@dataclass(frozen=True)
+class Update:
+    asset: Asset
+    release: Release
+    version: Version

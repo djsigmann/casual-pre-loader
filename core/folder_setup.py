@@ -18,27 +18,27 @@ class FolderConfig:
     # This will make the application use paths outside the installation location.
     import core.are_we_portable
 
-    portable = core.are_we_portable.portable
+    portable: bool = core.are_we_portable.portable
     del core.are_we_portable
 
-    install_dir = Path(__file__).resolve().parent.parent
-    data_dir =   install_dir / 'data'
+    install_dir: Path = Path(__file__).resolve().parent.parent
+    data_dir:    Path = install_dir / 'data'
 
-    mod_urls_file = data_dir / 'mod_urls.json'
-    particle_system_map_file = data_dir / 'particle_system_map.json'
+    mod_urls_file:            Path = data_dir / 'mod_urls.json'
+    particle_system_map_file: Path = data_dir / 'particle_system_map.json'
 
     if portable:
         # default portable values
-        project_dir =  install_dir / 'userdata' / 'data'
-        settings_dir = install_dir / 'userdata' / 'config'
-        temp_dir =     install_dir / 'userdata' / 'temp'
+        project_dir:  Path = install_dir / 'userdata' / 'data'
+        settings_dir: Path = install_dir / 'userdata' / 'config'
+        temp_dir:     Path = install_dir / 'userdata' / 'temp'
     else:
         import platformdirs
 
         # default non-portable values
-        project_dir =  platformdirs.user_data_path(PROGRAM_NAME, PROGRAM_AUTHOR)
-        settings_dir = platformdirs.user_config_path(PROGRAM_NAME, PROGRAM_AUTHOR)
-        temp_dir =     platformdirs.user_cache_path(PROGRAM_NAME, PROGRAM_AUTHOR)
+        project_dir:  Path = platformdirs.user_data_path(PROGRAM_NAME, PROGRAM_AUTHOR)
+        settings_dir: Path = platformdirs.user_config_path(PROGRAM_NAME, PROGRAM_AUTHOR)
+        temp_dir:     Path = platformdirs.user_cache_path(PROGRAM_NAME, PROGRAM_AUTHOR)
 
     # WARNING: DO NOT create duplicate entries across different deps
     __deps = {

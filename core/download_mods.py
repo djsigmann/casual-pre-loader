@@ -3,7 +3,7 @@ import logging
 from collections.abc import Callable
 from typing import Optional
 
-from packaging import version
+from packaging.version import Version
 
 from core.constants import REMOTE_REPO
 from core.folder_setup import folder_setup
@@ -54,7 +54,7 @@ def check_mods() -> Update | None:
                 log.info(f'We already have the latest release of mods ({update.version})')
                 return
 
-            if not update.version > version.parse(modsinfo["tag"]):
+            if not update.version > Version(modsinfo["tag"]):
                 log.info(f"We already have the latest release of mods ({update.version}), but the remote file differs")
         else:
             log.info(f'A new release of mods is available ({update.version})')
