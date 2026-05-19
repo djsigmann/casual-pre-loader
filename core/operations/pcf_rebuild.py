@@ -4,8 +4,8 @@ from pathlib import Path
 from valve_parsers import PCFElement, PCFFile, AttributeType
 
 
-def load_particle_system_map(map_path: str) -> dict[str, list[str]]:
-    with open(map_path, 'r') as f:
+def load_particle_system_map(map_path: Path) -> dict[str, list[str]]:
+    with map_path.open('r') as f:
         return json.load(f)
 
 

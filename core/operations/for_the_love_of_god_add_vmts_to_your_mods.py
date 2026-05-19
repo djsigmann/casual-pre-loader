@@ -66,18 +66,18 @@ def generate_vmt_content(texture_path: str, game_vpk: VPKFile | None = None) -> 
     return f'"LightmappedGeneric"\n{{\n\t"$basetexture" "{texture_path}"\n}}\n'
 
 
-def generate_missing_vmt_files(temp_mods_dir: Path = None, tf_path: str = None) -> int:
+def generate_missing_vmt_files(temp_mods_dir: Path | None = None, tf_path: Path | None = None) -> int:
     if temp_mods_dir is None:
         temp_mods_dir = config.temp_to_be_vpk_dir
 
-    if not temp_mods_dir.exists():
+    if not temp_mods_dir.is_dir():
         log.info(f"Directory {temp_mods_dir} does not exist")
         return 0
 
     # initialize VPK
     game_vpk = None
-    if tf_path:
-        game_vpk_path = Path(tf_path) / get_vpk_name(tf_path)
+    if tf_path is not None:
+        game_vpk_path = tf_path / get_vpk_name(tf_path)
         if game_vpk_path.exists():
             try:
                 game_vpk = VPKFile(game_vpk_path)
