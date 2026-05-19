@@ -13,6 +13,7 @@ from core.constants import (
     CUSTOM_VPK_NAMES,
     CUSTOM_VPK_SPLIT_PATTERN,
     DX8_LIST,
+    Sourcemods,
 )
 from core.handlers.file_handler import FileHandler, copy_config_files, generate_config
 from core.handlers.paint_handler import disable_paints, enable_paints
@@ -59,11 +60,11 @@ class InstallService:
             raise Exception("Installation cancelled by user")
 
     @staticmethod
-    def is_modified(tf_path: str) -> bool:
-        if not tf_path:
+    def is_modified(tf_path: Path | None) -> bool:
+        if tf_path is None:
             return False
-        gameinfo_path = Path(tf_path) / 'gameinfo.txt'
-        return check_game_type(gameinfo_path) if gameinfo_path.exists() else False
+        gameinfo_path = tf_path / 'gameinfo.txt'
+        return check_game_type(gameinfo_path) if gameinfo_path.is_file() else False
 
     @staticmethod
     def cleanup_huds(custom_dir: Path) -> None:
@@ -86,7 +87,7 @@ class InstallService:
 
     def install(
         self,
-        tf_path: Path | str,
+        tf_path: Path,
         selected_addons: list[str],
         on_progress: ProgressCallback | None = None,
         apply_particle_selections: Callable[[], None] | None = None,
@@ -94,7 +95,7 @@ class InstallService:
         show_console_on_startup: bool = True,
         fix_mdl_paths: bool = True,
         skip_quickprecache: bool = False,
-        game_target: str = "Team Fortress 2",
+        sourcemod: Sourcemods = Sourcemods.DEFAULT,
         ) -> None:
         """
         Install selected addons to the game directory.
@@ -115,15 +116,15 @@ class InstallService:
                 on_progress(pct, msg)
 
         try:
-            is_tf2 = game_target == "Team Fortress 2"
+            is_tf2 = sourcemod == Sourcemods.DEFAULT
 
             file_handler = None
             base_default_pcf = None
             base_default_parents = None
             if is_tf2:
-                working_vpk_path = Path(tf_path) / get_vpk_name(tf_path)
+                working_vpk_path = tf_path / get_vpk_name(tf_path)
                 if not check_writable(working_vpk_path):
-                    raise PermissionError("Please close TF2 before installing.")
+                    raise PermissionError(f'Please close {sourcemod.full_name} before installing.')
                 file_handler = FileHandler(str(working_vpk_path))
                 base_default_pcf, base_default_parents = initialize_pcf(config.temp_to_be_referenced_dir)
             progress(0, "Installing addons...")
@@ -432,7 +433,7 @@ class InstallService:
         finally:
             prepare_working_copy()
 
-    def uninstall(self, tf_path: str, on_progress: ProgressCallback | None = None, game_target: str = "Team Fortress 2"):
+    def uninstall(self, tf_path: Path, on_progress: ProgressCallback | None = None, sourcemod: Sourcemods = Sourcemods.DEFAULT):
         # resets everything
         def progress(pct: int, msg: str):
             if on_progress:
@@ -440,21 +441,18 @@ class InstallService:
 
         try:
             prepare_working_copy()
-            custom_dir = Path(tf_path) / 'custom'
+            custom_dir = tf_path / 'custom'
             custom_dir.mkdir(exist_ok=True)
 
-            tf_path_obj = Path(tf_path)
-            is_tf2 = game_target == "Team Fortress 2"
+            game_type(tf_path / 'gameinfo.txt', uninstall=True)
 
-            game_type(Path(tf_path) / 'gameinfo.txt', uninstall=True)
-
-            if is_tf2:
+            if sourcemod == Sourcemods.DEFAULT:
                 self.cleanup_huds(custom_dir)
                 restore_skybox_files(tf_path)
                 restore_particle_files(tf_path)
                 enable_paints(tf_path)
 
-                QuickPrecache(str(Path(tf_path).parents[0]), debug=False).run(flush=True)
+                QuickPrecache(str(tf_path.parents[0]), debug=False).run(flush=True)
                 quick_precache_path = custom_dir / "_QuickPrecache.vpk"
                 if quick_precache_path.exists():
                     quick_precache_path.unlink()

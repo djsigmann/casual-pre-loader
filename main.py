@@ -28,7 +28,7 @@ def gui() -> int:
     from core.auto_updater import check_for_updates
     from core.backup_manager import prepare_runtime_environment
     from core.config import config
-    from core.settings import SettingsManager
+    from core.settings import settings
     from gui.first_time_setup import run_first_time_setup
     from gui.main_window import ParticleManagerGUI
     from gui.theme import GLOBAL_STYLESHEET
@@ -44,12 +44,10 @@ def gui() -> int:
         return 1
 
     # first-time setup
-    tf_directory = None
-    if SettingsManager.is_first_time_setup():
-        tf_directory = run_first_time_setup()
-        if tf_directory is None:
-            # user cancelled setup
-            return 1
+    if settings.done_initial_setup:
+        tf_dir = settings.game_path
+    else:
+        tf_dir = run_first_time_setup() # may exit
 
     # splash screen
     splash_pixmap = QPixmap('gui/icons/cueki_splash.png')
@@ -64,15 +62,13 @@ def gui() -> int:
                           Qt.WindowType.FramelessWindowHint)
     splash.show()
 
-    window = ParticleManagerGUI(tf_directory)
+    window = ParticleManagerGUI(tf_dir)
 
-    if not SettingsManager.is_first_time_setup() and config.portable:
-        settings_manager = SettingsManager()
-
+    if settings.done_initial_setup:
         updates = check_for_updates()
 
         # TODO: update this once we can update multiple at a time
-        if updates and settings_manager.should_show_update_dialog(str(updates[0].version)):
+        if updates and settings.should_show_update_dialog(updates[0].version):
             splash.hide()
             show_update_dialog(updates) # NOTE: may eventually re-execute the interpreter
             splash.show()
