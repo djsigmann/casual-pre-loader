@@ -48,8 +48,8 @@ def copy_config_files(custom_content_dir):
 
 
 class FileHandler:
-    def __init__(self, vpk_file_path: str):
-        self.vpk = VPKFile(vpk_file_path)
+    def __init__(self, vpk_file: Path):
+        self.vpk = VPKFile(vpk_file)
 
     def list_pcf_files(self) -> list[str]:
         return self.vpk.find_files('*.pcf')
