@@ -25,14 +25,13 @@ log = logging.getLogger()
 
 
 class ConflictMatrix(QTableWidget):
-    def __init__(self, settings_manager=None):
+    def __init__(self, settings=None):
         super().__init__()
         self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        self.settings_manager = settings_manager
-        self.mod_urls = {}
+        self.settings = settings
         self.simple_mode = False  # track whether we're in simple or advanced mode
         self.mod_particles_cache = {}  # cache mod particle data
         self.all_particles_cache = []  # cache all particle files
@@ -46,23 +45,24 @@ class ConflictMatrix(QTableWidget):
 
     def on_mod_name_clicked(self, index):
         mod_name = self.verticalHeaderItem(index).text().split(" (")[0]
-        if mod_name in self.mod_urls and self.mod_urls[mod_name]:
-            self.open_mod_url(mod_name)
+        self.open_mod_url(mod_name)
 
     def open_mod_url(self, mod_name):
+        from core.util.data import mod_urls
+
         # open the URL for the mod in the default web browser
-        if mod_name in self.mod_urls and self.mod_urls[mod_name]:
+        if mod_urls.get(mod_name) is not None:
             try:
-                webbrowser.open(self.mod_urls[mod_name])
+                webbrowser.open(mod_urls[mod_name])
             except Exception:
                 log.exception(f"Error opening URL for {mod_name}")
 
     def load_selections(self):
-        if self.settings_manager:
+        if self.settings:
             if self.simple_mode:
-                return self.settings_manager.get_matrix_selections_simple()
+                return self.settings.matrix_selections_simple
             else:
-                return self.settings_manager.get_matrix_selections()
+                return self.settings.matrix_selections
         return {}
 
     def _get_current_selections_dict(self):
@@ -100,14 +100,14 @@ class ConflictMatrix(QTableWidget):
         return selections
 
     def save_selections(self):
-        if not self.settings_manager:
+        if not self.settings:
             return
 
         selections = self._get_current_selections_dict()
         if self.simple_mode:
-            self.settings_manager.set_matrix_selections_simple(selections)
+            self.settings.matrix_selections_simple = selections
         else:
-            self.settings_manager.set_matrix_selections(selections)
+            self.settings.matrix_selections = selections
 
     def get_selected_particles(self):
         selections = self._get_current_selections_dict()
@@ -138,9 +138,6 @@ class ConflictMatrix(QTableWidget):
             self.update_matrix_advanced(mods, pcf_files)
 
     def update_matrix_simple(self, mods):
-        # load mod URLs
-        if self.settings_manager:
-            self.mod_urls = self.settings_manager.get_mod_urls()
         self.clearContents()
 
         # use group names as columns
@@ -158,9 +155,6 @@ class ConflictMatrix(QTableWidget):
         self._setup_matrix_cells(mods, groups)
 
     def update_matrix_advanced(self, mods, pcf_files):
-        # load mod URLs
-        if self.settings_manager:
-            self.mod_urls = self.settings_manager.get_mod_urls()
         self.clearContents()
 
         # add one extra column for the Select All button

@@ -1,12 +1,12 @@
 import stat
+from collections.abc import Iterable
 from functools import partial
 from itertools import starmap
 from pathlib import Path
-from typing import Iterable
 
 from more_itertools import consume
 
-from core.config import config
+from core.config import _may_be_portable, config
 from core.util.file import delete, modeset, modeset_add, move
 
 """
@@ -90,7 +90,7 @@ def migrate():
         for mode, files in groups:
             consume(map(partial(modeset_add, mode=mode, not_exist_ok=True), files))
 
-    if config.portable:
+    if _may_be_portable:
         DELETE += DELETE_PORTABLE
         MOVE += MOVE_PORTABLE
 

@@ -1,310 +1,338 @@
 import json
 import logging
-import uuid
+from collections.abc import Callable, Mapping
+from dataclasses import asdict, dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import cast
 
-from core.config import config
+from packaging.version import Version
+
+from core.constants import Sourcemods
 from core.profile import Profile
+from core.util import as_base_class, update_dataclass
 
-log = logging.getLogger()
+# https://github.com/python/typing/issues/182#issuecomment-1320974824
+type JSON = dict[str, 'JSON'] | list['JSON'] | str | int | float | bool | None
 
 
-class SettingsManager:
-    @staticmethod
-    def is_first_time_setup() -> bool:
-        return not config.app_settings_file.exists()
+class NoActiveProfile(AttributeError):
+    pass
 
-    def __init__(self):
-        self.settings = self._load_settings()
-        self.addon_metadata = self._load_metadata()
 
-    def _load_settings(self):
-        default_settings = {
-            "active_profile_id": None,
-            "profiles": [],
-            "skip_launch_options_popup": False,
-            "suppress_update_notifications": False,
-            "skipped_update_version": None,
-        }
+class ProfileNotFound(KeyError):
+    pass
 
-        if config.app_settings_file.exists():
-            try:
-                with open(config.app_settings_file, "r") as f:
-                    data = json.load(f)
 
-                # migrate old flat format to profile format
-                if "tf_directory" in data and "profiles" not in data:
-                    return self._migrate_flat_settings(data)
+@dataclass(frozen=True)
+class SerializationSpec[T: type]:
+    type: T
+    """The type to encode"""
 
-                return data
-            except Exception:
-                log.exception("Error loading settings")
+    encode: Callable[[T], JSON]
+    """Function used to encode value to JSON"""
 
-        return default_settings
 
-    @staticmethod
-    def _migrate_flat_settings(old):
-        """Migrate old settings to profile-based format."""
-        profiles = []
+class SerializationSpecs(SerializationSpec, Enum):
+    PATH = Path, str
+    VERSION = Version, str
 
-        # create TF2 profile from existing settings
-        tf_profile = Profile(
-            id=str(uuid.uuid4()),
-            name="TF2",
-            game_path=old.get("tf_directory", ""),
-            addon_selections=old.get("addon_selections", []),
-            matrix_selections=old.get("matrix_selections", {}),
-            matrix_selections_simple=old.get("matrix_selections_simple", {}),
-            simple_particle_mode=old.get("simple_particle_mode", True),
-            show_console_on_startup=old.get("show_console_on_startup", True),
-            disable_paint_colors=old.get("disable_paint_colors", False),
-        )
-        profiles.append(tf_profile.to_dict())
 
-        # create Gold Rush profile if configured
-        goldrush_dir = old.get("goldrush_directory", "")
-        if goldrush_dir:
-            gr_profile = Profile(
-                id=str(uuid.uuid4()),
-                name="Gold Rush",
-                game_path=goldrush_dir,
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        try:
+            return super().default(o)
+        except TypeError:
+            for spec in SerializationSpecs: # we can't just do a mapping lookup because we also want to match subclasses
+                if isinstance(o, spec.type):
+                    return spec.encode(o)
+            raise
+
+type Profiles = Mapping[str, Profile]
+
+
+def _get_profile_name(name: str, profiles: Profiles) -> str:
+    renamed = False
+    original_name = name
+
+    while name in profiles:
+        name += '_'
+        renamed = True
+
+    if renamed:
+        logging.warning(f'profile with name `{original_name}` already exists, using `{name}`')
+
+    return name
+
+
+def _get_first_profile(profiles: Profiles) -> Profile: # NOTE: may not be consistent, but this doesn't really matter
+    return next(iter(profiles.values()))
+
+@dataclass
+class Settings:
+    active_profile: Profile | None = None
+    details_collapsed: bool = False
+    done_initial_setup: bool = False
+    profiles: Mapping[str, Profile] = field(default_factory=dict)
+    skip_launch_options_popup: bool = False
+    skipped_update_version: Version | None = None
+    suppress_update_notifications: bool = False
+
+    def __post_init__(self) -> None:
+        self._load_settings()
+
+    def __getattr__(self, attr):
+        if self.active_profile is None:
+            raise NoActiveProfile(attr)
+
+        return getattr(self.active_profile, attr)
+
+    def __setattr__(self, attr, value, /):
+        if attr == 'active_profile':
+            if value is not None and value in self.profiles:
+                value = self.profiles[value]
+            else:
+                raise ProfileNotFound(f'{value} is not a known profile ID')
+        elif attr == 'profiles':
+            raise AttributeError('profiles may not be set manually, use `create_profile()`/`delete_profile()`')
+
+        if attr in self.__dict__:
+            super().__setattr__(attr, value)
+        else:
+            if self.active_profile is None:
+                raise NoActiveProfile(attr)
+
+            setattr(self.active_profile, attr, value)
+
+        self.save_settings()
+
+    def _load_settings(self, input_settings_file: Path | None = None) -> None:
+        """
+        Loads settings from an optional file (defaults to default settings location).
+
+        Args:
+            input_settings_file: Optional File to read settings from.
+        """
+
+        from core.config import config
+
+        if input_settings_file is None and not config.app_settings_file.is_file():
+            return
+
+        input_settings_file = input_settings_file or config.app_settings_file
+        try:
+            with input_settings_file.open('r') as fd:
+                data = json.load(fd)
+            logging.info(f'Loaded settings from {input_settings_file}')
+        except Exception:
+            logging.exception("Error loading settings")
+            raise
+
+        if 'skipped_update_version' in data and data['skipped_update_version'] is not None: # deserialize Version objects
+            data['skipped_update_version'] = Version(data['skipped_update_version'])
+
+        if 'profiles' in data:
+            if 'active_profile_id' in data: # migrate to new field
+                data['active_profile'] = data['active_profile_id']
+                del data['active_profile_id']
+
+            if not isinstance(data['profiles'], Mapping):
+                _profiles = {}
+                for i, profile in enumerate(data['profiles']):
+                    profile['name'] = _get_profile_name(profile['name'], _profiles)
+
+                    if profile.get('id') is not None:
+                        if data['active_profile'] == profile['id']:
+                            data['active_profile'] = profile['name']
+
+                        del profile['id']
+
+                    _profiles[profile['name']] =  Profile.from_dict(profile)
+                data['profiles'] = _profiles
+                if data['profiles']: # WARNING: assume that the user has completed initial setup if, and ONLY if, we are using this migration path from list[Profile] -> Mapping[str, Profile]
+                    data['done_initial_setup'] = True
+            else:
+                for name, profile, in data['profiles'].items():
+                    profile['name'] = name
+                    data['profiles'][name] = Profile.from_dict(profile)
+
+            for profile in data['profiles'].values():
+                if data['active_profile'] == profile.name:
+                    data['active_profile'] = profile
+                    break
+
+            update_dataclass(self, data)
+
+            if not self.profiles:
+                self.active_profile = None
+                self.done_initial_setup = False
+            elif self.active_profile is None:
+                self.active_profile = _get_first_profile(self.profiles)
+        elif 'tf_directory' in data: # migrate old flat format to profile format
+            update_dataclass(self, {
+                k: data[k] for
+                k in (
+                    'skip_launch_options_popup',
+                    'suppress_update_notifications',
+                    'skipped_update_version',
+                )
+                if k in data
+            })
+
+            cast(dict, self.profiles)['TF2'] = Profile( # create TF2 profile from existing settings
+                name='TF2',
+                game_path=Path(data['tf_directory']),
+                sourcemod = Sourcemods.TF2,
+                addon_selections=data.get('addon_selections', []),
+                matrix_selections=data.get('matrix_selections', {}),
+                matrix_selections_simple=data.get('matrix_selections_simple', {}),
+                simple_particle_mode=data.get('simple_particle_mode', True),
+                show_console_on_startup=data.get('show_console_on_startup', True),
+                disable_paint_colors=data.get('disable_paint_colors', False),
             )
-            profiles.append(gr_profile.to_dict())
 
-        settings = {
-            "active_profile_id": profiles[0]["id"],
-            "profiles": profiles,
-            "skip_launch_options_popup": old.get("skip_launch_options_popup", False),
-            "suppress_update_notifications": old.get("suppress_update_notifications", False),
-            "skipped_update_version": old.get("skipped_update_version", None),
-        }
+            if (goldrush_dir := data.get('goldrush_directory')) is not None: # create Gold Rush profile if configured
+                cast(dict, self.profiles)['Gold Rush'] = Profile(
+                    name='Gold Rush',
+                    game_path=Path(goldrush_dir),
+                    sourcemod = Sourcemods.TF2GR
+                )
 
-        log.info(f"Migrated old settings to profile format ({len(profiles)} profile(s))")
-        return settings
+            self.active_profile = self.profiles['TF2']
 
-    @staticmethod
-    def _load_metadata():
-        default_metadata = {
-            "addon_contents": {},
-            "addon_metadata": {}
-        }
-
-        if config.addon_metadata_file.exists():
-            try:
-                with open(config.addon_metadata_file, "r") as f:
-                    content = f.read()
-                    if content:
-                        return json.loads(content)
-            except Exception:
-                log.exception("Error loading addon metadata")
-
-        return default_metadata
+            logging.info(f'Migrated old settings to profile format ({len(self.profiles)} profile(s))')
 
     def save_settings(self):
+        from core.config import config
+
+        data = asdict(self)
+        if self.active_profile is not None:
+            data['active_profile'] = self.active_profile.name # Only save the name of the active profile (it is included in`profiles`)
+
+        for name, profile in data['profiles'].items(): # only save the profiles' sourcemods' names
+            profile['sourcemod'] = self.profiles[name].sourcemod.name
+            del profile['name']
+
         try:
             config.app_settings_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(config.app_settings_file, "w") as f:
-                json.dump(self.settings, f, indent=2)
+            with config.app_settings_file.open('w') as fd:
+                json.dump(data, fd, indent=2, cls=JSONEncoder)
+            logging.info(f'Saved settings to {config.app_settings_file}')
         except Exception:
-            log.exception("Error saving settings")
+            logging.exception('Error saving settings')
+            raise
 
-    def save_metadata(self):
-        try:
-            config.addon_metadata_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(config.addon_metadata_file, "w") as f:
-                json.dump(self.addon_metadata, f, indent=2)
-        except Exception:
-            log.exception("Error saving addon metadata")
+    def create_profile(self, name: str, game_path: Path, sourcemod: Sourcemods, activate: bool = False) -> Profile:
+        name = _get_profile_name(name, self.profiles)
 
-    def get_profiles(self) -> list[Profile]:
-        return [Profile.from_dict(p) for p in self.settings.get("profiles", [])]
+        profile = Profile(name=name, game_path=game_path, sourcemod=sourcemod)
+        cast(dict, self.profiles)[name] = profile
 
-    def get_active_profile(self) -> Profile | None:
-        profiles = self.get_profiles()
-        if not profiles:
-            return None
-
-        active_id = self.settings.get("active_profile_id")
-        for p in profiles:
-            if p.id == active_id:
-                return p
-
-        # fallback to first profile
-        return profiles[0]
-
-    def set_active_profile(self, profile_id: str):
-        self.settings["active_profile_id"] = profile_id
-        self.save_settings()
-
-    def create_profile(self, name: str, game_path: str, game_target: str = "Team Fortress 2") -> Profile:
-        profile = Profile.create(name, game_path, game_target)
-        profiles = self.settings.get("profiles", [])
-        profiles.append(profile.to_dict())
-        self.settings["profiles"] = profiles
-
-        # if this is the first profile, make it active
-        if len(profiles) == 1:
-            self.settings["active_profile_id"] = profile.id
-
-        self.save_settings()
-        return profile
-
-    def update_profile(self, profile_id: str, **kwargs):
-        profiles = self.settings.get("profiles", [])
-        for i, p in enumerate(profiles):
-            if p["id"] == profile_id:
-                for key, value in kwargs.items():
-                    p[key] = value
-                profiles[i] = p
-                break
-        self.settings["profiles"] = profiles
-        self.save_settings()
-
-    def delete_profile(self, profile_id: str):
-        profiles = self.settings.get("profiles", [])
-        profiles = [p for p in profiles if p["id"] != profile_id]
-        self.settings["profiles"] = profiles
-
-        # if we deleted the active profile, switch to first remaining
-        if self.settings.get("active_profile_id") == profile_id and profiles:
-            self.settings["active_profile_id"] = profiles[0]["id"]
-
-        self.save_settings()
-
-    def _get_active_profile_dict(self) -> dict | None:
-        active_id = self.settings.get("active_profile_id")
-        for p in self.settings.get("profiles", []):
-            if p["id"] == active_id:
-                return p
-        profiles = self.settings.get("profiles", [])
-        return profiles[0] if profiles else None
-
-    def _set_active_profile_field(self, key, value):
-        profile = self._get_active_profile_dict()
-        if profile:
-            profile[key] = value
+        if activate:
+            self.active_profile = profile.name
+        else:
             self.save_settings()
 
-    def get_tf_directory(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("game_path", "") if profile else ""
+        return profile
 
-    def set_tf_directory(self, directory):
-        self._set_active_profile_field("game_path", directory)
+    def delete_profile(self, name: str):
+        if name in self.profiles:
+            _profiles = list(self.profiles)
+            i = _profiles.index(name) # NOTE: may not be consistent, but this doesn't really matter
+            _profiles.pop(i)
+            profile = cast(dict, self.profiles).pop(name)
 
-    def get_addon_selections(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("addon_selections", []) if profile else []
+            if self.active_profile == profile:
+                if i != 0:
+                    self.active_profile = self.profiles[_profiles[i-1]]
+                elif self.profiles:
+                    self.active_profile = self.profiles[_profiles[0]]
+                else:
+                    self.active_profile = None
+            else:
+                self.save_settings()
+        else:
+            raise ProfileNotFound(id)
 
-    def set_addon_selections(self, selections):
-        self._set_active_profile_field("addon_selections", selections)
+    def update_profile(self, profile_name: str, *args, **kwargs):
+        if profile_name in self.profiles:
+            update_dataclass(self.profiles[profile_name], *args, **kwargs)
+            self.save_settings()
+        else:
+            raise ProfileNotFound(profile_name)
 
-    def get_matrix_selections(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("matrix_selections", {}) if profile else {}
+    def should_show_update_dialog(self, version: Version) -> bool:
+        return not (self.suppress_update_notifications or version == self.skipped_update_version)
 
-    def set_matrix_selections(self, selections):
-        self._set_active_profile_field("matrix_selections", selections)
 
-    def get_matrix_selections_simple(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("matrix_selections_simple", {}) if profile else {}
+class _Settings(Settings):
+    """
+    This is a nasty hack to ensure the dataclass' generated `__init__()` uses `object.__setattr__()` and `object.__getattr__()`.
+    """
 
-    def set_matrix_selections_simple(self, selections):
-        self._set_active_profile_field("matrix_selections_simple", selections)
+    def __init__(self):
+        pass
 
-    def get_simple_particle_mode(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("simple_particle_mode", True) if profile else True
+    def __getattr__(obj, attr) -> None:
+        raise AttributeError(attr)
 
-    def set_simple_particle_mode(self, enabled):
-        self._set_active_profile_field("simple_particle_mode", enabled)
+    __setattr__ = object.__setattr__
 
-    def get_show_console_on_startup(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("show_console_on_startup", True) if profile else True
 
-    def set_show_console_on_startup(self, show_console):
-        self._set_active_profile_field("show_console_on_startup", show_console)
+# TODO: figure out if we can make type checkers actually happy here
+Settings.__init__ = as_base_class(Settings.__init__, pass_self=True, cls=_Settings) # ty: ignore error[invalid-assignment]:
+Settings._load_settings = as_base_class(Settings._load_settings, pass_self=True, cls=_Settings) # ty: ignore error[invalid-assignment]:
 
-    def get_disable_paint_colors(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("disable_paint_colors", False) if profile else False
 
-    def set_disable_paint_colors(self, disable):
-        self._set_active_profile_field("disable_paint_colors", disable)
+class AddonMetadata(dict):
+    def __init__(self):
+        super().__init__()
+        self.load()
 
-    def get_fix_mdl_paths(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("fix_mdl_paths", True) if profile else True
+    def load(self) -> None:
+        from core.config import config
 
-    def set_fix_mdl_paths(self, enabled):
-        self._set_active_profile_field("fix_mdl_paths", enabled)
-
-    def get_skip_quickprecache(self):
-        profile = self._get_active_profile_dict()
-        return profile.get("skip_quickprecache", False) if profile else False
-
-    def set_skip_quickprecache(self, skip):
-        self._set_active_profile_field("skip_quickprecache", skip)
-
-    def get_details_collapsed(self):
-        return self.settings.get("details_collapsed", False)
-
-    def set_details_collapsed(self, collapsed):
-        self.settings["details_collapsed"] = collapsed
-        self.save_settings()
-
-    def get_skip_launch_options_popup(self):
-        return self.settings.get("skip_launch_options_popup", False)
-
-    def set_skip_launch_options_popup(self, skip_popup):
-        self.settings["skip_launch_options_popup"] = skip_popup
-        self.save_settings()
-
-    def get_suppress_update_notifications(self):
-        return self.settings.get("suppress_update_notifications", False)
-
-    def set_suppress_update_notifications(self, suppress):
-        self.settings["suppress_update_notifications"] = suppress
-        self.save_settings()
-
-    def get_skipped_update_version(self):
-        return self.settings.get("skipped_update_version", None)
-
-    def set_skipped_update_version(self, version):
-        self.settings["skipped_update_version"] = version
-        self.save_settings()
-
-    def should_show_update_dialog(self, version):
-        if self.get_suppress_update_notifications():
-            return False
-        return version != self.get_skipped_update_version()
-
-    def get_addon_metadata(self):
-        return self.addon_metadata.get("addon_metadata", {})
-
-    def set_addon_metadata(self, metadata):
-        self.addon_metadata["addon_metadata"] = metadata
-        self.save_metadata()
-
-    def get_addon_contents(self):
-        metadata = self.get_addon_metadata()
-        return {name: data.get('files', []) for name, data in metadata.items()}
-
-    @staticmethod
-    def get_mod_urls():
-        if config.mod_urls_file.exists():
+        if config.addon_metadata_file.is_file():
             try:
-                with open(config.mod_urls_file, "r") as f:
-                    return json.load(f)
+                with config.addon_metadata_file.open('r') as f:
+                    data = f.read()
             except Exception:
-                log.exception("Error loading mod URLs")
-        return {}
+                logging.exception(f'Error loading addon metadata from file `{config.addon_metadata_file}`')
+                raise
 
-    @staticmethod
-    def set_mod_urls(urls):
+            if data:
+                data = json.loads(data)
+
+                if 'addon_metadata' in data: # remove redundant nesting, technically a migration
+                    data = data['addon_metadata']
+
+                self.update(data)
+
+    def save(self):
+        from core.config import config
+
         try:
-            with open(config.mod_urls_file, "w") as f:
-                json.dump(urls, f, indent=2)
+            config.addon_metadata_file.parent.mkdir(parents=True, exist_ok=True)
+            with config.addon_metadata_file.open('w') as fd:
+                json.dump(self, fd, indent=2, cls=JSONEncoder)
         except Exception:
-            log.exception("Error saving mod URLs")
+            logging.exception('Error saving addon metadata')
+            raise
+
+
+settings: Settings
+addon_metadata: AddonMetadata
+
+
+def __getattr__(attr):
+    global settings, addon_metadata
+
+    match attr:
+        case 'settings':
+            settings = Settings()
+            return settings
+        case 'addon_metadata':
+            addon_metadata = AddonMetadata()
+            return addon_metadata
+
+    raise AttributeError(f"module '{__name__}' has no attribute '{attr}'")

@@ -3,19 +3,19 @@ from pathlib import Path
 
 from valve_parsers import PCFElement, PCFFile, VPKFile
 
-from core.folder_setup import folder_setup
+from core.config import config
 from core.util.vpk import get_vpk_name
 
 log = logging.getLogger()
 
 
-def restore_particle_files(tf_path: str) -> int:
-    backup_particles_dir = folder_setup.backup_dir / "particles"
+def restore_particle_files(tf_path: Path) -> int:
+    backup_particles_dir = config.backup_dir / "particles"
     if not backup_particles_dir.is_dir():
         raise FileNotFoundError(backup_particles_dir)
 
     vpk_name = get_vpk_name(tf_path)
-    vpk_path = Path(tf_path) / vpk_name
+    vpk_path = tf_path / vpk_name
     if not vpk_path.exists():
         log.error(f"missing {vpk_name}, is the path correct?")
         return 0

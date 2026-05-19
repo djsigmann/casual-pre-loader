@@ -8,10 +8,10 @@ from core.constants import QUICKPRECACHE_FILE_SUFFIXES, QUICKPRECACHE_MODEL_LIST
 log = logging.getLogger()
 
 
-def make_precache_list(game_path: str) -> set[str]:
+def make_precache_list(game_path: Path) -> set[str]:
     # get list of files to precache from custom
     model_list = set()
-    custom_folder = Path(game_path) / "tf" / "custom"
+    custom_folder = game_path / "tf" / "custom"
 
     if custom_folder.is_dir():
         for file in custom_folder.iterdir():

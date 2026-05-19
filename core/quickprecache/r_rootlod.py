@@ -4,8 +4,8 @@ from pathlib import Path
 log = logging.getLogger()
 
 
-def check_root_lod(game_path: str) -> bool:
-    config_file = Path(game_path) / "tf" / "cfg" / "config.cfg"
+def check_root_lod(game_path: Path) -> bool:
+    config_file = game_path / "tf" / "cfg" / "config.cfg"
 
     if not config_file.exists():
         log.warning(f"Config file not found: {config_file}")

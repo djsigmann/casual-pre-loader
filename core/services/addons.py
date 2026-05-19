@@ -3,14 +3,14 @@ import json
 import logging
 
 from core.config import config
+from core.settings import addon_metadata
 from core.util.file import delete
 
 log = logging.getLogger()
 
 
 class AddonService:
-    def __init__(self, settings_manager):
-        self.settings_manager = settings_manager
+    def __init__(self):
         self.addons_cache = {}  # name -> addon_info mapping
 
     def load_addon_info(self, addon_name: str) -> dict:
@@ -63,7 +63,6 @@ class AddonService:
 
     def scan_addon_contents(self) -> bool:
         # scan all addon directories and cache file lists, returns True if any addons were updated
-        addon_metadata = self.settings_manager.get_addon_metadata() or {}
         addons_dir = config.addons_dir
         addons_dir.mkdir(parents=True, exist_ok=True)
         addons = [d for d in addons_dir.iterdir() if d.is_dir()]
@@ -103,7 +102,7 @@ class AddonService:
             except Exception:
                 log.exception(f"Error scanning {addon_name}")
 
-        self.settings_manager.set_addon_metadata(addon_metadata)
+        addon_metadata.save()
         return new_or_updated > 0
 
     def delete_addons(self, addon_dir_names: list[str]) -> tuple[bool, str]:
@@ -114,16 +113,15 @@ class AddonService:
                 try:
                     delete(addon_path)
                 except Exception as e:
-                    errors.append(f"Failed to delete {folder_name}: {str(e)}")
+                    errors.append(f"Failed to delete {folder_name}: {e!s}")
 
         if errors:
             return False, "\n".join(errors)
 
         # update addon_metadata.json
-        addon_metadata = self.settings_manager.get_addon_metadata()
         for folder_name in addon_dir_names:
             if folder_name in addon_metadata:
                 del addon_metadata[folder_name]
 
-        self.settings_manager.set_addon_metadata(addon_metadata)
+        addon_metadata.save()
         return True, "Selected addons have been deleted."

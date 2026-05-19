@@ -32,8 +32,8 @@ def find_pos(data, val) -> int:
     return count
 
 
-def game_type(file_path, uninstall=False) -> bool:
-    with open(file_path, 'r') as file:
+def game_type(file_path: Path, uninstall: bool = False) -> bool:
+    with file_path.open('r') as file:
         lines = file.readlines()
 
     found = False
@@ -49,16 +49,16 @@ def game_type(file_path, uninstall=False) -> bool:
                 found = True
 
     if found:
-        with open(file_path, 'w') as file:
+        with file_path.open('w') as file:
             file.writelines(lines)
         return True
     else:
         return False
 
 
-def check_game_type(file_path) -> bool:
+def check_game_type(file_path: Path) -> bool:
     try:
-        with open(file_path, 'r') as file:
+        with file_path.open('r') as file:
             for line in file:
                 if 'type' in line and 'multiplayer_only' in line and '//' in line:
                     return True
