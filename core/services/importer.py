@@ -34,8 +34,7 @@ def normalize_vpk_paths(vpk_paths: list[Path]) -> list[Path]:
 
 class ImportService:
     # mod extraction logic
-    def __init__(self, settings_manager=None):
-        self.settings_manager = settings_manager
+    def __init__(self):
         self.validator = StructureValidator()
 
     def process_folder(

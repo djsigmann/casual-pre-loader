@@ -73,9 +73,9 @@ class QuickPrecache:
     # maximum size for QC file content (in chars)
     MAX_SPLIT_SIZE = 2048
 
-    def __init__(self, game_path: str, debug: bool = False, progress_callback=None):
+    def __init__(self, game_path: Path, debug: bool = False, progress_callback=None):
         # debug keeps temp files
-        self.game_path = game_path
+        self.game_path: Path = game_path
         self.debug = debug
         self.model_list = set()
         self.failed_vpks = []
@@ -96,7 +96,7 @@ class QuickPrecache:
 
     def flush_files(self) -> int:
         # remove any previously created precache model files
-        models_folder = Path(self.game_path) / "tf" / "models"
+        models_folder = self.game_path / "tf" / "models"
         count = 0
 
         if models_folder.exists():
@@ -175,7 +175,7 @@ class QuickPrecache:
 
             # compile with StudioMDL
             self.update_progress(f"Compiling precache models ({self.compiled_count + 1}/{self.total_compiles})...")
-            success = self.studio_mdl.make_model(str(temp_path))
+            success = self.studio_mdl.make_model(temp_path)
 
             self.compiled_count += 1
             self.update_progress(f"Compiling precache models ({self.compiled_count}/{self.total_compiles})...")
@@ -210,7 +210,7 @@ class QuickPrecache:
 
             # compile the main file
             self.update_progress(f"Compiling final precache model ({self.compiled_count + 1}/{self.total_compiles})...")
-            result = self.studio_mdl.make_model(str(temp_path))
+            result = self.studio_mdl.make_model(temp_path)
             self.compiled_count += 1
             self.update_progress("QuickPrecache complete!")
 

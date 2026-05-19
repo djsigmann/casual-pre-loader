@@ -9,8 +9,8 @@ from core.util.vpk import get_vpk_name
 
 log = logging.getLogger()
 
-def find_cosmetics(tf_path, proxy_name: bytes) -> list[tuple[str, bytes]]:
-    vpk_path = str(Path(tf_path) / get_vpk_name(tf_path))
+def find_cosmetics(tf_path: Path, proxy_name: bytes) -> list[tuple[str, bytes]]:
+    vpk_path = tf_path / get_vpk_name(tf_path)
     vpk = VPKFile(vpk_path)
     file_handler = FileHandler(vpk_path)
 
@@ -30,8 +30,8 @@ def find_cosmetics(tf_path, proxy_name: bytes) -> list[tuple[str, bytes]]:
     return results
 
 
-def disable_paints(tf_path):
-    file_handler = FileHandler(str(Path(tf_path) / get_vpk_name(tf_path)))
+def disable_paints(tf_path: Path):
+    file_handler = FileHandler(tf_path / get_vpk_name(tf_path))
     painted = find_cosmetics(tf_path, b'"ItemTintColor"')
 
     patched = 0
@@ -46,8 +46,8 @@ def disable_paints(tf_path):
     log.info(f"Patched {patched} cosmetic VMTs to disable paints")
 
 
-def enable_paints(tf_path):
-    file_handler = FileHandler(str(Path(tf_path) / get_vpk_name(tf_path)))
+def enable_paints(tf_path: Path):
+    file_handler = FileHandler(tf_path / get_vpk_name(tf_path))
 
     disabled = find_cosmetics(tf_path, b'"XtemTintColor"')
     if not disabled:

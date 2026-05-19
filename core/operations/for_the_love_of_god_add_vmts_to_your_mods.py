@@ -37,24 +37,23 @@ def find_material_files(directory: Path) -> tuple[list[Path], set[str]]:
     return vtf_files, vmt_stems
 
 
-def get_texture_path(vtf_path: Path, base_dir: Path) -> str:
-    # get the relative path from the base directory
-    rel_path = vtf_path.relative_to(base_dir)
+def get_texture_path(vtf_path: Path, base_dir: Path) -> Path:
+    # get the relative path from the base directory and remove the .vtf extension
+    texture_path = vtf_path.relative_to(base_dir).with_suffix('')
 
-    # remove the .vtf extension and convert to forward slashes
-    texture_path = str(rel_path.with_suffix('')).replace('\\', '/')
-
-    # if the path starts with 'materials/', remove it since VMT paths are relative to materials/
-    if texture_path.startswith('materials/'):
-        texture_path = texture_path[10:]
+    # if the path starts with `materials/`, remove it since VMT paths are relative to `materials/`
+    if texture_path.is_relative_to('materials'):
+        texture_path = texture_path.relative_to('materials')
 
     return texture_path
 
 
-def generate_vmt_content(texture_path: str, game_vpk: VPKFile | None = None) -> str:
+def generate_vmt_content(texture_path: Path, game_vpk: VPKFile | None = None) -> str:
+    vmt_texture_path: str =  texture_path.as_posix()
+
     # try to find matching VMT in game VPK
     if game_vpk:
-        vmt_path = f"materials/{texture_path}.vmt"
+        vmt_path = f"materials/{vmt_texture_path}.vmt"
         try:
             vmt_content = game_vpk.get_file_data(vmt_path)
             if vmt_content:
@@ -63,21 +62,21 @@ def generate_vmt_content(texture_path: str, game_vpk: VPKFile | None = None) -> 
             log.exception("Error reading VMT from game VPK")
 
     # fallback to generic VMT
-    return f'"LightmappedGeneric"\n{{\n\t"$basetexture" "{texture_path}"\n}}\n'
+    return f'"LightmappedGeneric"\n{{\n\t"$basetexture" "{vmt_texture_path}"\n}}\n'
 
 
-def generate_missing_vmt_files(temp_mods_dir: Path = None, tf_path: str = None) -> int:
+def generate_missing_vmt_files(temp_mods_dir: Path | None = None, tf_path: Path | None = None) -> int:
     if temp_mods_dir is None:
         temp_mods_dir = config.temp_to_be_vpk_dir
 
-    if not temp_mods_dir.exists():
+    if not temp_mods_dir.is_dir():
         log.info(f"Directory {temp_mods_dir} does not exist")
         return 0
 
     # initialize VPK
     game_vpk = None
-    if tf_path:
-        game_vpk_path = Path(tf_path) / get_vpk_name(tf_path)
+    if tf_path is not None:
+        game_vpk_path = tf_path / get_vpk_name(tf_path)
         if game_vpk_path.exists():
             try:
                 game_vpk = VPKFile(game_vpk_path)

@@ -16,8 +16,8 @@ class StudioMDLVersion(Enum):
 
 
 class StudioMDL:
-    def __init__(self, game_path: str):
-        self.game_path = Path(game_path)
+    def __init__(self, game_path: Path):
+        self.game_path = game_path
         self.bundled_studiomdl_path = config.install_dir / "core" / "quickprecache" / "studio" / "studiomdl.exe"
         self.studio_mdl_version = self._get_studio_mdl_version()
 
@@ -49,7 +49,7 @@ class StudioMDL:
             return True
         return False
 
-    def make_model(self, qc_file: str) -> bool:
+    def make_model(self, qc_file: Path) -> bool:
         # compile a QC file using StudioMDL
         if self.studio_mdl_version == StudioMDLVersion.MISSING:
             return False
@@ -80,7 +80,7 @@ class StudioMDL:
                 "-game", tf_path,
                 "-nop4",
                 "-verbose",
-                qc_file
+                str(qc_file)
             ]
             log.info(f"Executing: {' '.join(cmd_args)}")
             process = subprocess.Popen(

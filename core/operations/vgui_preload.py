@@ -10,9 +10,9 @@ from core.constants import BACKUP_MAINMENU_FOLDER
 log = logging.getLogger()
 
 
-def patch_mainmenuoverride(tf_path: str):
-    custom_dir = Path(tf_path) / 'custom'
-    if not custom_dir.exists():
+def patch_mainmenuoverride(tf_path: Path):
+    custom_dir = tf_path / 'custom'
+    if not custom_dir.is_dir():
         return
 
     for item in custom_dir.iterdir():
@@ -32,7 +32,7 @@ def patch_mainmenuoverride(tf_path: str):
 
         if item.is_dir():
             mainmenuoverride_file = item / "resource" / "ui" / "mainmenuoverride.res"
-            if mainmenuoverride_file.exists():
+            if mainmenuoverride_file.is_file():
                 _add_vguipreload_string(mainmenuoverride_file)
                 found_mainmenuoverride = True
 
@@ -47,22 +47,22 @@ def patch_mainmenuoverride(tf_path: str):
 
         # info.vdf so tf2 accepts res file
         shutil.copy2(config.install_dir / 'backup/info.vdf', backup_folder / 'info.vdf')
-        _add_vguipreload_string(backup_folder_custom/ "mainmenuoverride.res")
+        _add_vguipreload_string(backup_folder_custom / "mainmenuoverride.res")
 
 
-def _add_vguipreload_string(file_path):
+def _add_vguipreload_string(file_path: Path):
     try:
-        with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+        with file_path.open('r', encoding='utf-8', errors='replace') as f:
             content = f.read()
         if "vguipreload.res" not in content:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with file_path.open('w', encoding='utf-8') as f:
                 f.write('#base "vguipreload.res"\n' + content)
             return True
     except Exception:
         log.exception(f'Failed to modify {file_path}')
 
 
-def _process_vpk(vpk_path):
+def _process_vpk(vpk_path: Path):
     try:
         vpk_file = VPKFile(vpk_path)
         target_files = vpk_file.find_files("resource/ui/mainmenuoverride.res")
