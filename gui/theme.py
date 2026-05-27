@@ -138,12 +138,10 @@ GLOBAL_STYLESHEET = f"""
     QListWidget::indicator:unchecked {{
         background-color: {KBD_BG};
         border: 1px solid {FG_LIGHTEST};
-        border-radius: 3px;
     }}
     QListWidget::indicator:checked {{
         background-color: {PRIMARY};
         border: 1px solid {PRIMARY};
-        border-radius: 3px;
     }}
 
     /* Group boxes */
@@ -229,12 +227,10 @@ GLOBAL_STYLESHEET = f"""
     QCheckBox::indicator:unchecked {{
         background-color: {KBD_BG};
         border: 1px solid {FG_LIGHTEST};
-        border-radius: 3px;
     }}
     QCheckBox::indicator:checked {{
         background-color: {PRIMARY};
         border: 1px solid {PRIMARY};
-        border-radius: 3px;
     }}
     QCheckBox::indicator:disabled {{
         background-color: {BG_DEFAULT};
