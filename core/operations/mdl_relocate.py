@@ -40,6 +40,9 @@ SAFE_PATH_ROOTS = ("console", "vgui/replay/thumbnails")
 # material path reference. Used to greedily extend each match to the full
 # referenced path so we can verify the file exists at the new location.
 _PATH_TAIL_CHARS = r"[A-Za-z0-9_./\-]"
+# Same char set, negated; used in lookbehinds to anchor a match to the start
+# of a path token. Kept in sync with _PATH_TAIL_CHARS by construction.
+_PATH_BOUNDARY_CHARS = r"[^A-Za-z0-9_./\-]"
 
 
 @dataclass
@@ -283,7 +286,7 @@ def _build_rewrite_regex(
         return None, None
     prefix_alt = "|".join(re.escape(old) for old, _ in pairs)
     pattern = re.compile(
-        f"(?:(?<=materials/)|(?<!{_PATH_TAIL_CHARS}))"
+        f"(?:(?<=materials/)|(?<={_PATH_BOUNDARY_CHARS}/)|(?<!{_PATH_TAIL_CHARS}))"
         f"(?P<prefix>{prefix_alt})(?P<tail>{_PATH_TAIL_CHARS}*)",
         re.IGNORECASE,
     )
