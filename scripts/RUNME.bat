@@ -14,5 +14,6 @@ if /I "%~nx0"=="RUNME.bat" (
 )
 
 cd casual-preloader
-python.exe pip.pyz install --disable-pip-version-check --no-warn-script-location -r requirements.txt
-python.exe main.py %*
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+uv self update
+uv run python main.py %*
