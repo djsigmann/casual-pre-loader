@@ -88,7 +88,7 @@ jobs:
           # Add site-packages to path for embeddable Python
           printf 'python312.zip\n.\nLib\nLib\\site-packages\n' >"${BUILD_DIR}/${REPO_NAME}/python312._pth"
 
-          curl -L -o "${BUILD_DIR}/${REPO_NAME}/pip.pyz" https://bootstrap.pypa.io/pip/pip.pyz
+          curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR='.' sh -s -- --no-modify-path
 
       - name: Build application
         env:
