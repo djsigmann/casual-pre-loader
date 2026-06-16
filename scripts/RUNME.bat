@@ -14,5 +14,8 @@ if /I "%~nx0"=="RUNME.bat" (
 )
 
 cd casual-preloader
-uv.exe pip install -r requirements.txt
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+uv self update
+uv venv --system-site-packages --relocatable -p ">=3.12"
+uv install -r requirements
 python.exe main.py %*
