@@ -77,19 +77,6 @@ jobs:
         with:
           python-version: '>=3.12'
 
-      - name: Download embeddable Python
-        env:
-          BUILD_DIR: ${{ steps.create_build_dir.outputs.build_dir }}
-          REPO_NAME: ${{ steps.get_repo_name.outputs.repo_name }}
-        run: |
-          curl -L -o python.zip https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip
-          unzip python.zip -d "${BUILD_DIR}/${REPO_NAME}"
-
-          # Add site-packages to path for embeddable Python
-          printf 'python312.zip\n.\nLib\nLib\\site-packages\n' >"${BUILD_DIR}/${REPO_NAME}/python312._pth"
-
-          curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="${BUILD_DIR}/${REPO_NAME}" UV_NO_MODIFY_PATH=1 sh
-
       - name: Build application
         env:
           BUILD_DIR: ${{ steps.create_build_dir.outputs.build_dir }}
