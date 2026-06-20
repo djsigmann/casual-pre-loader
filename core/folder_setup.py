@@ -1,9 +1,9 @@
-from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar
 
 from core.constants import PROGRAM_AUTHOR, PROGRAM_NAME
+from core.util.dep import Dep
 
 
 @dataclass
@@ -43,37 +43,30 @@ class FolderConfig:
         settings_dir = platformdirs.user_config_path(PROGRAM_NAME, PROGRAM_AUTHOR)
         temp_dir     = platformdirs.user_cache_path(PROGRAM_NAME, PROGRAM_AUTHOR)
 
-    backup_dir:    Path = lambda self: self.project_dir / 'backup'                # ty: ignore[invalid-assignment]
+    backup_dir:    Path = Dep(lambda project_dir: project_dir / 'backup')                # ty: ignore error[invalid-assignment]
     """Location where sourcemod files are backed up to"""
-    log_file:      Path = lambda self: self.project_dir / 'casual-pre-loader.log' # ty: ignore[invalid-assignment]
+    log_file:      Path = Dep(lambda project_dir: project_dir / 'casual-pre-loader.log') # ty: ignore error[invalid-assignment]
     """File where logs are stored"""
-    modsinfo_file: Path = lambda self: self.project_dir / 'modsinfo.json'         # ty: ignore[invalid-assignment]
+    mods_dir:      Path = Dep(lambda project_dir: project_dir / 'mods')                  # ty: ignore error[invalid-assignment]
+    """Location where mods are stored"""
+    modsinfo_file: Path = Dep(lambda project_dir: project_dir / 'modsinfo.json')         # ty: ignore error[invalid-assignment]
     """File that records the last-downloaded version of 'bundled' mods"""
 
-    mods_dir:      Path = lambda self: self.project_dir / 'mods'   # ty: ignore[invalid-assignment]
-    """Location where mods are stored"""
-    particles_dir: Path = lambda self: self.mods_dir / 'particles' # ty: ignore[invalid-assignment]
+    particles_dir: Path = Dep(lambda mods_dir: mods_dir / 'particles') # ty: ignore error[invalid-assignment]
     """Location where PARTICLE mods are stored"""
-    addons_dir:    Path = lambda self: self.mods_dir / 'addons'    # ty: ignore[invalid-assignment]
+    addons_dir:    Path = Dep(lambda mods_dir: mods_dir / 'addons')    # ty: ignore error[invalid-assignment]
     """Location where ADDON mods are stored"""
 
-    app_settings_file:   Path = lambda self: self.settings_dir / 'app_settings.json'   # ty: ignore[invalid-assignment]
+    app_settings_file:   Path = Dep(lambda settings_dir: settings_dir / 'app_settings.json')   # ty: ignore error[invalid-assignment]
     """File where main settings are kept"""
-    addon_metadata_file: Path = lambda self: self.settings_dir / 'addon_metadata.json' # ty: ignore[invalid-assignment]
+    addon_metadata_file: Path = Dep(lambda settings_dir: settings_dir / 'addon_metadata.json') # ty: ignore error[invalid-assignment]
     """File where addon metadata is kept"""
 
     # TODO: add attr docstrings (@cueki)
-    temp_to_be_processed_dir:  Path = lambda self: self.temp_dir / 'to_be_processed'  # ty: ignore[invalid-assignment]
-    temp_to_be_referenced_dir: Path = lambda self: self.temp_dir / 'to_be_referenced' # ty: ignore[invalid-assignment]
-    temp_to_be_patched_dir:    Path = lambda self: self.temp_dir / 'to_be_patched'    # ty: ignore[invalid-assignment]
-    temp_to_be_vpk_dir:        Path = lambda self: self.temp_dir / 'to_be_vpk'        # ty: ignore[invalid-assignment]
-
-    def __getattribute__(self, attr):
-        value = super().__getattribute__(attr)
-
-        if isinstance(value, Callable) and attr in self.__dict__:
-            return value(self)
-        return value
+    temp_to_be_processed_dir:  Path = Dep(lambda temp_dir: temp_dir / 'to_be_processed')  # ty: ignore error[invalid-assignment]
+    temp_to_be_referenced_dir: Path = Dep(lambda temp_dir: temp_dir / 'to_be_referenced') # ty: ignore error[invalid-assignment]
+    temp_to_be_patched_dir:    Path = Dep(lambda temp_dir: temp_dir / 'to_be_patched')    # ty: ignore error[invalid-assignment]
+    temp_to_be_vpk_dir:        Path = Dep(lambda temp_dir: temp_dir / 'to_be_vpk')        # ty: ignore error[invalid-assignment]
 
 
 folder_setup: FolderConfig
