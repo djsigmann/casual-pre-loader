@@ -38,7 +38,7 @@ unset level _level
 dep_missing() { printf '%s is not installed, please install it according to your distro\n' "${1}"; }
 
 intcmp() {
-	printf '%s' "$(( ($1 > $2) - ($1 < $2) ))"
+	printf '%s' "$((($1 > $2) - ($1 < $2)))"
 }
 
 check_min_python_version() (
@@ -52,23 +52,23 @@ check_min_python_version() (
 	ret=true
 	# shellcheck disable=SC2249
 	case "$(intcmp "${_major:-0}" "${major:-0}")" in
+	0)
+		rest="${1#"${major}"}" rest="${rest#.}"
+		minor="${rest%%.*}"
+		_rest="${version#"${_major}"}" _rest="${_rest#.}"
+		_minor="${_rest%%.*}"
+		case "$(intcmp "${_minor:-0}" "${minor:-0}")" in
 		0)
-			rest="${1#"${major}"}" rest="${rest#.}"
-			minor="${rest%%.*}"
-			_rest="${version#"${_major}"}" _rest="${_rest#.}"
-			_minor="${_rest%%.*}"
-			case "$(intcmp "${_minor:-0}" "${minor:-0}")" in
-				0)
-					patch="${rest#"${minor}"}" patch="${patch#.}"
-					_patch="${_rest#"${_minor}"}" _patch="${_patch#.}"
-					case "$(intcmp "${_patch:-0}" "${patch:-0}")" in
-						-1) ret=false;;
-					esac
-					;;
-				-1) ret=false;;
+			patch="${rest#"${minor}"}" patch="${patch#.}"
+			_patch="${_rest#"${_minor}"}" _patch="${_patch#.}"
+			case "$(intcmp "${_patch:-0}" "${patch:-0}")" in
+			-1) ret=false ;;
 			esac
 			;;
-		-1) ret=false;;
+		-1) ret=false ;;
+		esac
+		;;
+	-1) ret=false ;;
 	esac
 
 	printf '%s' "${version}"
@@ -150,11 +150,11 @@ if [ -f 'requirements.txt' ]; then
 	fi
 
 	printf '%s\n' 'Installing and/or updating dependencies' | info
-	export PIP_RETRIES="${PIP_RETRIES:-2}" PIP_TIMEOUT="${PIP_TIMEOUT:-5}"
 	{
+		export PIP_RETRIES="${PIP_RETRIES:-2}" PIP_TIMEOUT="${PIP_TIMEOUT:-5}"
 		python3 -m ensurepip &&
-		python3 -m pip install --upgrade pip &&
-		python3 -m pip install --upgrade -r requirements.txt
+			python3 -m pip install --upgrade pip &&
+			python3 -m pip install --upgrade -r requirements.txt
 	} || {
 		printf 'No internet connection, cannot install and/or update required dependencies\n' | error
 		ERROR=true
@@ -165,8 +165,8 @@ fi
 git submodule update --init --recursive --remote || {
 	# shellcheck disable=SC2016
 	git submodule update --init --recursive &&
-	git submodule foreach --recursive  '[ "${sha1}" = "$(git rev-parse HEAD)" ]' &&
-	printf 'No internet connection, but submodules seem to be up-to-date, it is advised to retry once an internet connection has been re-established\n' | warning
+		git submodule foreach --recursive '[ "${sha1}" = "$(git rev-parse HEAD)" ]' &&
+		printf 'No internet connection, but submodules seem to be up-to-date, it is advised to retry once an internet connection has been re-established\n' | warning
 } || {
 	ERROR=true
 	printf 'No internet connection, cannot update submodules\n' | error
