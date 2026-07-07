@@ -51190,5 +51190,929 @@
 			"visible"   "1"
 			"image" "../wood/wood_wall009.vtf"
 		}
+		"3405898400_blu_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_blu_stripe.vmt"
+		}
+		"3405898400_blu_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_blu_stripe.vtf"
+		}
+		"3405898400_brass"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_brass.vmt"
+		}
+		"3405898400_brass"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_brass.vtf"
+		}
+		"3405898400_brass_2"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_brass_2.vmt"
+		}
+		"3405898400_brass_2"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_brass_2.vtf"
+		}
+		"3405898400_down_spade"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_down_spade.vmt"
+		}
+		"3405898400_down_spade"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_down_spade.vtf"
+		}
+		"3405898400_grad_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_grad_blu.vmt"
+		}
+		"3405898400_grad_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_grad_blu.vtf"
+		}
+		"3405898400_grad_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_grad_red.vmt"
+		}
+		"3405898400_grad_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_grad_red.vtf"
+		}
+		"3405898400_metallic"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_metallic.vmt"
+		}
+		"3405898400_metallic"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_metallic.vtf"
+		}
+		"3405898400_red_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_red_stripe.vmt"
+		}
+		"3405898400_red_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_red_stripe.vtf"
+		}
+		"3405898400_up_spade"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_up_spade.vmt"
+		}
+		"3405898400_up_spade"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3405898400/3405898400_up_spade.vtf"
+		}
+		"3467689408_black_tertiary"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_black_tertiary.vmt"
+		}
+		"3467689408_black_tertiary"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_black_tertiary.vtf"
+		}
+		"3467689408_black_tertiary_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_black_tertiary_wear.vmt"
+		}
+		"3467689408_black_tertiary_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_black_tertiary_wear.vtf"
+		}
+		"3467689408_caution_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_caution_stripe.vmt"
+		}
+		"3467689408_caution_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_caution_stripe.vtf"
+		}
+		"3467689408_caution_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_caution_wear.vmt"
+		}
+		"3467689408_caution_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_caution_wear.vtf"
+		}
+		"3467689408_crate_pattern"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_crate_pattern.vmt"
+		}
+		"3467689408_crate_pattern"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_crate_pattern.vtf"
+		}
+		"3467689408_crate_pattern_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_crate_pattern_wear.vmt"
+		}
+		"3467689408_crate_pattern_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_crate_pattern_wear.vtf"
+		}
+		"3467689408_noentry_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_noentry_sticker.vmt"
+		}
+		"3467689408_noentry_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_noentry_sticker.vtf"
+		}
+		"3467689408_numberedbox_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_numberedbox_sticker.vmt"
+		}
+		"3467689408_numberedbox_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_numberedbox_sticker.vtf"
+		}
+		"3467689408_oil_blood_buckets"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_oil_blood_buckets.vmt"
+		}
+		"3467689408_oil_blood_buckets"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3467689408/3467689408_oil_blood_buckets.vtf"
+		}
+		"3472043785_blankgradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_blankgradient.vmt"
+		}
+		"3472043785_blankgradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_blankgradient.vtf"
+		}
+		"3472043785_silver_blu3"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_silver_blu3.vmt"
+		}
+		"3472043785_silver_blu3"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_silver_blu3.vtf"
+		}
+		"3472043785_silver_red3"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_silver_red3.vmt"
+		}
+		"3472043785_silver_red3"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_silver_red3.vtf"
+		}
+		"3472043785_topo_blu1"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_topo_blu1.vmt"
+		}
+		"3472043785_topo_blu1"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_topo_blu1.vtf"
+		}
+		"3472043785_topo_red1"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_topo_red1.vmt"
+		}
+		"3472043785_topo_red1"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_topo_red1.vtf"
+		}
+		"3472043785_water_blu2"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_water_blu2.vmt"
+		}
+		"3472043785_water_blu2"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_water_blu2.vtf"
+		}
+		"3472043785_water_red2"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_water_red2.vmt"
+		}
+		"3472043785_water_red2"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_water_red2.vtf"
+		}
+		"3472043785_wear_neutral4"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_wear_neutral4.vmt"
+		}
+		"3472043785_wear_neutral4"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3472043785/3472043785_wear_neutral4.vtf"
+		}
+		"3473432802_primary_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_primary_blu.vmt"
+		}
+		"3473432802_primary_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_primary_blu.vtf"
+		}
+		"3473432802_primary_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_primary_red.vmt"
+		}
+		"3473432802_primary_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_primary_red.vtf"
+		}
+		"3473432802_secondary_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_secondary_blu.vmt"
+		}
+		"3473432802_secondary_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_secondary_blu.vtf"
+		}
+		"3473432802_secondary_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_secondary_red.vmt"
+		}
+		"3473432802_secondary_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_secondary_red.vtf"
+		}
+		"3473432802_tertiary_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_tertiary_blu.vmt"
+		}
+		"3473432802_tertiary_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_tertiary_blu.vtf"
+		}
+		"3473432802_tertiary_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_tertiary_red.vmt"
+		}
+		"3473432802_tertiary_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3473432802/3473432802_tertiary_red.vtf"
+		}
+		"3565229606_albedo"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_albedo.vmt"
+		}
+		"3565229606_albedo"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_albedo.vtf"
+		}
+		"3565229606_dark_sheet"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_dark_sheet.vmt"
+		}
+		"3565229606_dark_sheet"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_dark_sheet.vtf"
+		}
+		"3565229606_union"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_union.vmt"
+		}
+		"3565229606_union"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_union.vtf"
+		}
+		"3565229606_wood_base"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_wood_base.vmt"
+		}
+		"3565229606_wood_base"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_wood_base.vtf"
+		}
+		"3565229606_wood_gradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_wood_gradient.vmt"
+		}
+		"3565229606_wood_gradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3565229606/3565229606_wood_gradient.vtf"
+		}
+		"3674640778_p"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_p.vmt"
+		}
+		"3674640778_p"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_p.vtf"
+		}
+		"3674640778_r"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_r.vmt"
+		}
+		"3674640778_r"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_r.vtf"
+		}
+		"3674640778_w01"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_w01.vmt"
+		}
+		"3674640778_w01"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_w01.vtf"
+		}
+		"3674640778_w01_s"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_w01_s.vmt"
+		}
+		"3674640778_w01_s"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_w01_s.vtf"
+		}
+		"3674640778_wp01"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_wp01.vmt"
+		}
+		"3674640778_wp01"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_wp01.vtf"
+		}
+		"3674640778_wp02"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_wp02.vmt"
+		}
+		"3674640778_wp02"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_wp02.vtf"
+		}
+		"3674640778_y"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_y.vmt"
+		}
+		"3674640778_y"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/3674640778_y.vtf"
+		}
+		"3674640778_logo"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/stickers/3674640778_logo.vmt"
+		}
+		"3674640778_logo"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/stickers/3674640778_logo.vtf"
+		}
+		"3674640778_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/stickers/3674640778_stripe.vmt"
+		}
+		"3674640778_stripe"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/stickers/3674640778_stripe.vtf"
+		}
+		"3674640778_stripe_noclamp"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/stickers/3674640778_stripe_noclamp.vmt"
+		}
+		"3674640778_stripe_noclamp"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3674640778/stickers/3674640778_stripe_noclamp.vtf"
+		}
+		"3688608202_blank_gradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_blank_gradient.vmt"
+		}
+		"3688608202_blank_gradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_blank_gradient.vtf"
+		}
+		"3688608202_blue_pattern"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_blue_pattern.vmt"
+		}
+		"3688608202_blue_pattern"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_blue_pattern.vtf"
+		}
+		"3688608202_main_white"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_main_white.vmt"
+		}
+		"3688608202_main_white"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_main_white.vtf"
+		}
+		"3688608202_metal_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_metal_wear.vmt"
+		}
+		"3688608202_metal_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_metal_wear.vtf"
+		}
+		"3688608202_red_pattern"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_red_pattern.vmt"
+		}
+		"3688608202_red_pattern"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_red_pattern.vtf"
+		}
+		"3688608202_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_sticker.vmt"
+		}
+		"3688608202_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3688608202/3688608202_sticker.vtf"
+		}
+		"3693252107"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107.vmt"
+		}
+		"3693252107"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107.vtf"
+		}
+		"3693252107_albedo"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_albedo.vmt"
+		}
+		"3693252107_albedo"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_albedo.vtf"
+		}
+		"3693252107_base"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_base.vmt"
+		}
+		"3693252107_base"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_base.vtf"
+		}
+		"3693252107_base_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_base_blue.vmt"
+		}
+		"3693252107_base_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_base_blue.vtf"
+		}
+		"3693252107_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_blue.vmt"
+		}
+		"3693252107_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_blue.vtf"
+		}
+		"3693252107_gradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_gradient.vmt"
+		}
+		"3693252107_gradient"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_gradient.vtf"
+		}
+		"3693252107_gradient_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_gradient_blue.vmt"
+		}
+		"3693252107_gradient_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_gradient_blue.vtf"
+		}
+		"3693252107_tan"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_tan.vmt"
+		}
+		"3693252107_tan"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_tan.vtf"
+		}
+		"3693252107_tan_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_tan_blue.vmt"
+		}
+		"3693252107_tan_blue"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3693252107/3693252107_tan_blue.vtf"
+		}
+		"3695463477_floor_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_floor_blu.vmt"
+		}
+		"3695463477_floor_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_floor_blu.vtf"
+		}
+		"3695463477_floor_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_floor_red.vmt"
+		}
+		"3695463477_floor_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_floor_red.vtf"
+		}
+		"3695463477_metal_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_metal_blu.vmt"
+		}
+		"3695463477_metal_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_metal_blu.vtf"
+		}
+		"3695463477_metal_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_metal_red.vmt"
+		}
+		"3695463477_metal_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_metal_red.vtf"
+		}
+		"3695463477_seat_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_seat_blu.vmt"
+		}
+		"3695463477_seat_blu"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_seat_blu.vtf"
+		}
+		"3695463477_seat_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_seat_red.vmt"
+		}
+		"3695463477_seat_red"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3695463477/3695463477_seat_red.vtf"
+		}
+		"3696227552_checkers"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_checkers.vmt"
+		}
+		"3696227552_checkers"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_checkers.vtf"
+		}
+		"3696227552_main"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_main.vmt"
+		}
+		"3696227552_main"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_main.vtf"
+		}
+		"3696227552_metal"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_metal.vmt"
+		}
+		"3696227552_metal"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_metal.vtf"
+		}
+		"3696227552_metal_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_metal_wear.vmt"
+		}
+		"3696227552_metal_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_metal_wear.vtf"
+		}
+		"3696227552_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_sticker.vmt"
+		}
+		"3696227552_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_sticker.vtf"
+		}
+		"3696227552_stripe_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_stripe_sticker.vmt"
+		}
+		"3696227552_stripe_sticker"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_stripe_sticker.vtf"
+		}
+		"3696227552_stripe_sticker_noclamp"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_stripe_sticker_noclamp.vmt"
+		}
+		"3696227552_stripe_sticker_noclamp"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_stripe_sticker_noclamp.vtf"
+		}
+		"3696227552_tires"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_tires.vmt"
+		}
+		"3696227552_tires"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_tires.vtf"
+		}
+		"3696227552_tires_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_tires_wear.vmt"
+		}
+		"3696227552_tires_wear"
+		{
+			"ControlName"   "ImagePanel"
+			"visible"   "1"
+			"image" "../patterns/workshop/summer_2026/3696227552/3696227552_tires_wear.vtf"
+		}
 	}
 }
