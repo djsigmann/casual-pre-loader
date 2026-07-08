@@ -1,6 +1,16 @@
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import Field, fields, is_dataclass
-from typing import Any, ClassVar, Protocol, cast, runtime_checkable
+from functools import wraps
+from typing import (
+    Any,
+    ClassVar,
+    Concatenate,
+    Literal,
+    Protocol,
+    cast,
+    overload,
+    runtime_checkable,
+)
 
 type FieldCompatibleMapping = Mapping[str, Any]
 type FieldCompatibleIterable = Iterable[tuple[str, Any]]
@@ -26,6 +36,75 @@ def all_predicates[**P](*predicates: Callable[P, bool]) -> Callable[P, bool]:
         return all(predicate(*args, **kwargs) for predicate in predicates)
 
     return inner
+
+
+@overload
+def as_base_class[T, **P, R](
+    func: Callable[Concatenate[T, P], R],
+    /,
+    pass_self: Literal[True] | None,
+    cls: type | None
+) -> Callable[Concatenate[T, P], R]: ...
+
+@overload
+def as_base_class[T, **P, R](
+    func: Callable[P, R],
+    /,
+    pass_self: Literal[False],
+    cls: type | None
+) -> Callable[Concatenate[T, P], R]: ...
+
+@overload
+def as_base_class[T, **P, R](
+    func: None,
+    /,
+    pass_self: Literal[False],
+    cls: type | None
+) -> Callable[[Callable[P, R]], Callable[Concatenate[T, P], R]]: ...
+
+@overload
+def as_base_class[T, **P, R](
+    func: None,
+    /,
+    pass_self: Literal[True] | None,
+    cls: type | None
+) -> Callable[[Callable[Concatenate[T, P], R]], Callable[Concatenate[T, P], R]]: ...
+
+def as_base_class[T, **P, R](
+    func: Callable[P, R] | Callable[Concatenate[T, P], R] | None = None,
+    /,
+    pass_self: bool | None = None,
+    cls: type | None = None
+) -> (
+    # Callable[[Callable[P, R]], Callable[Concatenate[T, P], R]]
+    # | Callable[[Callable[Concatenate[T, P], R]], Callable[Concatenate[T, P], R]]
+    # | Callable[Concatenate[T, P], R]
+    Callable[..., Callable[Concatenate[T, P], R]]
+    | Callable[Concatenate[T, P], R]
+):
+    """
+    A decorator function meant to be used with methods that temporarily sets the instance's `__class__` to its base class while the method runs.
+    """
+
+    pass_self = True if pass_self is None else pass_self
+
+    def decorator(func: Callable[..., R]) -> Callable[Concatenate[T, P], R]:
+        @wraps(func)
+        def wrap(self: T, *args: P.args, **kwargs: P.kwargs) -> R:
+            old_cls = type(self)
+            try:
+                object.__setattr__(self, '__class__', cls if cls is not None else old_cls.__base__)
+                if pass_self:
+                    return func(self, *args, **kwargs)
+                return func(*args, **kwargs)
+            finally:
+                object.__setattr__(self, '__class__', old_cls)
+
+        return wrap
+
+    if func is None:
+        return decorator
+    return decorator(func)
 
 
 def update_dataclass(obj: DataClass, other: DataClass | FieldCompatibleMapping | FieldCompatibleIterable | None = None, /, **kwargs) -> None:
