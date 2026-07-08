@@ -11,7 +11,7 @@ from packaging.version import Version
 
 from core.constants import Sourcemods
 from core.profile import Profile
-from core.util import update_dataclass
+from core.util import as_base_class, update_dataclass
 
 # https://github.com/python/typing/issues/182#issuecomment-1320974824
 type JSON = dict[str, 'JSON'] | list['JSON'] | str | int | float | bool | None
@@ -61,11 +61,8 @@ class Settings:
     skipped_update_version: Version | None = None
     suppress_update_notifications: bool = False
 
-    _initialized: bool = field(init=False, default=False, repr=False, compare=False)
-
     def __post_init__(self) -> None:
         self._load_settings()
-        self._initialized = True
 
     def __getattr__(self, attr):
         if self.active_profile is None:
@@ -73,37 +70,27 @@ class Settings:
 
         return getattr(self.active_profile, attr)
 
-    def __setattr__(self, attr, value):
-        if attr == '_initialized':
-            super().__setattr__(attr, value)
-            return
+    def __setattr__(self, name, value, /):
+        if name == 'active_profile':
+            if value not in self.profiles:
+                for profile in self.profiles:
+                    if profile.id == value:
+                        value = profile
+                        break
+                else:
+                    raise ValueError(f'{value} is not a known profile ID')
+        elif name == 'profiles':
+            raise AttributeError('profiles may not be set manually, use `create_profile()`/`delete_profile()`')
 
-        if self._initialized:
-            if not hasattr(self, attr):
-                if self.active_profile is None:
-                    raise NoActiveProfile(attr)
+        if name in self.__dict__:
+            super().__setattr__(name, value)
+        else:
+            if self.active_profile is None:
+                raise NoActiveProfile(name)
 
-                setattr(self.active_profile, attr, value)
-                self.save_settings()
-                return
+            setattr(self.active_profile, name, value)
 
-            match attr:
-                case 'active_profile':
-                    if value not in self.profiles:
-                        for profile in self.profiles:
-                            if profile.id == value:
-                                value = profile
-                                break
-                        else:
-                            raise ValueError(f'{value} is not a known profile ID')
-                case 'profiles':
-                    raise AttributeError('profiles may not be set manually, use `create_profile()`/`delete_profile()`')
-
-            super().__setattr__(attr, value)
-            self.save_settings()
-            return
-
-        super().__setattr__(attr, value)
+        self.save_settings()
 
     def _load_settings(self, input_settings_file: Path | None = None) -> None:
         """
@@ -187,8 +174,6 @@ class Settings:
         if self.active_profile is not None:
             data['active_profile'] = self.active_profile.id # Only save the id of the active profile (it is included in`profiles`)
 
-        del data['_initialized']
-
         for i, profile in enumerate(self.profiles): # only save the profiles' sourcemods' names
             data['profiles'][i]['sourcemod'] = profile.sourcemod.name
 
@@ -210,9 +195,6 @@ class Settings:
         if activate:
             self.active_profile = profile
 
-        if self._initialized:
-            self.save_settings()
-
         return profile
 
     def delete_profile(self, id: UUID):
@@ -230,19 +212,33 @@ class Settings:
         else:
             raise ProfileNotFound(id)
 
-        if self._initialized:
-            self.save_settings()
-
     def update_profile(self, profile_id: UUID, *args, **kwargs):
         for i, profile in enumerate(self.profiles):
             if profile.id == profile_id:
                 update_dataclass(profile, *args, **kwargs)
                 break
-        if self._initialized:
-            self.save_settings()
 
     def should_show_update_dialog(self, version: Version) -> bool:
         return not (self.suppress_update_notifications or version == self.skipped_update_version)
+
+
+class _Settings(Settings):
+    """
+    This is a nasty hack to ensure the dataclass' generated `__init__()` uses `object.__setattr__()` and `object.__getattr__()`.
+    """
+
+    def __init__(self):
+        pass
+
+    def __getattr__(obj, attr) -> None:
+        raise AttributeError(attr)
+
+    __setattr__ = object.__setattr__
+
+
+# TODO: figure out if we can make type chekers actually happy here
+Settings.__init__ = as_base_class(Settings.__init__, pass_self=True, cls=_Settings) # ty:ignore error[invalid-assignment]:
+Settings._load_settings = as_base_class(Settings._load_settings, pass_self=True, cls=_Settings) # ty:ignore error[invalid-assignment]:
 
 
 class AddonMetadata(dict):
@@ -283,7 +279,6 @@ class AddonMetadata(dict):
 
 settings: Settings
 addon_metadata: AddonMetadata
-
 
 def __getattr__(attr):
     global settings, addon_metadata
