@@ -214,7 +214,7 @@ PROGRAM_NAME = 'casual-pre-loader'
 REMOTE_REPO = f'{PROGRAM_AUTHOR}/{PROGRAM_NAME}'
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Sourcemod:
     """Class to represent a sourcemod"""
 
@@ -225,6 +225,7 @@ class Sourcemod:
     """Sourcemod's Full name as it appears in 'steamapps/common'"""
 
 
+# TODO: check if adding `__slots__` makes sense
 class Sourcemods(Sourcemod, Enum):
     """
     Enum defining known sourcemods that the tool is compatible with.

@@ -15,7 +15,7 @@ from core.util.repo.github_api import get_releases_with_asset
 from core.util.zip import extract
 
 
-@dataclass
+@dataclass(slots=True)
 class Modsinfo:
     tag: str | None = None
     digest: str | None = None

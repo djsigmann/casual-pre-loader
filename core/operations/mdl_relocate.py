@@ -45,7 +45,7 @@ _PATH_TAIL_CHARS = r"[A-Za-z0-9_./\-]"
 _PATH_BOUNDARY_CHARS = r"[^A-Za-z0-9_./\-]"
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Relocation:
     old_dir: str  # /-form with trailing slash, e.g. "models/player/items/scout/"
     new_dir: str  # /-form with trailing slash, e.g. "console/models/player/items/scout/"
