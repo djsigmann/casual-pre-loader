@@ -7,7 +7,7 @@ from core.constants import Sourcemods
 from core.util.sourcemod import get_sourcemod
 
 
-@dataclass
+@dataclass(slots=True)
 class Profile:
     name: str
     game_path: Path

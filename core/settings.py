@@ -24,7 +24,7 @@ class ProfileNotFound(KeyError):
     pass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class SerializationSpec[T: type]:
     type: T
     """The type to encode"""
@@ -33,11 +33,13 @@ class SerializationSpec[T: type]:
     """Function used to encode value to JSON"""
 
 
+# TODO: check if adding `__slots__` makes sense
 class SerializationSpecs(SerializationSpec, Enum):
     PATH = Path, str
     VERSION = Version, str
 
 
+# TODO: check if adding `__slots__` makes sense
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         try:
@@ -68,6 +70,7 @@ def _get_profile_name(name: str, profiles: Profiles) -> str:
 def _get_first_profile(profiles: Profiles) -> Profile: # NOTE: may not be consistent, but this doesn't really matter
     return next(iter(profiles.values()))
 
+# TODO: check if adding `slots=True` makes sense
 @dataclass
 class Settings:
     active_profile: Profile | None = None

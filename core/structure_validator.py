@@ -10,7 +10,7 @@ from core.constants import VALID_MOD_ROOT_FOLDERS
 log = logging.getLogger()
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class ValidationResult:
     is_valid: bool
     errors: list[str]

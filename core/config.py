@@ -20,6 +20,7 @@ _may_be_portable: bool = not (_install_dir / '.noportable').is_file()
 
 
 # The meat and potatoes
+# TODO: check if adding `slots=True` makes sense
 @dataclass
 class Args:
     if _may_be_portable: # we may only be portable if the application was not packaged with a dummy `.noportable` file
@@ -42,6 +43,7 @@ class Args:
     """Increase the verbosity of log messages."""
 
 
+# TODO: check if adding `slots=True` makes sense
 @dataclass
 class FolderConfig:
     """Configuration class for managing folder paths"""
