@@ -50966,13 +50966,13 @@
 		{
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
-			"image" "../swamp/overlays/swampleafpile001.vmt"
+			"image" "../swamp/nature/swampleafpile001.vmt"
 		}
 		"swampleafpile001"
 		{
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
-			"image" "../swamp/overlays/swampleafpile001.vtf"
+			"image" "../swamp/nature/swampleafpile001.vtf"
 		}
 		"swampleaves001"
 		{
@@ -51014,25 +51014,25 @@
 		{
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
-			"image" "../winter/grass08.vmt"
+			"image" "../winter/grass_08.vmt"
 		}
 		"grass08"
 		{
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
-			"image" "../winter/grass08.vtf"
+			"image" "../winter/grass_08.vtf"
 		}
 		"grass09"
 		{
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
-			"image" "../winter/grass09.vmt"
+			"image" "../winter/grass_09.vmt"
 		}
 		"grass09"
 		{
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
-			"image" "../winter/grass09.vtf"
+			"image" "../winter/grass_09.vtf"
 		}
 		"moss001"
 		{
