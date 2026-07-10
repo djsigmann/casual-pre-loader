@@ -6,6 +6,7 @@ from pathlib import Path
 from sys import platform
 
 from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QCheckBox,
     QGroupBox,
@@ -171,11 +172,18 @@ class ParticleManagerGUI(QMainWindow):
         sidebar_layout.setSpacing(0)
 
         # nav list
+        from PyQt6.QtCore import QLibraryInfo
+        print(QLibraryInfo.path(QLibraryInfo.LibraryPath.PluginsPath))
+        print(QIcon.themeName())
         self.nav_list = SidebarNav()
-        for name, icon_char in [("Particles", "\u25C6"), ("Addons", "\u25C7"), ("Settings", "\u2699")]:
-            leading = " " if platform == "win32" and name == "Settings" else "  "
-            item = QListWidgetItem(f"{leading}{icon_char}  {name}")
-            item.setSizeHint(QSize(0, NAV_ITEM_HEIGHT))
+        for name, icon in (
+            ("Particles", "preferences-animation"),
+            ("Addons", "applications-graphics"),
+            ("Settings", "configure"),
+        ):
+            icon = QIcon.fromTheme(icon)
+            print(name, icon)
+            item = QListWidgetItem(icon, name)
             self.nav_list.addItem(item)
         self.nav_list.setCurrentRow(0)
         sidebar_layout.addWidget(self.nav_list)
