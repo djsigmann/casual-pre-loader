@@ -6,7 +6,11 @@ from collections import defaultdict
 from operator import attrgetter
 from zipfile import Path as ZipFilePath
 
+from github.GithubException import RateLimitExceededExceedsMaxWait
 from packaging.version import Version
+
+# transitive through `PyGithub`, but importing the current file without `PyGithub` would error beforehand anyway
+from urllib3.exceptions import NameResolutionError
 
 from core.config import config
 from core.constants import BUILD_DIRS, BUILD_FILES, REMOTE_REPO
@@ -39,21 +43,28 @@ def check_for_updates() -> tuple[Update, ...]:
         A tuple of updates sorted by ascending chronological order.
     """
 
-    try: # get the latest version of each minor release that we are behind of
-        updates = defaultdict(dict)
-        current = Version(VERSION)
-        platform_name = 'linux' if sys.platform == 'linux' else 'win'
+     # get the latest version of each minor release that we are behind of
+    platform_name = 'linux' if sys.platform == 'linux' else 'win'
 
-        # sort by descending chronological order, so we only store the latest patch release for every minor release
-        for update in sorted(get_releases_with_asset(REMOTE_REPO, re.compile(fr'^casual-pre-?loader(-{platform_name})?.*\.zip')), key=attrgetter('version'), reverse=True):
-            if update.version > current:
-                updates[update.version.major].setdefault(update.version.minor, update)
-
-        return tuple(update for major_updates in updates.values() for update in major_updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
-
-    except Exception:
-        log.exception('Error checking for updates')
+    try:
+        releases = list(get_releases_with_asset(REMOTE_REPO, re.compile(fr'^casual-pre-?loader(-{platform_name})?.*\.zip')))
+    except RateLimitExceededExceedsMaxWait:
+        log.error('Github ratelimit exceeed, not checking for updates')
         return ()
+    except NameResolutionError:
+        log.error('Could not connect to github, not checking for updates')
+        return ()
+
+    # sort by descending chronological order, so we only store the latest patch release for every minor release
+    releases.sort(key=attrgetter('version'), reverse=True)
+
+    updates = defaultdict(dict)
+    current = Version(VERSION)
+    for update in releases:
+        if update.version > current:
+            updates[update.version.major].setdefault(update.version.minor, update)
+
+    return tuple(update for major_updates in updates.values() for update in major_updates.values())[::-1] # reverse the tuple so it's sorted by ascending chronological order
 
 
 def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
