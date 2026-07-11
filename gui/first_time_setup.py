@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import cast
 
+from github.GithubException import RateLimitExceededExceedsMaxWait
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCursor
 from PyQt6.QtWidgets import (
@@ -19,6 +20,9 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+# transitive through `PyGithub`, but importing the current file without `PyGithub` would error beforehand anyway
+from urllib3.exceptions import NameResolutionError
 
 from core.constants import Sourcemods
 from core.download_mods import check_mods, download_mods
@@ -352,19 +356,33 @@ def download_cueki_mods(parent=None, button=None, force=False):
 
     progress = None
     try:
-        # create progress dialog
-        progress = QProgressDialog("Downloading cueki's mods (~77 MB)...", "Cancel", 0, 100, parent)
-        progress.setWindowTitle("Downloading Mods")
-        progress.setWindowModality(Qt.WindowModality.WindowModal)
-        progress.setMinimumDuration(0)
-        progress.setValue(0)
-        progress.show()
-        QApplication.processEvents()
+        try:
+            update = check_mods(force)
+        except RateLimitExceededExceedsMaxWait:
+            msg = 'Github ratelimit exceeded, not checking for new mod releases (wait a while and try again)'
+            log.error(msg)
+            QMessageBox.critical(parent, 'Download Failed', msg)
 
-        update = check_mods(force)
+            return False
+        except NameResolutionError:
+            msg = 'Could not connect to github, not checking for new mod releases (ensure you\'re connected to the internet)'
+            log.error(msg)
+            QMessageBox.critical(parent, 'Download Failed', msg)
+
+            return False
+
         if update is not None:
+            # create progress dialog
+            progress = QProgressDialog("Downloading cueki's mods (~77 MB)...", "Cancel", 0, 100, parent)
+            progress.setWindowTitle("Downloading Mods")
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.setMinimumDuration(0)
+            progress.setValue(0)
+            QApplication.processEvents()
+
+            progress.show()
             download_mods(update, progress.setValue, progress.setLabelText, QApplication.processEvents, progress.wasCanceled)
-        progress.close()
+            progress.close()
 
         # refresh main window if not called from first time setup
         if not isinstance(parent, FirstTimeSetupDialog):
