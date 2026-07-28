@@ -1,14 +1,6 @@
 [build-system]
-requires = ['setuptools']
+requires = ['setuptools >= 77.0.3']
 build-backend = 'setuptools.build_meta'
-
-[tool.setuptools]
-packages = ['backup', 'core', 'data', 'gui']
-
-[tool.setuptools.package-data]
-# Include non-Python files in data directory
-'data' = ['**/*']
-'backup' = ['**/*']
 
 [project]
 dynamic = ['version']
@@ -21,10 +13,24 @@ readme = 'README.md'
 license = 'GPL-3.0-or-later AND CC-BY-NC-ND-4.0'
 license-files = ['LICEN[CS]E*']
 
+authors = [
+	{name = 'cueki',email = 'madisonlovett@lovett.dev'},
+	{name = 'djsigmann', email = 'djsigmann@protonmail.com'},
+	{name = 'Feathers', email = 'vdeadandawakev@gmail.com'},
+	{name = 'akujiiswired ', email = 'akujiiswired@github.com'},
+	{name = 'Kacey2k', email = '155423259+Kacey2k@users.noreply.github.com'},
+	{name = 'fawnfang', email = 'fawnfang@users.noreply.github.com'},
+]
+
+maintainers = [
+	{name = 'cueki',email = 'madisonlovett@lovett.dev'},
+	{name = 'djsigmann', email = 'djsigmann@protonmail.com'},
+]
+
 requires-python = '>= 3.12'
 dependencies = [
 	# GUI
-	'PyQt6~=6.10',
+	'PyQt6~=6.11',
 
 	# core
 	'cappa~=0.32.0',
@@ -32,8 +38,8 @@ dependencies = [
 	'packaging~=26.0',
 	'platformdirs~=4.9',
 	'PyGithub~=2.9',
-	'requests~=2.33',
-	'rich~=14.3',
+	'requests~=2.34',
+	'rich~=15.0',
 	'valve-parsers>=1.2.2',
 ]
 
@@ -42,20 +48,19 @@ dev = [
 	'ruff',
 	'ty',
 ]
+doc = [
+	'mkdoc',
+]
 
-[project.scripts]
-casual-pre-loader = 'casual_pre_loader.main:main'
-#
-# [project.gui-scripts]
-# casual-pre-loader = 'casual-pre-loader:main'
+# [project.scripts]
+# casual-pre-loader = 'main:main'
 
-# [project.authors]
-#   {name = 'cueki', email = 'madisonlovett@lovett.dev'}
-#   {name = 'djsigmann', email = 'djsigmann@protonmail.com'}
-#
-# [project.maintainers]
-#   {name = 'cueki', email = 'madisonlovett@lovett.dev'}
-#   {name = 'djsigmann', email = 'djsigmann@protonmail.com'}
+[project.gui-scripts]
+casual-pre-loader = 'main:main'
+
+# [[project.maintainers]]
+# name = 'cueki'
+# email = 'madisonlovett@lovett.dev'
 
 [project.urls]
 Homepage = 'https://github.com/cueki/casual-pre-loader'
@@ -64,9 +69,14 @@ Repository = 'https://github.com/cueki/casual-pre-loader'
 Issues = 'https://github.com/cueki/casual-pre-loader/issues'
 Changelog  = 'https://github.com/cueki/casual-pre-loader/blob/main/CHANGELOG.md'
 
+[tool.setuptools]
+packages = ['backup', 'core', 'data', 'gui']
+
+[tool.setuptools.package-data]
+data = ['**/*']
+backup = ['**/*']
 
 [tool.ruff]
-# Exclude a variety of commonly ignored directories.
 exclude = [
 	'.git',
 	'.venv',
@@ -83,18 +93,21 @@ fixable = ['ALL']
 unfixable = []
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = '^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$'
+preview = true
 
 [tool.ruff.format]
 quote-style = 'single'
 indent-style = 'space'
 skip-magic-trailing-comma = false
 line-ending = 'lf'
+
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.
 #
 # This is currently disabled by default, but it is planned for this
 # to be opt-out in the future.
-docstring-code-format = false
+docstring-code-format = true
+
 # Set the line length limit used when formatting code snippets in
 # docstrings.
 #
