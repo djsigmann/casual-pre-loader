@@ -1,11 +1,13 @@
 import logging
 import shutil
+import stat
+from itertools import chain
 from pathlib import Path
 from typing import Optional
 
 from core.folder_setup import folder_setup
 from core.operations.pcf_rebuild import load_particle_system_map
-from core.util.file import copy, delete
+from core.util.file import copy, delete, modeset_add
 
 log = logging.getLogger()
 
@@ -82,7 +84,24 @@ def prepare_runtime_environment() -> Optional[str]:
     bundled_backup = folder_setup.install_dir / "backup"
     project_backup = folder_setup.project_dir / "backup"
     try:
+        # TODO: instead use a temporary dir to signal whether or not `project_backup` is valid, allowing us to cut out this first walk
+        # maybe check `bundled_backup`'s perms instead?'
+        # maybe lock this behind a envvar instead?
+        #
+        # We copy over this dir every time the program starts up anyways, we must first ensure it is writable so we may copy over it (assuming that `bundled_backup` may not have u+x)
+        if project_backup.is_dir():
+            modeset_add(project_backup, stat.S_IWUSR)
+            for dirpath, dirnames, filenames in project_backup.walk():
+                for file in chain(dirnames, filenames):
+                    modeset_add(dirpath / file, stat.S_IWUSR)
+
         copy(bundled_backup, project_backup, noclobber=False)
+
+        # We must then do this AGAIN so that the files end up writable again
+        modeset_add(project_backup, stat.S_IWUSR)
+        for dirpath, dirnames, filenames in project_backup.walk():
+            for file in chain(dirnames, filenames):
+                modeset_add(dirpath / file, stat.S_IWUSR)
     except Exception as e:
         log.exception("Failed to copy bundled backup/ to project dir")
         return (
