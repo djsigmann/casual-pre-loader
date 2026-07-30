@@ -28,7 +28,7 @@ This module handles all the logic related to auto-updating.
 One can assume that any functions in this file will only run if the application is installed portably.
 """
 
-# TODO: what is needad for auto updates to be fully auto?
+# TODO: what is needed for auto updates to be fully auto?
 # - be able to tell if we were ran with a wrapper script [scripts/run.sh] (simplest method would be to use an envvar)
 # - programatically get min python version (pyproject.toml)
 # - programatically get dependency information (pyproject.toml)
