@@ -1,4 +1,6 @@
+import datetime
 import logging
+import os
 import shutil
 import stat
 from itertools import chain
@@ -98,10 +100,14 @@ def prepare_runtime_environment() -> Optional[str]:
         copy(bundled_backup, project_backup, noclobber=False)
 
         # We must then do this AGAIN so that the files end up writable again
+        timestamp = datetime.datetime.now().astimezone().timestamp()
+        times = (timestamp, timestamp)
         modeset_add(project_backup, stat.S_IWUSR)
         for dirpath, dirnames, filenames in project_backup.walk():
             for file in chain(dirnames, filenames):
-                modeset_add(dirpath / file, stat.S_IWUSR)
+                file = dirpath / file
+                modeset_add(file, stat.S_IWUSR)
+                os.utime(file, times)
     except Exception as e:
         log.exception("Failed to copy bundled backup/ to project dir")
         return (
