@@ -4,6 +4,7 @@ import shutil
 import stat
 from collections.abc import Callable, Sequence
 from pathlib import Path
+from typing import overload
 
 log = logging.getLogger()
 
@@ -58,13 +59,50 @@ def delete(file: Path, not_exist_ok: bool = False) -> None:
     except Exception as e:
         raise Exception(f'Error deleting {file}') from e
 
+@overload
+def copy(
+    src: Path,
+    dst: Path,
+    follow_symlinks: bool | None = True,
+
+    symlinks: None = None,
+    ignore: None = None,
+    copy_function: Callable[[os.PathLike, os.PathLike, bool], str] | None = None,
+    ignore_dangling_symlinks: None = None,
+
+    noclobber: bool | None = False,
+    not_exist_ok: bool = False,
+) -> Path | None:
+    pass
+
+@overload
+def copy(
+    src: Path,
+    dst: Path,
+    follow_symlinks: None = None,
+
+    symlinks: bool = False,
+    ignore: Callable[[str, list[str]], Sequence] | None = None,
+    copy_function: Callable[[os.PathLike, os.PathLike, bool], str] | None = None,
+    ignore_dangling_symlinks: bool = False,
+
+    noclobber: bool | None = False,
+    not_exist_ok: bool = False,
+) -> Path | None:
+    pass
 
 def copy(
     src: Path,
     dst: Path,
-    not_exist_ok: bool = False,
-    noclobber: bool | None = False,
+    follow_symlinks: bool | None = None,
+
+    symlinks: bool | None = None,
     ignore: Callable[[str, list[str]], Sequence] | None = None,
+    copy_function: Callable[[os.PathLike, os.PathLike, bool], str] | None = None,
+    ignore_dangling_symlinks: bool | None = None,
+
+    noclobber: bool | None = False,
+    not_exist_ok: bool = False,
 ) -> Path | None:
     """
     Copy a file or directory.
@@ -80,28 +118,41 @@ def copy(
         The destination path upon a successful copy.
     """
 
+    is_type1 = follow_symlinks is not None
+    is_type2 = False
+    for x in (symlinks, ignore, ignore_dangling_symlinks,):
+        if x is not None:
+            is_type2 = False
+            break
+
+    if is_type1 and is_type2:
+        raise Exception('Invalid function arguments')
+
+    if not src.exists():
+        if not_exist_ok:
+            log.debug(f'Cannot copy {src} -> {dst} as source does not exist')
+            return
+        else:
+            raise FileNotFoundError(f"[Errno 2] No such file or directory: {src}")
+
     if src == dst:
         log.debug(f'Tried copying {src} to itself, skipping...')
         return
 
-    try:
-        if not src.exists():
-            if not_exist_ok:
-                log.debug(f'Cannot copy {src} -> {dst} as source does not exist')
-                return
-            else:
-                raise FileNotFoundError(f"[Errno 2] No such file or directory: {src}")
+    if not (is_type1 or is_type2) and src.is_file():
+        is_type1 = True
 
+    try:
         if noclobber is None:
             dst = _get_next_new_file(dst)
         elif noclobber and dst.exists():
             raise FileExistsError(f'[Errno 17] File exists: {dst}')
 
         dst.parent.mkdir(parents=True, exist_ok=True)
-        if src.is_file():
-            shutil.copy2(src, dst)
+        if is_type1:
+            copy_function(src, dst, follow_symlinks=follow_symlinks)
         else:
-            shutil.copytree(src, dst, ignore, dirs_exist_ok=(not noclobber))
+            shutil.copytree(src, dst, symlinks=symlinks, ignore=ignore, copy_function=copy_function, ignore_dangling_symlinks=ignore_dangling_symlinks, dirs_exist_ok=(not noclobber), )
 
         log.debug(f'Copied {src} -> {dst}')
         return dst
