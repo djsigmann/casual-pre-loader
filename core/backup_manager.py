@@ -4,7 +4,7 @@ from pathlib import Path
 
 from core.config import config
 from core.operations.pcf_rebuild import load_particle_system_map
-from core.util.file import copy, delete
+from core.util.file import copytree, delete
 
 log = logging.getLogger()
 
@@ -81,7 +81,7 @@ def prepare_runtime_environment() -> str | None:
     bundled_backup = config.install_dir / "backup"
     project_backup = config.project_dir / "backup"
     try:
-        copy(bundled_backup, project_backup, noclobber=False)
+        copytree(bundled_backup, project_dir, copy_function=shutil.copyfile, noclobber=False)
     except Exception as e:
         log.exception("Failed to copy bundled backup/ to project dir")
         return (
