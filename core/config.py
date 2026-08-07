@@ -121,11 +121,24 @@ def _perform_migrations(config: Config) -> None:
 @dataclass
 class Gui:
     """Opens the GUI (default)"""
+
+    profile: Annotated[str | None, Arg(long=True)] = None
+    """Specify which profile to activate."""
+
     def __call__(self, config: Config) -> int:
         from main import gui
 
         _log_start(config)
         _perform_migrations(config)
+
+        if self.profile is not None:
+            from core.settings import ProfileNotFound, settings
+
+            try:
+                settings.active_profile = self.profile
+            except ProfileNotFound:
+                logging.critical(f'invalid profile name given via `--profile`: {self.profile}')
+                raise SystemExit(1)
 
         return gui()
 
