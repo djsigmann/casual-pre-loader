@@ -138,6 +138,9 @@ def update_script_files(script_files: List[str], path_mappings: List[Tuple[str, 
             # escape the path, then make pattern flexible to match both slash types (thanks, valve)
             escaped_old_path = re.escape(old_path).replace('/', r'[/\\]')
             pattern = rf'("wave"\s*")([^"]*{escaped_old_path}[^"]*?)(")'
+            # scripts don't agree with the VPK on casing (e.g. weapons/samurai/TF_Katana_01.wav),
+            # so the inner match/replace has to ignore case too
+            old_path_re = re.compile(re.escape(old_path), re.IGNORECASE)
 
             def replace_wave(match):
                 prefix = match.group(1)  # "wave"    "
@@ -157,8 +160,8 @@ def update_script_files(script_files: List[str], path_mappings: List[Tuple[str, 
 
                 # normalize actual_path to handle mixed slash types
                 normalized_actual_path = actual_path.replace('\\', '/')
-                if old_path in normalized_actual_path:
-                    new_actual_path = normalized_actual_path.replace(old_path, new_path)
+                if old_path_re.search(normalized_actual_path):
+                    new_actual_path = old_path_re.sub(lambda _: new_path, normalized_actual_path)
                     new_wave_path = f"{special_prefix}{new_actual_path}"
                     return f"{prefix}{new_wave_path}{suffix}"
 
