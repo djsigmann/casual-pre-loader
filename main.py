@@ -38,7 +38,7 @@ def gui() -> int:
         tf_dir = run_first_time_setup() # may exit
 
     # splash screen
-    splash_pixmap = QPixmap('gui/icons/cueki_splash.png')
+    splash_pixmap = QPixmap(str(config.install_dir / 'gui/icons/cueki_splash.png'))
     scaled_pixmap = splash_pixmap.scaled(
         int(splash_pixmap.width() * 0.75),
         int(splash_pixmap.height() * 0.75),
