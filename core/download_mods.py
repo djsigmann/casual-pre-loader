@@ -1,6 +1,9 @@
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from dataclasses import asdict, dataclass, fields
+from datetime import datetime, timedelta, timezone
+from typing import Any, Self
 
 from packaging.version import Version
 
@@ -11,7 +14,54 @@ from core.util.repo import Update
 from core.util.repo.github_api import get_releases_with_asset
 from core.util.zip import extract
 
-log = logging.getLogger()
+
+@dataclass
+class Modsinfo:
+    tag: str | None = None
+    digest: str | None = None
+    last_checked: datetime | None = None
+
+    @classmethod
+    def from_dict(cls, modsinfo: Mapping[str, Any]) -> Self:
+        modsinfo = dict(modsinfo)
+
+        modsinfo.setdefault('tag', None)
+        modsinfo.setdefault('digest', None)
+
+        # deserialize Datetime objects
+        modsinfo['last_checked'] = datetime.fromtimestamp(modsinfo['last_checked'], timezone.utc) if 'last_checked' in modsinfo else None
+
+        return cls(**{ # silently ignore unknown fields
+            f.name: modsinfo[f.name]
+            for f in fields(cls)
+            if f.name in modsinfo
+        })
+
+    @classmethod
+    def load(cls) -> Self:
+        try:
+            with config.modsinfo_file.open('r') as fd:
+                return cls.from_dict(json.load(fd))
+        except FileNotFoundError:
+            pass
+        except json.JSONDecodeError:
+            logging.exception(f'Could not parse {config.modsinfo_file}') # ignore this error and act as if the file didn't exist at all
+
+        return cls()
+
+    def save(self) -> None:
+        modsinfo = asdict(self)
+
+        if modsinfo['last_checked'] is not None:
+            modsinfo['last_checked'] = int(modsinfo['last_checked'].timestamp())
+
+        config.modsinfo_file.parent.mkdir(parents=True, exist_ok=True)
+        with config.modsinfo_file.open('w') as fd:
+            json.dump(modsinfo, fd)
+
+    @property # will re-computer on subsequent calls, but I'd rather not use core.util.dep.Dep here. Modsinfo objects are short-lived anyways, so this isn't too bad
+    def version(self) -> Version | None:
+        return Version(self.tag) if self.tag is not None else None
 
 
 def check_mods(force: bool = False) -> Update | None:
@@ -41,31 +91,46 @@ def check_mods(force: bool = False) -> Update | None:
     # - `casual-preloader-light.zip`
     # - There was also a time where the mods were kept in a zip file checked into the VCS...yeah, ~80 MB...per revision...
 
-    modsinfo = None
-    try:
-        with config.modsinfo_file.open('r') as fd:
-            modsinfo = json.load(fd)
-    except FileNotFoundError:
-        pass
-    except json.JSONDecodeError:
-        log.exception(f'Could not parse {config.modsinfo_file}') # ignore this error and act as if the file didn't exist at all
+    modsinfo: Modsinfo = Modsinfo.load()
+    current_time = datetime.now(timezone.utc)
 
-    for update in get_releases_with_asset(REMOTE_REPO, 'mods.zip'):
+    if modsinfo.last_checked is not None:
         if force:
-            log.info(f'Re-downloading the latest release of mods ({update.version}) by request')
-            return update
-
-        if modsinfo:
-            if update.asset.digest == modsinfo["digest"]:
-                log.info(f'We already have the latest release of mods ({update.version})')
+            logging.debug('forcefully skipping client-side ratelimit when checking for new mod releases')
+        else:
+            interval = timedelta(minutes=5)
+            if modsinfo.last_checked > current_time:
+                logging.warning(f'last recorded check for a new release of mods is in the future, ({modsinfo.last_checked.astimezone()}), has the system\'s clock been rolled back?')
+            elif modsinfo.last_checked + interval  > current_time:
+                logging.info(f'less than {interval} since the last recorded check for a new release of mods ({modsinfo.last_checked.astimezone()}), skipping...')
                 return
 
-            if not update.version > Version(modsinfo["tag"]):
-                log.info(f"We already have the latest release of mods ({update.version}), but the remote file differs")
-        else:
-            log.info(f'A new release of mods is available ({update.version})')
+    try:
+        try:
+            # may throw an error if the github API's ratelimit is exceed, should be handled by this function's caller
+            # TODO: this does the job, but this exception should probably be handled at a lower level
+            update = next(iter(get_releases_with_asset(REMOTE_REPO, 'mods.zip')))
+        except StopIteration:
+            logging.warning('No mod releases seem to be available!')
+            return
+
+        if modsinfo.version is not None:
+            if update.version > modsinfo.version:
+                logging.info(f'A new release of mods is available ({update.version})')
+            elif update.version == modsinfo.version and update.asset.digest != modsinfo.digest:
+                logging.info(f'We already have the latest release of mods ({update.version}), but the remote file differs')
+            elif force:
+                # NOTE: this will download an older modpack release if the newest remote version is somehow older than the local version
+                # (remote getting deleted or users manually editing file)
+                logging.info(f'Re-downloading the latest release of mods ({update.version}) by request')
+            else:
+                logging.info(f'We already have the latest release of mods ({modsinfo.tag})') # NOTE: also runs if local version is newer than remote
+                return
 
         return update
+    finally:
+        modsinfo.last_checked = current_time
+        modsinfo.save()
 
 
 def download_mods(
@@ -103,9 +168,11 @@ def download_mods(
     try:
         extract(archive_path, config.mods_dir, 1, False)
 
-        config.modsinfo_file.parent.mkdir(parents=True, exist_ok=True)
-        with config.modsinfo_file.open('w') as fd:
-            json.dump({'tag': update.release.tag_name, 'digest': update.asset.digest}, fd)
+        Modsinfo(
+            tag=update.release.tag_name,
+            digest=update.asset.digest,
+            last_checked=datetime.now(timezone.utc),
+        ).save()
     finally:
         archive_path.unlink()
 
