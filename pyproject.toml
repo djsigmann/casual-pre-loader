@@ -16,10 +16,6 @@ license-files = ['LICEN[CS]E*']
 authors = [
 	{name = 'cueki',email = 'madisonlovett@lovett.dev'},
 	{name = 'djsigmann', email = 'djsigmann@protonmail.com'},
-	{name = 'Feathers', email = 'vdeadandawakev@gmail.com'},
-	{name = 'akujiiswired ', email = 'akujiiswired@github.com'},
-	{name = 'Kacey2k', email = '155423259+Kacey2k@users.noreply.github.com'},
-	{name = 'fawnfang', email = 'fawnfang@users.noreply.github.com'},
 ]
 
 maintainers = [
@@ -33,7 +29,7 @@ dependencies = [
 	'PyQt6~=6.11',
 
 	# core
-	'cappa~=0.32.0',
+	'cappa~=0.32.2',
 	'more-itertools~=11.0',
 	'packaging~=26.0',
 	'platformdirs~=4.9',
@@ -52,8 +48,8 @@ doc = [
 	'mkdoc',
 ]
 
-# [project.scripts]
-# casual-pre-loader = 'main:main'
+[project.scripts]
+casual-pre-loader = 'main:main'
 
 [project.gui-scripts]
 casual-pre-loader = 'main:main'
@@ -93,7 +89,7 @@ fixable = ['ALL']
 unfixable = []
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = '^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$'
-preview = true
+preview = true # allow specifying ignored rules by name rather than by identifier in source code comments
 
 [tool.ruff.format]
 quote-style = 'single'
