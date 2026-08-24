@@ -1,6 +1,10 @@
 [build-system]
-requires = ['setuptools >= 77.0.3']
-build-backend = 'setuptools.build_meta'
+requires = ['hatchling', 'hatch-vcs']
+build-backend = 'hatchling.build'
+# requires = ['setuptools >= 77.0.3']
+# build-backend = 'setuptools.build_meta'
+# requires = ["uv_build>=0.12.5,<0.13"]
+# build-backend = "uv_build"
 
 [project]
 dynamic = ['version']
@@ -65,12 +69,40 @@ Repository = 'https://github.com/cueki/casual-pre-loader'
 Issues = 'https://github.com/cueki/casual-pre-loader/issues'
 Changelog  = 'https://github.com/cueki/casual-pre-loader/blob/main/CHANGELOG.md'
 
-[tool.setuptools]
-packages = ['backup', 'core', 'data', 'gui']
+# [tool.setuptools]
+# py-modules = ['main']
+# [tool.setuptools.packages.find]
+# where = ['.']
+# include = [
+# 	'core/*',
+# 	'gui/*'
+# ]
+# namespaces = true
+# [tool.setuptools.package-data]
+# backup = ["**/*"]
+# data = ["**/*"]
 
-[tool.setuptools.package-data]
-data = ['**/*']
-backup = ['**/*']
+# [tool.uv.build-backend]
+# module-root = ''
+
+[tool.hatch.build.targets.sdist]
+packages = [
+	'main.py',
+	'backup',
+	'core',
+	'data',
+	'gui',
+]
+[tool.hatch.build.targets.wheel]
+packages = [
+	'main.py',
+	'backup',
+	'core',
+	'data',
+	'gui',
+]
+[tool.hatch.version]
+source = 'vcs'
 
 [tool.ruff]
 exclude = [
