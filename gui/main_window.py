@@ -508,7 +508,7 @@ class ParticleManagerGUI(QMainWindow):
                 sourcemod=dialog.sourcemod,
             )
             self.rebuild_profile_menu()
-            self.switch_profile(profile.id)
+            self.switch_profile(profile.name)
 
     def edit_current_profile(self):
         active = self.settings.active_profile
@@ -517,7 +517,7 @@ class ParticleManagerGUI(QMainWindow):
         dialog = ProfileDialog(name=active.name, game_path=active.game_path, sourcemod=active.sourcemod, parent=self)
         if dialog.exec():
             self.settings.update_profile(
-                active.id,
+                active.name,
                 name=dialog.name,
                 game_path=dialog.game_path,
                 sourcemod=dialog.sourcemod,
@@ -539,7 +539,7 @@ class ParticleManagerGUI(QMainWindow):
             return
         if confirm_action(self, "Delete Profile",
                           f"Delete profile '{active.name}'? This cannot be undone."):
-            self.settings.delete_profile(active.id)
+            self.settings.delete_profile(active.name)
             self.rebuild_profile_menu()
             self._sync_to_active_profile()
 
