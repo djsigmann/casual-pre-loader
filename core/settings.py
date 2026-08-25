@@ -92,7 +92,7 @@ class Settings:
             if value is not None and value in self.profiles:
                 value = self.profiles[value]
             else:
-                raise ProfileNotFound(f'{value} is not a known profile ID')
+                raise ProfileNotFound(f'{value} is not a known profile name')
         elif attr == 'profiles':
             raise AttributeError('profiles may not be set manually, use `create_profile()`/`delete_profile()`')
 
@@ -252,11 +252,16 @@ class Settings:
             else:
                 self.save_settings()
         else:
-            raise ProfileNotFound(id)
+            raise ProfileNotFound(name)
 
-    def update_profile(self, profile_name: str, *args, **kwargs):
+    def update_profile(self, profile_name: str, **kwargs):
         if profile_name in self.profiles:
-            update_dataclass(self.profiles[profile_name], *args, **kwargs)
+            update_dataclass(self.profiles[profile_name], **kwargs)
+
+            if 'name' in kwargs:
+                self.profiles[kwargs['name']] = self.profiles[profile_name]
+                del self.profiles[profile_name]
+
             self.save_settings()
         else:
             raise ProfileNotFound(profile_name)
