@@ -96,9 +96,7 @@ def remap_element_attributes(element, old_to_new: dict[int, int], string_dict, A
 
 def create_merged_pcf(pcf_files: list[PCFFile], pcf_paths: list[Path],
                      target_elements: list[str], conflict_decisions: Mapping[str, int]) -> PCFFile:
-    from valve_parsers import PCFElement
-
-    from core.constants import AttributeType
+    from valve_parsers import AttributeType, PCFElement
 
     base_pcf = pcf_files[0]
     merged_pcf = PCFFile(pcf_paths[0], version=base_pcf.version)
