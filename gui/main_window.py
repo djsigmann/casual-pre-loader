@@ -25,7 +25,7 @@ from PyQt6.QtWidgets import (
 )
 
 from core.config import config
-from core.constants import Sourcemods
+from core.constants import InstallOperation, Sourcemods
 from core.particle_splits import migrate_old_particle_files
 from core.services.conflicts import scan_for_legacy_conflicts
 from core.settings import addon_metadata, settings
@@ -361,11 +361,22 @@ class ParticleManagerGUI(QMainWindow):
         )
         preloader_layout.addWidget(self.skip_launch_popup_checkbox)
 
+        self.skip_launch_cleanup_popup_checkbox = QCheckBox("Suppress launch options cleanup reminder")
+        self.skip_launch_cleanup_popup_checkbox.stateChanged.connect(
+            lambda: setattr(self.settings, 'skip_launch_options_cleanup_popup', self.skip_launch_cleanup_popup_checkbox.isChecked())
+        )
+        preloader_layout.addWidget(self.skip_launch_cleanup_popup_checkbox)
+
+        layout.addWidget(preloader_group)
+
+        advanced_group = QGroupBox("Advanced")
+        advanced_layout = QVBoxLayout(advanced_group)
+
         self.disable_paint_checkbox = QCheckBox("Disable paint colors on cosmetics")
         self.disable_paint_checkbox.stateChanged.connect(
             lambda: setattr(self.settings, 'disable_paint_colors', self.disable_paint_checkbox.isChecked())
         )
-        preloader_layout.addWidget(self.disable_paint_checkbox)
+        advanced_layout.addWidget(self.disable_paint_checkbox)
 
         self.fix_mdl_paths_checkbox = QCheckBox("Attempt to automatically fix broken models. Try disabling this first if something is broken!")
         self.fix_mdl_paths_checkbox.setToolTip(
@@ -375,15 +386,15 @@ class ParticleManagerGUI(QMainWindow):
         self.fix_mdl_paths_checkbox.stateChanged.connect(
             lambda: setattr(self.settings, 'fix_mdl_paths', self.fix_mdl_paths_checkbox.isChecked())
         )
-        preloader_layout.addWidget(self.fix_mdl_paths_checkbox)
+        advanced_layout.addWidget(self.fix_mdl_paths_checkbox)
 
         self.skip_quickprecache_checkbox = QCheckBox("Skip QuickPrecache (advanced users only! May cause model unloading for map props!)")
         self.skip_quickprecache_checkbox.stateChanged.connect(
             lambda: setattr(self.settings, 'skip_quickprecache', self.skip_quickprecache_checkbox.isChecked())
         )
-        preloader_layout.addWidget(self.skip_quickprecache_checkbox)
+        advanced_layout.addWidget(self.skip_quickprecache_checkbox)
 
-        layout.addWidget(preloader_group)
+        layout.addWidget(advanced_group)
 
         # downloads group
         downloads_group = QGroupBox("Recommended Mods")
@@ -552,20 +563,23 @@ class ParticleManagerGUI(QMainWindow):
 
         # block signals while syncing checkboxes
         for cb in [self.console_checkbox, self.suppress_updates_checkbox,
-                    self.skip_launch_popup_checkbox, self.disable_paint_checkbox,
-                    self.fix_mdl_paths_checkbox, self.skip_quickprecache_checkbox]:
+                    self.skip_launch_popup_checkbox, self.skip_launch_cleanup_popup_checkbox,
+                    self.disable_paint_checkbox, self.fix_mdl_paths_checkbox,
+                    self.skip_quickprecache_checkbox]:
             cb.blockSignals(True)
 
         self.console_checkbox.setChecked(self.settings.show_console_on_startup)
         self.suppress_updates_checkbox.setChecked(self.settings.suppress_update_notifications)
         self.skip_launch_popup_checkbox.setChecked(self.settings.skip_launch_options_popup)
+        self.skip_launch_cleanup_popup_checkbox.setChecked(self.settings.skip_launch_options_cleanup_popup)
         self.disable_paint_checkbox.setChecked(self.settings.disable_paint_colors)
         self.fix_mdl_paths_checkbox.setChecked(self.settings.fix_mdl_paths)
         self.skip_quickprecache_checkbox.setChecked(self.settings.skip_quickprecache)
 
         for cb in [self.console_checkbox, self.suppress_updates_checkbox,
-                    self.skip_launch_popup_checkbox, self.disable_paint_checkbox,
-                    self.fix_mdl_paths_checkbox, self.skip_quickprecache_checkbox]:
+                    self.skip_launch_popup_checkbox, self.skip_launch_cleanup_popup_checkbox,
+                    self.disable_paint_checkbox, self.fix_mdl_paths_checkbox,
+                    self.skip_quickprecache_checkbox]:
             cb.blockSignals(False)
 
         self.update_restore_button_state()
@@ -669,22 +683,41 @@ class ParticleManagerGUI(QMainWindow):
                 f"The following items in your custom folder may conflict with this method:\n\n\u2022 {conflict_list}\n\nIt's recommended to remove these to avoid issues."
             )
 
+    def _show_launch_options_popup(self, title, text, setting):
+        if getattr(self.settings, setting):
+            return
+
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(text)
+        msg_box.setIcon(QMessageBox.Icon.Information)
+
+        dont_show_checkbox = QCheckBox("Don't show this popup again")
+        msg_box.setCheckBox(dont_show_checkbox)
+        msg_box.exec()
+
+        if dont_show_checkbox.isChecked():
+            setattr(self.settings, setting, True)
+
     def show_launch_options_popup(self):
-        if not self.settings.skip_launch_options_popup:
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Installation Complete - Launch Options Required")
-            msg_box.setText("Installation completed successfully!\n\n"
-                            "IMPORTANT: You must add the following to your game's launch options:\n\n"
-                            "+exec w/config.cfg\n\n"
-                            "This ensures the preloader works correctly with your game.")
-            msg_box.setIcon(QMessageBox.Icon.Information)
+        self._show_launch_options_popup(
+            "Installation Complete - Launch Options Required",
+            "Installation completed successfully!\n\n"
+            "IMPORTANT: You must add the following to your game's launch options:\n\n"
+            "+exec w/config.cfg\n\n"
+            "This ensures the preloader works correctly with your game.\n",
+            'skip_launch_options_popup',
+        )
 
-            dont_show_checkbox = QCheckBox("Don't show this popup again")
-            msg_box.setCheckBox(dont_show_checkbox)
-            msg_box.exec()
-
-            if dont_show_checkbox.isChecked():
-                self.settings.skip_launch_options_popup = True
+    def show_launch_options_cleanup_popup(self):
+        self._show_launch_options_popup(
+            "Restore Complete - Launch Options Cleanup",
+            "Game files restored successfully!\n\n"
+            "IMPORTANT: You should now remove the following from your game's launch options:\n\n"
+            "+exec w/config.cfg\n\n"
+            "The preloader config no longer exists, so this option does nothing.\n",
+            'skip_launch_options_cleanup_popup',
+        )
 
     def rescan_addon_contents(self):
         thread = threading.Thread(
@@ -779,9 +812,12 @@ class ParticleManagerGUI(QMainWindow):
     def show_error(self, message):
         show_error(self, message)
 
-    def show_success(self, message):
+    def show_success(self, message, operation: InstallOperation):
         show_success(self, message)
-        self.show_launch_options_popup()
+        if operation is InstallOperation.UNINSTALL:
+            self.show_launch_options_cleanup_popup()
+        else:
+            self.show_launch_options_popup()
 
     def delete_selected_addons(self):
         selected_items = self.addons_list.selectedItems()
