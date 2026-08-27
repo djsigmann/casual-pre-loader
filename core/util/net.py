@@ -74,8 +74,8 @@ def download_file_to_dir(url: str, dir: Path, timeout: int | None = None, report
 
 def download_reporthook(
     set_value: Callable[[int], None] | None = None,
-    process: Callable[[None], None] | None = None,
-    was_canceled: Callable[[None], bool] | None = None
+    process: Callable[[], None] | None = None,
+    was_canceled: Callable[[], bool] | None = None
 ) -> Reporthook:
     """
     Accepts multiple optional callbacks and returns a function using them that is compaticle with the `reporthook` argument of `urllib.request.urlretrieve()`.
