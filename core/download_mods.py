@@ -72,8 +72,8 @@ def download_mods(
     update: Update,
     set_value:    Callable[[int], None] | None  = None,
     set_label:    Callable[[str], None] | None  = None,
-    process:      Callable[[None], None] | None = None,
-    was_canceled: Callable[[None], bool] | None = None
+    process:      Callable[[], None] | None     = None,
+    was_canceled: Callable[[], bool] | None     = None
 ) -> None:
     """
     Download a modpack update.
@@ -95,8 +95,10 @@ def download_mods(
     archive_path = config.temp_dir / update.asset.name
     download_file(update.asset.browser_download_url, archive_path, 10, download_reporthook(set_value, process, was_canceled))
 
-    set_label("Extracting mods")
-    set_value(99)
+    if set_label:
+        set_label("Extracting mods")
+    if set_value:
+        set_value(99)
     if process:
         process()
 
@@ -109,4 +111,5 @@ def download_mods(
     finally:
         archive_path.unlink()
 
-    set_value(100)
+    if set_value:
+        set_value(100)

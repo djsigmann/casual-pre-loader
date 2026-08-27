@@ -267,7 +267,7 @@ class AddonDescription(QWidget):
 
         self.clear()
 
-    def set_type_style(self, addon_type: str, custom_color: str = None):
+    def set_type_style(self, addon_type: str, custom_color: str | None = None):
         if custom_color and custom_color.startswith("#"):
             color = custom_color
         else:
