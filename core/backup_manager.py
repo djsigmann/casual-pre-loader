@@ -1,10 +1,14 @@
+import datetime
 import logging
+import os
 import shutil
+import stat
+from itertools import chain
 from pathlib import Path
 
 from core.config import config
 from core.operations.pcf_rebuild import load_particle_system_map
-from core.util.file import copy, delete
+from core.util.file import copytree, delete, modeset_add, move
 
 log = logging.getLogger()
 
@@ -80,8 +84,32 @@ def prepare_runtime_environment() -> str | None:
 
     bundled_backup = config.install_dir / "backup"
     project_backup = config.project_dir / "backup"
+    tmpdir = project_backup.with_name(project_backup.name + '_')
+
     try:
-        copy(bundled_backup, project_backup, noclobber=False)
+        # TODO: instead use a temporary dir to signal whether or not `project_backup` is valid, allowing us to cut out this first walk
+        # maybe check `bundled_backup`'s perms instead?'
+        # maybe lock this behind a envvar instead?
+        #
+        # We copy over this dir every time the program starts up anyways, we must first ensure it is writable so we may copy over it (assuming that `bundled_backup` may not have u+x)
+        # if project_backup.is_dir():
+        #     modeset_add(project_backup, stat.S_IWUSR)
+        #     for dirpath, dirnames, filenames in project_backup.walk():
+        #         for file in chain(dirnames, filenames):
+        #             modeset_add(dirpath / file, stat.S_IWUSR)
+
+        shutil.copytree(bundled_backup, project_backup, copy_function=shutil.copyfile, dirs_exist_ok=True)
+        # copy(bundled_backup, project_backup, copy_function=shutil.copyfile, noclobber=False)
+
+        # We must then do this AGAIN so that the files end up writable again
+        # timestamp = datetime.datetime.now().astimezone().timestamp()
+        # times = (timestamp, timestamp)
+        # modeset_add(project_backup, stat.S_IWUSR)
+        # for dirpath, dirnames, filenames in project_backup.walk():
+        #     for file in chain(dirnames, filenames):
+        #         file = dirpath / file
+        #         modeset_add(file, stat.S_IWUSR)
+        #         os.utime(file, times)
     except Exception as e:
         log.exception("Failed to copy bundled backup/ to project dir")
         return (
@@ -94,5 +122,7 @@ def prepare_runtime_environment() -> str | None:
             "local folder (not OneDrive/cloud-synced) and check that antivirus "
             "software isn't interfering."
         )
+    finally:
+        delete(tmpdir, not_exist_ok=True)
 
     return prepare_working_copy()
