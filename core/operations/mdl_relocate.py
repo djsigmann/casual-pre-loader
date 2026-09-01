@@ -471,16 +471,16 @@ def relocate_mdl_paths(
                 _relocate_one_mdl(mdl_path, working_root, prefix, file_origin, mdl_addon_idx)
             )
         except Exception:
-            log.exception(f"MDL relocation failed for {mdl_path}; leaving as-is")
+            log.error(f"MDL relocation failed for {mdl_path}; leaving as-is")
 
     try:
         _relocate_material_names(working_root, mdl_paths, all_relocations)
     except Exception:
-        log.exception("MDL material-name rewrite failed")
+        log.error("MDL material-name rewrite failed")
 
     try:
         _update_vmt_refs(working_root, all_relocations)
     except Exception:
-        log.exception("VMT reference rewrite failed")
+        log.error("VMT reference rewrite failed")
 
     return len(mdl_paths)
