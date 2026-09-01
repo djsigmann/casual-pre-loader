@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import stat
-from itertools import chain
 from pathlib import Path
 
 from core.config import config
@@ -48,7 +47,7 @@ def prepare_working_copy() -> str | None:
             "try re-extracting the preloader to a local folder."
         )
 
-    expected = {Path(key).name for key in particle_map.keys()}
+    expected = {Path(key).name for key in particle_map}
     dest = config.temp_to_be_referenced_dir
     missing = sorted(name for name in expected if not (dest / name).exists())
 
@@ -83,39 +82,34 @@ def prepare_runtime_environment() -> str | None:
     user-facing error message on failure, or None if everything is ready."""
 
     bundled_backup = config.install_dir / "backup"
-    project_backup = config.project_dir / "backup"
-    tmpdir = project_backup.with_name(project_backup.name + '_')
+    working_backup = config.project_dir / "backup"
+    tmpdir = working_backup.with_name(working_backup.name + '_')
 
     try:
-        # TODO: instead use a temporary dir to signal whether or not `project_backup` is valid, allowing us to cut out this first walk
-        # maybe check `bundled_backup`'s perms instead?'
-        # maybe lock this behind a envvar instead?
-        #
-        # We copy over this dir every time the program starts up anyways, we must first ensure it is writable so we may copy over it (assuming that `bundled_backup` may not have u+x)
-        # if project_backup.is_dir():
-        #     modeset_add(project_backup, stat.S_IWUSR)
-        #     for dirpath, dirnames, filenames in project_backup.walk():
-        #         for file in chain(dirnames, filenames):
-        #             modeset_add(dirpath / file, stat.S_IWUSR)
+        # NOTE: As per `shutil`'s documentation:
+        # 'Permissions and times of directories are copied with copystat(), individual files are copied using copy2().' [well, actually the value of `copy_function`, which defaults to `copy2()`]
+        # We need to ensure directories are writable and should also set a reasonable mtime for all files.
 
-        shutil.copytree(bundled_backup, project_backup, copy_function=shutil.copyfile, dirs_exist_ok=True)
-        # copy(bundled_backup, project_backup, copy_function=shutil.copyfile, noclobber=False)
+        delete(tmpdir, not_exist_ok=True)
+        delete(working_backup, not_exist_ok=True)
 
-        # We must then do this AGAIN so that the files end up writable again
-        # timestamp = datetime.datetime.now().astimezone().timestamp()
-        # times = (timestamp, timestamp)
-        # modeset_add(project_backup, stat.S_IWUSR)
-        # for dirpath, dirnames, filenames in project_backup.walk():
-        #     for file in chain(dirnames, filenames):
-        #         file = dirpath / file
-        #         modeset_add(file, stat.S_IWUSR)
-        #         os.utime(file, times)
+        timestamp = datetime.datetime.now().astimezone().timestamp()
+        times = (timestamp, timestamp)
+
+        copytree(bundled_backup, tmpdir, copy_function=shutil.copyfile, noclobber=False)
+        for dirpath, _, filenames in tmpdir.walk():
+            modeset_add(dirpath, stat.S_IWUSR)
+            os.utime(dirpath, times)
+
+            for filename in filenames:
+                os.utime(dirpath / filename , times)
+        move(tmpdir, working_backup)
     except Exception as e:
         log.exception("Failed to copy bundled backup/ to project dir")
         return (
             f"Failed to copy the bundled backup/ folder.\n\n"
             f"Source: {bundled_backup}\n"
-            f"Destination: {project_backup}\n\n"
+            f"Destination: {working_backup}\n\n"
             f"{e}\n\n"
             "This usually means the application can't read its bundled files or "
             "can't write to its data folder. Try running the preloader from a "
