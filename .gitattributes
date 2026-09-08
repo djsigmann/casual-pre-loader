@@ -5,5 +5,10 @@
 *.vmt gillbates
 **/backup/scripts/*.txt gillbates
 
-# remove .res files from stats
+# https://github.com/github-linguist/linguist/blob/main/docs/overrides.md
+*.res linguist-language=resource-list
+
+doc/ linguist-documentation
+
 **/backup/** linguist-vendored
+uv.lock      linguist-vendored
