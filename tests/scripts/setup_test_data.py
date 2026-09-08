@@ -2,7 +2,7 @@ import logging
 import shutil
 from pathlib import Path
 
-from core.settings import Settings
+from casual_pre_loader.core.settings import Settings
 
 log = logging.getLogger()
 

@@ -6,10 +6,9 @@ import shutil
 import sys
 from pathlib import Path
 
-# add parent directory to path to import from core
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from core.constants import BUILD_DIRS, BUILD_FILES
-from core.version import VERSION
+from casual_pre_loader.core.version import VERSION
+
+from casual_pre_loader.core.constants import BUILD_DIRS, BUILD_FILES
 
 log = logging.getLogger()
 
