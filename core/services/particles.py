@@ -5,7 +5,7 @@ from core.config import config
 from core.constants import PARTICLE_GROUP_MAPPING
 from core.util.file import delete
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 def expand_group_selections(

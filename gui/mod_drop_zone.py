@@ -12,7 +12,7 @@ from core.util.pcf_path_walk import apply_particle_selections, get_mod_particles
 from gui.conflict_matrix import ConflictMatrix
 from gui.dialogs import confirm_action, show_message
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 class VPKProcessWorker(QObject):

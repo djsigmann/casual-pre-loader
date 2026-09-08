@@ -6,7 +6,7 @@ from core.config import config
 from core.settings import addon_metadata
 from core.util.file import delete
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 class AddonService:
