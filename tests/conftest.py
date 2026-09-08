@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-import core.config
+from casual_pre_loader import core
 
 
 @pytest.fixture(scope="session")

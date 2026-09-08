@@ -15,8 +15,8 @@ from pathlib import Path
 
 from valve_parsers import PCFFile
 
-from core.config import config
-from core.operations.pcf_rebuild import extract_elements, get_pcf_element_names
+from casual_pre_loader.core.config import config
+from casual_pre_loader.core.operations.pcf_rebuild import extract_elements, get_pcf_element_names
 
 log = logging.getLogger()
 
