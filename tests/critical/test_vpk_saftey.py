@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from valve_parsers import VPKFile
 
-from core.handlers.pcf_handler import restore_particle_files
+from casual_pre_loader.core.handlers.pcf_handler import restore_particle_files
 
 
 class TestVPKSafety:
