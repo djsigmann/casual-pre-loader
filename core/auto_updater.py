@@ -126,7 +126,11 @@ def perform_updates(updates: tuple[Update, ...] | None = None) -> None:
                 finally:
                     delete(archive_path)
 
-                os.execve(sys.executable, [sys.executable] + sys.argv, os.environ) # NOTE: calls `exec()` and restarts the program
+                # users that are using system python should not be auto updating anyway
+                # (i.e. assume we're running in a venv and using the runscript)
+                # we also need to remove the first item in argv, since `./main.py` actually executes `python3 ./main.py`
+                run_script = config.install_dir / 'scripts/run.sh'
+                os.execve(run_script, [run_script] + sys.argv[1:], os.environ) # NOTE: calls `exec()` and restarts the program
 
             case _:
                 raise NotImplementedError
