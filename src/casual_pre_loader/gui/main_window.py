@@ -24,12 +24,12 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from casual_pre_loader import __version__
 from casual_pre_loader.core.config import config
 from casual_pre_loader.core.constants import InstallOperation, Sourcemods
 from casual_pre_loader.core.particle_splits import migrate_old_particle_files
 from casual_pre_loader.core.services.conflicts import scan_for_legacy_conflicts
 from casual_pre_loader.core.settings import addon_metadata, settings
-from casual_pre_loader.core.version import VERSION
 
 from .addon_panel import AddonPanel
 from .addons_manager import AddonsManager
@@ -437,7 +437,7 @@ class ParticleManagerGUI(QMainWindow):
         layout.addStretch()
 
         # version label
-        version_label = QLabel(f"Version: {VERSION}")
+        version_label = QLabel(f"Version: {__version__}")
         version_label.setStyleSheet(f"color: {FG_LIGHTER};")
         layout.addWidget(version_label)
 

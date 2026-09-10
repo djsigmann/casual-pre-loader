@@ -8,9 +8,10 @@ from typing import Annotated, ClassVar, cast
 
 from cappa import Arg, ArgAction, Destructured, Group, Subcommand, command, parse
 
+from casual_pre_loader import __version__
+
 from .constants import DESCRIPTION, PROGRAM_AUTHOR, PROGRAM_NAME, Sourcemods
 from .util.dep import Dep
-from .version import VERSION
 
 # INFO: This dummy file just allows package maintainers to set whether this application may act as a portable installation.
 # They can easily create this file, e.g.
@@ -102,7 +103,7 @@ class Config(Args, FolderConfig):
 
 
 def _log_start(config: Config) -> None:
-    logging.info(f'Version {VERSION} on {sys.platform} {"(portable)" if config.portable else ""}')
+    logging.info(f'Version {__version__} on {sys.platform} {"(portable)" if config.portable else ""}')
     logging.info(f'Application files are located in {config.install_dir}')
     logging.info(f'Project files are written to {config.project_dir}')
     logging.info(f'Settings files are in {config.settings_dir}')
@@ -221,7 +222,7 @@ def _get_config() -> None:
     args = parse(
         Cli,
         version=Arg(
-            f'{PROGRAM_NAME} {VERSION}',
+            f'{PROGRAM_NAME} {__version__}',
             short='-V',
             long=True,
             help="Print the version string and exit.",
