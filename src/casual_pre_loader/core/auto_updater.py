@@ -12,6 +12,8 @@ from packaging.version import Version
 # transitive through `PyGithub`, but importing the current file without `PyGithub` would error beforehand anyway
 from urllib3.exceptions import NameResolutionError
 
+from casual_pre_loader import __version__
+
 from .config import config
 from .constants import BUILD_DIRS, BUILD_FILES, REMOTE_REPO
 from .util.file import copy, delete
@@ -19,7 +21,6 @@ from .util.net import download_file
 from .util.repo import Update
 from .util.repo.github_api import get_releases_with_asset
 from .util.zip import FilterPredicate, extract
-from .version import VERSION
 
 log = logging.getLogger()
 
@@ -59,7 +60,7 @@ def check_for_updates() -> tuple[Update, ...]:
     releases.sort(key=attrgetter('version'), reverse=True)
 
     updates = defaultdict(dict)
-    current = Version(VERSION)
+    current = Version(__version__)
     for update in releases:
         if update.version > current:
             updates[update.version.major].setdefault(update.version.minor, update)
