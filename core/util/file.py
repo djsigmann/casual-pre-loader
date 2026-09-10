@@ -11,7 +11,7 @@ log = logging.getLogger()
 # TODO: replace shutil with pathlib (except for rmtree) once we hit python 3.14 minimum version
 #
 
-type CopyFunction = Callable[[os.PathLike, os.PathLike, bool], str]
+type CopyFunction = Callable[[os.PathLike | str, os.PathLike | str], os.PathLike | str]  # return value is the same type as the second argument - i.e. passed-through
 
 
 def _get_next_new_file(file: Path) -> Path:
@@ -67,7 +67,7 @@ def _copy[**P](
     dst: Path,
     noclobber: bool | None,
     not_exist_ok: bool,
-    func: Callable[P],
+    func: Callable[P, os.PathLike | str],
     # passed through to `func()`
     *args: P.args,
     **kwargs: P.kwargs,
@@ -103,7 +103,7 @@ def copy(
     src: Path,
     dst: Path,
     *,
-    copy_function: CopyFunction | None = shutil.copy2,
+    copy_function: CopyFunction = shutil.copy2,
     noclobber: bool | None = False,
     not_exist_ok: bool = False,
     # passed through to `copy_function()`
@@ -142,7 +142,7 @@ def copytree(
     # passed through to `shutil.copytree()`
     symlinks: bool | None = None,
     ignore: Callable[[str, list[str]], Sequence] | None = None,
-    copy_function: CopyFunction | None = None,
+    copy_function: CopyFunction = shutil.copy2,
     ignore_dangling_symlinks: bool | None = None,
 ) -> Path | None:
     return _copy(
