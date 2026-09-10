@@ -6,8 +6,8 @@ import shutil
 import sys
 from pathlib import Path
 
+from casual_pre_loader import __version__
 from casual_pre_loader.core.constants import BUILD_DIRS, BUILD_FILES
-from casual_pre_loader.core.version import VERSION
 
 log = logging.getLogger()
 
@@ -58,9 +58,9 @@ def copy_project_files(source_dir, target_dir):
 
 
 def confirm_version():
-    response = input(f"\n=== Building version: {VERSION} ===\nIs this the correct version? (y/n): ").strip().lower()
+    response = input(f"\n=== Building version: {__version__} ===\nIs this the correct version? (y/n): ").strip().lower()
     if response != 'y':
-        log.info("Build cancelled. Update VERSION in core/version.py and try again.")
+        log.info("Build cancelled. Update __version__ in __init__.py and try again.")
         sys.exit(1)
 
 
