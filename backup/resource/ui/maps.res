@@ -23491,18 +23491,6 @@
 			"visible"   "1"
 			"image" "../models/props_halloween/misfortune_sign.vtf"
 		}
-		"misfortune_sign_flicker"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../models/props_halloween/misfortune_sign_flicker.vmt"
-		}
-		"misfortune_sign_flicker"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../models/props_halloween/misfortune_sign_flicker.vtf"
-		}
 		"mousetrap"
 		{
 			"ControlName"   "ImagePanel"
@@ -27198,30 +27186,6 @@
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
 			"image" "../models/props_mining/smoke_stack002.vtf"
-		}
-		"track_lighting_blue"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../models/props_mining/track_lighting_blue.vmt"
-		}
-		"track_lighting_blue"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../models/props_mining/track_lighting_blue.vtf"
-		}
-		"track_lighting_red"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../models/props_mining/track_lighting_red.vmt"
-		}
-		"track_lighting_red"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../models/props_mining/track_lighting_red.vtf"
 		}
 		"track_mining"
 		{
@@ -41838,18 +41802,6 @@
 			"ControlName"   "ImagePanel"
 			"visible"   "1"
 			"image" "../swamp/tile/floor_tile_worn_normal.vtf"
-		}
-		"water_murky"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../swamp/water/water_murky.vmt"
-		}
-		"water_murky"
-		{
-			"ControlName"   "ImagePanel"
-			"visible"   "1"
-			"image" "../swamp/water/water_murky.vtf"
 		}
 		"swampwall015"
 		{
