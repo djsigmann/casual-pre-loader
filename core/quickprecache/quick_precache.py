@@ -1,7 +1,8 @@
-import itertools
 import logging
 import tempfile
 from pathlib import Path
+
+from more_itertools import constrained_batches
 
 from core.config import config
 from core.quickprecache.precache_list import make_precache_list
@@ -72,6 +73,8 @@ def get_precache_string_builder(index: int) -> str:
 class QuickPrecache:
     # maximum size for QC file content (in chars)
     MAX_SPLIT_SIZE = 2048
+    # room reserved in each chunk for its $modelname header
+    HEADER_RESERVE = len(get_precache_string_builder(9999))
 
     def __init__(self, game_path: Path, debug: bool = False, progress_callback=None):
         # debug keeps temp files
@@ -79,6 +82,7 @@ class QuickPrecache:
         self.debug = debug
         self.model_list = set()
         self.failed_vpks = []
+        self.failed_compiles = []
         self.builder_index = 0
         self.studio_mdl = None
         self.temp_files = []
@@ -119,61 +123,51 @@ class QuickPrecache:
             log.exception(f"Error saving model list to {output_file}")
             return False
 
+    def split_into_builders(self, strings: set[str]) -> list[str]:
+        # pack the $includemodel lines into chunks that fit within MAX_SPLIT_SIZE
+        lines = [get_include_model(s) for s in sorted(strings)]
+        batches = constrained_batches(lines, self.MAX_SPLIT_SIZE - self.HEADER_RESERVE, strict=True)
+        return ["".join(batch) for batch in batches]
+
     def make_precache_sub_list(self, strings: set[str]) -> None:
         # create subdivided QC files for the model list
-        builder = get_precache_string_builder(self.builder_index)
-        passed_strings = set()
-        estimated_builders = max(1, len(strings) // 10)  # rough estimate
-        self.total_compiles = estimated_builders + 1
+        # split first so the real total is known before the first progress message
+        bodies = self.split_into_builders(strings)
+
+        # + 1 for the main precache.mdl from make_precache_list_file
+        self.total_compiles = len(bodies) + 1
         self.compiled_count = 0
 
-        # cycle through strings until all are processed
-        for s in itertools.cycle(strings):
-            if s in passed_strings:
-                continue
+        # the chunk index names both the file and its $modelname, so get both
+        for index, body in enumerate(bodies, start=self.builder_index):
+            filename = f"precache_{index}.qc"
+            if not self.make_precache_sub_list_file(filename, get_precache_string_builder(index) + body):
+                self.failed_compiles.append(filename)
 
-            include_line = get_include_model(s)
+        self.builder_index += len(bodies)
 
-            # check if adding this line would exceed max size
-            if len(builder) + len(include_line) <= self.MAX_SPLIT_SIZE:
-                builder += include_line
-                passed_strings.add(s)
-            else:
-                # current builder is full, save it and start a new one
-                self.make_precache_sub_list_file(f"precache_{self.builder_index}.qc", builder)
-                self.builder_index += 1
-                builder = get_precache_string_builder(self.builder_index)
+    def _write_temp_qc(self, data: str) -> Path:
+        # write QC content to a temp file for StudioMDL
+        config.temp_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix='.qc',
+            delete=False,
+            dir=config.temp_dir
+        ) as temp_file:
+            temp_file.write(data)
+            temp_path = Path(temp_file.name)
 
-            # check if all strings have been processed
-            if len(strings) == len(passed_strings):
-                # save the last builder
-                self.make_precache_sub_list_file(f"precache_{self.builder_index}.qc", builder)
-                self.builder_index += 1
-                self.total_compiles = self.builder_index + 1
-                break
+        if not self.debug:
+            self.temp_files.append(temp_path)
+
+        return temp_path
 
     def make_precache_sub_list_file(self, filename: str, data: str) -> bool:
         # create a QC file and compile it with StudioMDL
         try:
-            # create a temporary file
-            config.temp_dir.mkdir(parents=True, exist_ok=True)
-            temp_file = tempfile.NamedTemporaryFile(
-                mode='w',
-                suffix='.qc',
-                delete=False,
-                dir=config.temp_dir
-            )
+            temp_path = self._write_temp_qc(data)
 
-            # save the original filename for reference
-            temp_path = Path(temp_file.name)
-
-            # write the QC content
-            temp_file.write(data)
-            temp_file.close()
-            if not self.debug:
-                self.temp_files.append(temp_path)
-
-            # compile with StudioMDL
             self.update_progress(f"Compiling precache models ({self.compiled_count + 1}/{self.total_compiles})...")
             success = self.studio_mdl.make_model(temp_path)
 
@@ -188,25 +182,12 @@ class QuickPrecache:
     def make_precache_list_file(self) -> bool:
         # create the main precache.qc file that includes all subfiles
         try:
-            # create the main QC file
-            config.temp_dir.mkdir(parents=True, exist_ok=True)
-            temp_file = tempfile.NamedTemporaryFile(
-                mode='w',
-                suffix='.qc',
-                delete=False,
-                dir=config.temp_dir
-            )
-
-            temp_path = Path(temp_file.name)
-
             # write the model name and includes
-            temp_file.write(get_model_name("precache"))
+            data = get_model_name("precache")
             for i in range(self.builder_index):
-                temp_file.write(get_include_model(f"precache_{i}.mdl"))
+                data += get_include_model(f"precache_{i}.mdl")
 
-            temp_file.close()
-            if not self.debug:
-                self.temp_files.append(temp_path)
+            temp_path = self._write_temp_qc(data)
 
             # compile the main file
             self.update_progress(f"Compiling final precache model ({self.compiled_count + 1}/{self.total_compiles})...")
@@ -270,7 +251,12 @@ class QuickPrecache:
             self.make_precache_sub_list(self.model_list)
             self.make_precache_list_file()
 
-            # step 5: report any failed VPKs
+            # step 5: report any failures
+            if self.failed_compiles:
+                log.warning("Failed to compile precache model(s):")
+                for filename in self.failed_compiles:
+                    log.warning(f"{filename}")
+
             if self.failed_vpks:
                 log.warning("Failed to load invalid vpk(s):")
                 for vpk_path in self.failed_vpks:
