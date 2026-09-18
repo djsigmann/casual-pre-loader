@@ -401,7 +401,7 @@ class InstallService:
                             progress_callback=on_progress
                             )
                         precache.run(auto=True)
-                        copytree(config.install_dir / 'core/quickprecache/_QuickPrecache.vpk', custom_dir / '_QuickPrecache.vpk')
+                        copy(config.install_dir / 'core/quickprecache/_QuickPrecache.vpk', custom_dir / '_QuickPrecache.vpk')
 
                 self._check_cancelled()
 
