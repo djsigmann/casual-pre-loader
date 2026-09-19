@@ -110,14 +110,13 @@ def copy(
     follow_symlinks: bool = True,
 ) -> Path | None:
     '''
-    Copy a file or directory.
+    Copy a regular file.
 
     Args:
         src: The source file.
         dst: The destination file.
         noclobber: Throw an error if the destination exists (i.e. do not overwrite files). A value of `None` tries to append a suffix to the filename.
         not_exist_ok: Do not throw an error if the source does not exist.
-        ignore: A callable that is passed to the `ignore` argument of `shutil.copytree()`.
 
     Returns:
         The destination path upon a successful copy.
@@ -145,6 +144,18 @@ def copytree(
     copy_function: CopyFunction = shutil.copy2,
     ignore_dangling_symlinks: bool | None = None,
 ) -> Path | None:
+    '''
+    Copy a directory and its contents.
+
+    Args:
+        src: The source file.
+        dst: The destination file.
+        noclobber: Throw an error if the destination exists (i.e. do not overwrite files). A value of `None` tries to append a suffix to the filename.
+        not_exist_ok: Do not throw an error if the source does not exist.
+
+    Returns:
+        The destination path upon a successful copy.
+    '''
     return _copy(
         src=src,
         dst=dst,
