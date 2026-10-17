@@ -83,8 +83,11 @@ def gui() -> int:
 def main():
     import datetime
 
+    from platformdirs import PlatformDirs
     from rich.logging import RichHandler
     from rich.traceback import install
+
+    from core.constants import PROGRAM_AUTHOR, PROGRAM_NAME
 
     def fmt_time(t: datetime.datetime) -> str: # `logging` uses naive datetime objects by default (i.e. no tzdata)
         return t.astimezone().strftime('[%Y-%m-%d %H:%M:%S %z]')
@@ -113,6 +116,31 @@ def main():
             raise SystemExit(1)
     else:
         raise NotImplementedError(notimplemented_msg('determine privileges'))
+
+    dirs = PlatformDirs(PROGRAM_NAME, PROGRAM_AUTHOR, ensure_exists=True)
+
+    # TODO: see if using `filelock`/`portalocker` makes sense
+    try:
+        lock_file = dirs.place_runtime_file(f'{PROGRAM_NAME}.lock')
+        log.info(f'lock file is {lock_file}') # TODO: make debug
+
+        global lock_fd # avoid GC until exit
+        lock_fd = open(lock_file, mode='a+b', buffering=0)  # ruff: ignore[open-file-with-context-handler]
+
+        if platform == 'win32':
+            import msvcrt
+
+            lock_fd.seek(0)
+            msvcrt.locking(lock_fd.fileno(), msvcrt.LK_NBLCK, 1) # lock one byte at the beginning of the file
+        elif platform == 'linux':
+            import fcntl
+
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        else:
+            raise NotImplementedError(notimplemented_msg('acquire file locks'))
+    except OSError:
+        log.critical('Another instance is already running.', exc_info=True)
+        raise SystemExit(1)
 
     from core.config import config, subcommand
 
