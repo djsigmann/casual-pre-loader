@@ -13,14 +13,22 @@ from packaging.version import Version
 # transitive through `PyGithub`, but importing the current file without `PyGithub` would error beforehand anyway
 from urllib3 import Retry
 from urllib3.connectionpool import ConnectionPool
-from urllib3.exceptions import NameResolutionError
+from urllib3.exceptions import NameResolutionError, ProtocolError, SSLError
 from urllib3.response import HTTPResponse
 
 from core.util import all_predicates
 from core.util.repo import Update
 
+# These errors indicate that the user cannot even establish a connection
+# Retrying these does not make much sense
+short_circuit_errors = (
+    NameResolutionError, # DNS not working or no internet connection
+    SSLError, # SSL/TLS failing
+    ProtocolError # no fucking clue
+)
 
-# subclass `github.GithubRetry.GithubRetry` so that it short-circuits NameResolutionError
+
+# subclass `github.GithubRetry.GithubRetry` so that it short-circuits some errors
 class GithubRetry(GithubRetry):
     def increment(  # type: ignore[override]
         self,
@@ -31,10 +39,7 @@ class GithubRetry(GithubRetry):
         _pool: ConnectionPool | None = None,
         _stacktrace: TracebackType | None = None,
     ) -> Retry:
-        # This indicates that the user's system cannot use DNS to resolve github's IP
-        # This can be caused by DNS being blocked or the lack of an internet connection
-        # Retrying this does not make much sense
-        if not response and isinstance(error, NameResolutionError):
+        if not response and isinstance(error, short_circuit_errors):
             raise error
 
         # retry the request as usual

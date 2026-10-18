@@ -21,9 +21,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-# transitive through `PyGithub`, but importing the current file without `PyGithub` would error beforehand anyway
-from urllib3.exceptions import NameResolutionError
-
 from core.constants import Sourcemods
 from core.download_mods import check_mods, download_mods
 from core.services.setup import import_userdata, is_valid_userdata_folder
@@ -361,13 +358,13 @@ def download_cueki_mods(parent=None, button=None, force=False):
             update = check_mods(force)
         except RateLimitExceededExceedsMaxWait:
             msg = 'Github ratelimit exceeded, not checking for new mod releases (wait a while and try again)'
-            log.error(msg)
+            log.exception(msg)
             QMessageBox.critical(parent, 'Download Failed', msg)
 
             return False
-        except NameResolutionError:
-            msg = 'Could not connect to github, not checking for new mod releases (ensure you\'re connected to the internet)'
-            log.error(msg)
+        except Exception:
+            msg = "Could not connect to github, not checking for new mod releases"
+            log.exception(msg)
             QMessageBox.critical(parent, 'Download Failed', msg)
 
             return False

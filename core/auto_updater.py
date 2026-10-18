@@ -9,9 +9,6 @@ from zipfile import Path as ZipFilePath
 from github.GithubException import RateLimitExceededExceedsMaxWait
 from packaging.version import Version
 
-# transitive through `PyGithub`, but importing the current file without `PyGithub` would error beforehand anyway
-from urllib3.exceptions import NameResolutionError
-
 from core.config import config
 from core.constants import BUILD_DIRS, BUILD_FILES, REMOTE_REPO
 from core.util.file import copy, delete
@@ -49,10 +46,10 @@ def check_for_updates() -> tuple[Update, ...]:
     try:
         releases = list(get_releases_with_asset(REMOTE_REPO, re.compile(fr'^casual-pre-?loader(-{platform_name})?.*\.zip')))
     except RateLimitExceededExceedsMaxWait:
-        log.error('Github ratelimit exceeed, not checking for updates')
+        log.exception('Github ratelimit exceeed, not checking for updates')
         return ()
-    except NameResolutionError:
-        log.error('Could not connect to github, not checking for updates')
+    except Exception:
+        log.exception('Could not connect to github, not checking for updates')
         return ()
 
     # sort by descending chronological order, so we only store the latest patch release for every minor release
