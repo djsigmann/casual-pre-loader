@@ -12,6 +12,8 @@ from core.util.text import endwith, squeeze, squeeze_gt
 
 log = logging.getLogger()
 
+PRELOAD_MAP = 'prerongen'
+
 
 def _compile_cfg_semi(cfg: Iterable[str | None]) -> str:
     cmds = (
@@ -36,9 +38,9 @@ def compile_cfg(*cfg: str | None | Iterable[str | None]) -> str:
 def generate_config(has_mastercomfig: bool = False, needs_quickprecache: bool = False, show_console: bool = True) -> None:
     return compile_cfg(
         (
-            '''\
+            f'''\
             sv_pure -1; sv_allow_point_servercommand always
-            map itemtest; wait 10; script_execute randommenumusic; disconnect; wait 1; playmenumusic
+            map {PRELOAD_MAP}; wait 10; script_execute randommenumusic; disconnect; wait 1; playmenumusic
 
             clear\
             ''',
@@ -71,6 +73,11 @@ def copy_config_files(custom_content_dir: Path) -> None:
         if res_file.name.lower() == 'mainmenuoverride.res':
             continue
         shutil.copy2(res_file, vgui_dest_dir)
+
+    if PRELOAD_MAP != 'itemtest':
+        maps_dest_dir = custom_content_dir / 'maps'
+        maps_dest_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(config.install_dir / f'backup/maps/{PRELOAD_MAP}.bsp', maps_dest_dir)
 
 
 class FileHandler:
