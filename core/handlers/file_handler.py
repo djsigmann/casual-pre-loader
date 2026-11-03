@@ -13,6 +13,8 @@ from core.util.text import endwith, squeeze, squeeze_gt
 
 log = logging.getLogger()
 
+PRELOAD_MAP = 'prerongen'
+
 
 # NOTE:
 # These functions are rather rudimentary and naive, but they are sufficient for now.
@@ -34,9 +36,9 @@ def compile_cfg(*cfg: str | Iterable[str]) -> str:
 
 def generate_config(has_mastercomfig: bool = False, needs_quickprecache: bool = False, show_console: bool = True) -> str:
     return compile_cfg(filternone((
-        '''\
+        f'''\
         sv_pure -1; sv_allow_point_servercommand always
-        map itemtest; wait 10; script_execute randommenumusic; disconnect; wait 1; playmenumusic
+        map {PRELOAD_MAP}; wait 10; script_execute randommenumusic; disconnect; wait 1; playmenumusic
 
         clear\
         ''',
@@ -53,6 +55,7 @@ def copy_config_files(custom_content_dir: Path) -> None:
         'cfg/w/kitty.cfg',
         'scripts/vscripts/randommenumusic.nut',
         'resource/ui/vguipreload.res',
+        f'maps/{PRELOAD_MAP}.bsp' if PRELOAD_MAP != 'itemtest' else None,
     )):
         copyfile(backup_dir / file, custom_content_dir / file)
 
