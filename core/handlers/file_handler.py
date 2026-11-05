@@ -1,49 +1,71 @@
 import logging
 import os
 import shutil
+from collections.abc import Iterable
 from pathlib import Path
+from textwrap import dedent
 
 from valve_parsers import PCFFile, VPKFile
 
 from core.config import config
+from core.util.text import endwith, squeeze, squeeze_gt
 
 log = logging.getLogger()
 
-def generate_config(has_mastercomfig=False, needs_quickprecache=False, show_console=True):
-    config_parts = [
-        'sv_pure -1; sv_allow_point_servercommand always; map itemtest; wait 10; script_execute randommenumusic; disconnect; wait 1; clear']
 
-    if has_mastercomfig:
-        config_parts.append('exec comfig/echo')
-
-    if needs_quickprecache:
-        config_parts.append('exec quickprecache.cfg')
-
-    final_part = 'playmenumusic'
-    if show_console:
-        final_part += '; showconsole'
-
-    final_part += '; exec w/kitty.cfg'
-    config_parts.append(final_part)
-
-    return '; '.join(config_parts) + '\n'
+def _compile_cfg_semi(cfg: Iterable[str | None]) -> str:
+    cmds = (
+        squeeze(dedent(x).replace('; ', '\n').replace(';', '\n'), '\n')
+        .removesuffix('\n')
+        .replace('\n', '; ')
+        for x in cfg
+        if x is not None
+    )
+    return '; '.join(cmds)
 
 
-def copy_config_files(custom_content_dir):
+def compile_cfg(*cfg: str | None | Iterable[str | None]) -> str:
+    cmds = (
+        dedent(x) if isinstance(x, str) else _compile_cfg_semi(x)
+        for x in cfg
+        if x is not None
+    )
+    return squeeze_gt(endwith('\n'.join(cmds), '\n'), '\n', 2, 1)
+
+
+def generate_config(has_mastercomfig: bool = False, needs_quickprecache: bool = False, show_console: bool = True) -> None:
+    return compile_cfg(
+        (
+            '''\
+            sv_pure -1; sv_allow_point_servercommand always
+            map itemtest; wait 10; script_execute randommenumusic; disconnect; wait 1; playmenumusic
+
+            clear\
+            ''',
+            'exec comfig/echo' if has_mastercomfig else None,
+            'exec quickprecache.cfg' if needs_quickprecache else None,
+            'exec w/kitty.cfg',
+            'showconsole' if show_console else None,
+        ),
+    )
+
+
+def copy_config_files(custom_content_dir: Path) -> None:
     # config copy
-    config_dest_dir = custom_content_dir / "cfg" / "w"
+    config_dest_dir = custom_content_dir / 'cfg' / 'w'
     config_dest_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(config.install_dir / 'backup/cfg/w/config.cfg', config_dest_dir)
     shutil.copy2(config.install_dir / 'backup/cfg/w/kitty.cfg', config_dest_dir)
+    # shutil.copy2(config.install_dir / 'backup/cfg/w/config.cfg', config_dest_dir)
+    # config_dest_dir.write_text(generate_config(has_mastercomfig, needs_quickprecache, show_console))
 
     # vscript copy
-    vscript_dest_dir = custom_content_dir / "scripts" / "vscripts"
+    vscript_dest_dir = custom_content_dir / 'scripts' / 'vscripts'
     vscript_dest_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(config.install_dir / 'backup/scripts/vscripts/randommenumusic.nut', vscript_dest_dir)
 
     # vgui copy: vguipreload.res plus everything it #bases.
     # mainmenuoverride.res is excluded, it gets placed separately by patch_mainmenuoverride()
-    vgui_dest_dir = custom_content_dir / "resource" / "ui"
+    vgui_dest_dir = custom_content_dir / 'resource' / 'ui'
     vgui_dest_dir.mkdir(parents=True, exist_ok=True)
     for res_file in sorted((config.install_dir / 'backup/resource/ui').glob('*.res')):
         if res_file.name.lower() == 'mainmenuoverride.res':

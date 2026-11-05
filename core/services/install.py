@@ -39,7 +39,14 @@ from core.operations.pcf_rebuild import extract_elements, load_particle_system_m
 from core.operations.vgui_preload import patch_mainmenuoverride
 from core.quickprecache.precache_list import make_precache_list
 from core.quickprecache.quick_precache import QuickPrecache
-from core.util.file import check_writable, copyfile, copytree, delete, move
+from core.util.file import (
+    check_writable,
+    copyfile,
+    copytree,
+    delete,
+    get_sound_cache_file,
+    move,
+)
 from core.util.vpk import get_vpk_name
 
 log = logging.getLogger()
@@ -73,7 +80,7 @@ class InstallService:
         for item in custom_dir.iterdir():
             if item.is_dir() and not item.name.startswith('_'):
                 mod_json = item / 'mod.json'
-                if mod_json.exists():
+                if mod_json.is_file():
                     try:
                         with open(mod_json, 'r') as f:
                             mod_info = json.load(f)
@@ -127,7 +134,7 @@ class InstallService:
                     raise PermissionError(f'Please close {sourcemod.full_name} before installing.')
                 file_handler = FileHandler(working_vpk_path)
                 base_default_pcf, base_default_parents = initialize_pcf(config.temp_to_be_referenced_dir)
-            progress(0, "Installing addons...")
+            progress(0, 'Installing addons...')
 
             total_files = 0
             files_to_copy = []
@@ -135,9 +142,9 @@ class InstallService:
 
             for addon_index, addon_path in enumerate(selected_addons):
                 addon_dir = config.addons_dir / addon_path
-                if addon_dir.exists() and addon_dir.is_dir():
+                if addon_dir.is_dir():
                     mod_json_path = addon_dir / 'mod.json'
-                    if mod_json_path.exists():
+                    if mod_json_path.is_file():
                         try:
                             with open(mod_json_path, 'r') as f:
                                 mod_info = json.load(f)
@@ -173,13 +180,13 @@ class InstallService:
 
                 for addon_name, addon_dir in hud_addons.items():
                     hud_dest = custom_dir / addon_name
-                    if hud_dest.exists():
+                    if hud_dest.is_dir():
                         log.info(f'{hud_dest} already exists, skipping as to not overwrite possible user-modified files')
                         continue
                     copytree(addon_dir, hud_dest)
 
                     hud_mod_json = hud_dest / 'mod.json'
-                    if hud_mod_json.exists():
+                    if hud_mod_json.is_file():
                         try:
                             with open(hud_mod_json, 'r') as f:
                                 mod_info = json.load(f)
@@ -231,10 +238,10 @@ class InstallService:
                     backup_scripts_dir = config.backup_dir / 'scripts'
 
                     vpk_paths = []
-                    misc_vpk = tf_path / "tf2_sound_misc_dir.vpk"
-                    if misc_vpk.exists():
+                    misc_vpk = tf_path / 'tf2_sound_misc_dir.vpk'
+                    if misc_vpk.is_file():
                         vpk_paths.append(misc_vpk)
-                    vo_vpks = list(tf_path.glob("tf2_sound_vo_*_dir.vpk"))
+                    vo_vpks = list(tf_path.glob('tf2_sound_vo_*_dir.vpk'))
                     vpk_paths.extend(vo_vpks)
 
                     sound_result = self.sound_handler.process_temp_sound_mods(
@@ -256,10 +263,10 @@ class InstallService:
 
             if is_tf2:
                 duplicate_effects = [
-                    "item_fx.pcf",
-                    "halloween.pcf",
-                    "bigboom.pcf",
-                    "dirty_explode.pcf",
+                    'item_fx.pcf',
+                    'halloween.pcf',
+                    'bigboom.pcf',
+                    'dirty_explode.pcf',
                 ]
                 for duplicate_effect in duplicate_effects:
                     target_path = config.temp_to_be_patched_dir / duplicate_effect
@@ -271,17 +278,17 @@ class InstallService:
                                              load_particle_system_map(config.particle_system_map_file)
                                              [f'particles/{target_path.name}']).encode(target_path)
 
-                if (config.temp_to_be_patched_dir / "blood_trail.pcf").exists():
-                    move(config.temp_to_be_patched_dir / "blood_trail.pcf",
-                         config.temp_to_be_patched_dir / "npc_fx.pcf")
+                if (config.temp_to_be_patched_dir / 'blood_trail.pcf').is_file():
+                    move(config.temp_to_be_patched_dir / 'blood_trail.pcf',
+                         config.temp_to_be_patched_dir / 'npc_fx.pcf')
 
-                particle_files = list(config.temp_to_be_patched_dir.glob("*.pcf"))
+                particle_files = list(config.temp_to_be_patched_dir.glob('*.pcf'))
                 dx8_files = sum(1 for pcf_file in particle_files if pcf_file.stem in DX8_LIST)
                 total_files = len(particle_files) + dx8_files
                 start_progress = 55
                 progress_range = 25
                 completed_files = 0
-                progress(start_progress, f"Processing particle files... (0/{total_files})")
+                progress(start_progress, f'Processing particle files... (0/{total_files})')
 
                 for pcf_file in particle_files:
                     self._check_cancelled()
@@ -307,7 +314,7 @@ class InstallService:
                         progress(current_progress, f"Processing particle files... ({completed_files}/{total_files})")
 
                     file_handler.process_file(base_name, processed_pcf)
-                    pcf_file.unlink()
+                    delete(pcf_file)
 
                     completed_files += 1
                     current_progress = start_progress + int((completed_files / total_files) * progress_range)
@@ -338,40 +345,27 @@ class InstallService:
             game_type(tf_path / 'gameinfo.txt', uninstall=False)
 
             if is_tf2:
-                backup_mainmenu_folder = custom_dir / BACKUP_MAINMENU_FOLDER
-                delete(backup_mainmenu_folder, not_exist_ok=True)
+                delete(custom_dir / BACKUP_MAINMENU_FOLDER, not_exist_ok=True)
 
             for custom_vpk in CUSTOM_VPK_NAMES:
-                vpk_path = custom_dir / custom_vpk
-                cache_path = custom_dir / (custom_vpk + ".sound.cache")
-                if vpk_path.exists():
-                    vpk_path.unlink()
-                if cache_path.exists():
-                    cache_path.unlink()
+                delete(custom_dir / custom_vpk, not_exist_ok=True)
+                delete(get_sound_cache_file(custom_dir / custom_vpk), not_exist_ok=True)
 
             custom_content_dir = config.temp_to_be_vpk_dir
+
             copy_config_files(custom_content_dir)
 
             if is_tf2:
                 patch_mainmenuoverride(tf_path)
                 if fix_mdl_paths:
-                    progress(78, "Relocating model material paths...")
+                    progress(78, 'Relocating model material paths...')
                     relocate_mdl_paths(custom_content_dir, file_origin=file_origin)
                 generate_missing_vmt_files(custom_content_dir, tf_path)
 
-            for split_file in custom_dir.glob(f"{CUSTOM_VPK_SPLIT_PATTERN}*.vpk"):
-                split_file.unlink()
-                cache_file = custom_dir / (split_file.name + ".sound.cache")
-                if cache_file.exists():
-                    cache_file.unlink()
-
-            if custom_content_dir.exists() and any(custom_content_dir.iterdir()):
-                split_size = 2 ** 31
-                vpk_base_path = custom_dir / CUSTOM_VPK_NAME.replace('.vpk', '')
-
-                custom_content_dir.mkdir(parents=True, exist_ok=True) # INFO: technically not necessary, but VPKFile does not check if `source_dir` exists
-                if not VPKFile.create(str(custom_content_dir), str(vpk_base_path), split_size):
-                    raise Exception("Failed to create custom VPK")
+            for file in custom_dir.iterdir():
+                if file.name.startswith(CUSTOM_VPK_SPLIT_PATTERN) and file.suffix == '.vpk':
+                    delete(file)
+                    delete(get_sound_cache_file(file), not_exist_ok=True)
 
             self._check_cancelled()
 
@@ -380,18 +374,13 @@ class InstallService:
                 # even when scan+build is skipped — otherwise the user keeps loading
                 # whatever was generated by the last install that did run it.
                 QuickPrecache(tf_path.parents[0], debug=False).run(flush=True)
-                quick_precache_path = custom_dir / "_QuickPrecache.vpk"
-                if quick_precache_path.exists():
-                    quick_precache_path.unlink()
-
-                old_quick_precache_path = custom_dir / "QuickPrecache.vpk"
-                if old_quick_precache_path.exists():
-                    old_quick_precache_path.unlink()
+                delete(custom_dir / '_QuickPrecache.vpk', not_exist_ok=True)
+                delete(custom_dir / 'QuickPrecache.vpk', not_exist_ok=True)
 
                 if skip_quickprecache:
-                    log.info("Skipping QuickPrecache scan/build (skip_quickprecache=True)")
+                    log.info('Skipping QuickPrecache scan/build (skip_quickprecache=True)')
                 else:
-                    progress(85, "Scanning for models to precache...")
+                    progress(85, 'Scanning for models to precache...')
 
                     precache_prop_set = make_precache_list(tf_path.parents[0])
                     if precache_prop_set:
@@ -407,22 +396,16 @@ class InstallService:
 
                 progress(95, "Configuring...")
 
-                has_mastercomfig = False
-                for item in custom_dir.iterdir():
-                    if item.is_file() and item.suffix == '.vpk' and item.name.startswith('mastercomfig'):
-                        has_mastercomfig = True
-                        break
-
-                needs_quickprecache = (custom_dir / "_QuickPrecache.vpk").exists()
-
-                config_content = generate_config(has_mastercomfig, needs_quickprecache, show_console_on_startup)
-
-                custom_vpk_path = custom_dir / CUSTOM_VPK_NAME.replace('.vpk', '_dir.vpk')
-                if custom_vpk_path.exists():
-                    vpk_handler = FileHandler(custom_vpk_path)
-                    vpk_handler.process_file('cfg/w/config.cfg', config_content.encode('utf-8'))
+                has_mastercomfig = any(file for file in custom_dir.iterdir() if file.is_file() and file.suffix == '.vpk' and file.name.startswith('mastercomfig'))
+                needs_quickprecache = (custom_dir / '_QuickPrecache.vpk').is_file()
+                (custom_content_dir / 'cfg/w/config.cfg').write_text(generate_config(has_mastercomfig, needs_quickprecache, show_console_on_startup))
 
             progress(97, "Finalizing...")
+
+            if custom_content_dir.is_dir() and any(custom_content_dir.iterdir()):
+                custom_content_dir.mkdir(parents=True, exist_ok=True) # INFO: technically not necessary, but VPKFile does not check if `source_dir` exists
+                if not VPKFile.create(str(custom_content_dir), str(custom_dir / CUSTOM_VPK_NAME.replace('.vpk', '')), 2 ** 31):
+                    raise Exception('Failed to create custom VPK')
 
             get_from_custom_dir(custom_dir)
 
@@ -431,12 +414,8 @@ class InstallService:
         finally:
             prepare_working_copy()
 
-    def uninstall(self, tf_path: Path, on_progress: ProgressCallback | None = None, sourcemod: Sourcemods = Sourcemods.DEFAULT):
+    def uninstall(self, tf_path: Path, sourcemod: Sourcemods = Sourcemods.DEFAULT):
         # resets everything
-        def progress(pct: int, msg: str):
-            if on_progress:
-                on_progress(pct, msg)
-
         try:
             prepare_working_copy()
             custom_dir = tf_path / 'custom'
@@ -451,34 +430,19 @@ class InstallService:
                 enable_paints(tf_path)
 
                 QuickPrecache(tf_path.parents[0], debug=False).run(flush=True)
-                quick_precache_path = custom_dir / "_QuickPrecache.vpk"
-                if quick_precache_path.exists():
-                    quick_precache_path.unlink()
 
-                quick_precache_cache = custom_dir / "_quickprecache.vpk.sound.cache"
-                if quick_precache_cache.exists():
-                    quick_precache_cache.unlink()
-
-                old_quick_precache_path = custom_dir / "QuickPrecache.vpk"
-                if old_quick_precache_path.exists():
-                    old_quick_precache_path.unlink()
-
-                backup_mainmenu_folder = custom_dir / BACKUP_MAINMENU_FOLDER
-                delete(backup_mainmenu_folder, not_exist_ok=True)
+                delete(custom_dir / '_QuickPrecache.vpk', not_exist_ok=True)
+                delete(custom_dir / '_quickprecache.vpk.sound.cache', not_exist_ok=True)
+                delete(custom_dir / 'QuickPrecache.vpk', not_exist_ok=True)
+                delete(custom_dir / BACKUP_MAINMENU_FOLDER, not_exist_ok=True)
 
             for custom_vpk in CUSTOM_VPK_NAMES:
-                vpk_path = custom_dir / custom_vpk
-                cache_path = custom_dir / (custom_vpk + ".sound.cache")
-                if vpk_path.exists():
-                    vpk_path.unlink()
-                if cache_path.exists():
-                    cache_path.unlink()
+                delete(custom_dir / custom_vpk, not_exist_ok=True)
+                delete(custom_dir / (custom_vpk + '.sound.cache'), not_exist_ok=True)
 
-            for split_file in custom_dir.glob(f"{CUSTOM_VPK_SPLIT_PATTERN}*.vpk"):
-                split_file.unlink()
-                cache_file = custom_dir / (split_file.name + ".sound.cache")
-                if cache_file.exists():
-                    cache_file.unlink()
-
+            for file in custom_dir.iterdir():
+                if file.name.startswith(CUSTOM_VPK_SPLIT_PATTERN) and file.suffix == '.vpk':
+                    delete(file)
+                    delete(get_sound_cache_file(file), not_exist_ok=True)
         finally:
             prepare_working_copy()

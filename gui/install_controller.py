@@ -114,7 +114,6 @@ class InstallController(QObject):
         try:
             self.service.uninstall(
                 tf_path=restore_path,
-                on_progress=self._on_progress,
                 sourcemod=sourcemod,
             )
             self.operation_success.emit("Mods uninstalled successfully!", InstallOperation.UNINSTALL)
