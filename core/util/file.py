@@ -3,7 +3,7 @@ import os
 import shutil
 import stat
 from collections.abc import Callable, Sequence
-from pathlib import Path
+from pathlib import Path, PurePath
 
 log = logging.getLogger()
 
@@ -335,3 +335,7 @@ def check_writable(file: Path) -> bool:
         return True
     except PermissionError:
         return False
+
+
+def get_sound_cache_file(file: PurePath) -> PurePath:
+    return file.with_suffix(file.suffix + '.sound.cache')

@@ -1,42 +1,59 @@
 import logging
 import os
+from collections.abc import Iterable
 from pathlib import Path
+from textwrap import dedent
 
 from valve_parsers import PCFFile, VPKFile
 
 from core.config import config
+from core.util import filternone
 from core.util.file import copyfile
+from core.util.text import endwith, squeeze, squeeze_gt
 
 log = logging.getLogger()
 
-def generate_config(has_mastercomfig=False, needs_quickprecache=False, show_console=True):
-    config_parts = [
-        'sv_pure -1; sv_allow_point_servercommand always; map itemtest; wait 10; script_execute randommenumusic; disconnect; wait 1; clear']
 
-    if has_mastercomfig:
-        config_parts.append('exec comfig/echo')
+# NOTE:
+# These functions are rather rudimentary and naive, but they are sufficient for now.
+# If we want to do anything fancier, we might as well write a cfg parser.
 
-    if needs_quickprecache:
-        config_parts.append('exec quickprecache.cfg')
-
-    final_part = 'playmenumusic'
-    if show_console:
-        final_part += '; showconsole'
-
-    final_part += '; exec w/kitty.cfg'
-    config_parts.append(final_part)
-
-    return '; '.join(config_parts) + '\n'
+def _compile_cfg_semi(cfg: Iterable[str]) -> str:
+    return '; '.join(
+        squeeze(dedent(_).replace('; ', '\n').replace(';', '\n'), '\n')
+        .removesuffix('\n')
+        .replace('\n', '; ')
+        for _ in cfg
+    )
 
 
-def copy_config_files(custom_content_dir):
+def compile_cfg(*cfg: str | Iterable[str]) -> str:
+    cmds = (dedent(_) if isinstance(_, str) else _compile_cfg_semi(_) for _ in cfg)
+    return squeeze_gt(endwith('\n'.join(cmds), '\n'), '\n', 2, 1)
+
+
+def generate_config(has_mastercomfig: bool = False, needs_quickprecache: bool = False, show_console: bool = True) -> str:
+    return compile_cfg(filternone((
+        '''\
+        sv_pure -1; sv_allow_point_servercommand always
+        map itemtest; wait 10; script_execute randommenumusic; disconnect; wait 1; playmenumusic
+
+        clear\
+        ''',
+        'exec comfig/echo' if has_mastercomfig else None,
+        'exec quickprecache.cfg' if needs_quickprecache else None,
+        'exec w/kitty.cfg',
+        'showconsole' if show_console else None,
+    )))
+
+
+def copy_config_files(custom_content_dir: Path) -> None:
     backup_dir = config.install_dir / 'backup'
-    for file in (
-        'cfg/w/config.cfg',
+    for file in filternone((
         'cfg/w/kitty.cfg',
         'scripts/vscripts/randommenumusic.nut',
         'resource/ui/vguipreload.res',
-    ):
+    )):
         copyfile(backup_dir / file, custom_content_dir / file)
 
 
