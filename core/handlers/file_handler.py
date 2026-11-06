@@ -4,7 +4,7 @@ from pathlib import Path
 from valve_parsers import PCFFile, VPKFile
 
 from core.config import config
-from core.util.file import copyfile, delete
+from core.util.file import copy2, delete
 
 log = logging.getLogger()
 
@@ -37,7 +37,7 @@ def copy_config_files(custom_content_dir):
         'scripts/vscripts/randommenumusic.nut',
         'resource/ui/vguipreload.res',
     ):
-        copyfile(backup_dir / file, custom_content_dir / file)
+        copy2(backup_dir / file, custom_content_dir / file)
 
 
 class FileHandler:

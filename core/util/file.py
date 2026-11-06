@@ -2,36 +2,48 @@ import logging
 import os
 import shutil
 import stat
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, TypeVar, overload
 
 if TYPE_CHECKING:
-    from _typeshed import BytesPath, StrOrBytesPath, StrPath
+    from _typeshed import BytesPath, StrPath
+    from ty_extensions import static_assert
+    from ty_extensions._internal import TypeOf, is_subtype_of
 
-    # TODO: correct
-    # taken from https://github.com/python/typeshed/blob/2e4d4dcf657f82305709bbe3e86bca4d27d4dd46/stdlib/builtins.pyi#L2035
-    _StrOrBytesPathT = TypeVar('_StrOrBytesPathT', bound=StrOrBytesPath)
-    _StrPathT = TypeVar('_StrPathT', bound=StrPath)
+    # taken from https://github.com/python/typeshed/blob/2e4d4dcf657f82305709bbe3e86bca4d27d4dd46/stdlib/shutil.pyi
+
     _BytesPathT = TypeVar('_BytesPathT', bound=BytesPath)
+    _StrPathT = TypeVar('_StrPathT', bound=StrPath)
 
-    class CopyFunction(Protocol):
+    class CopyFunc(Protocol):
         @overload
         def __call__(self, src: StrPath, dst: _StrPathT, *, follow_symlinks: bool = True) -> _StrPathT | str: ...
         @overload
         def __call__(self, src: BytesPath, dst: _BytesPathT, *, follow_symlinks: bool = True) -> _BytesPathT | bytes: ...
-        # def __call__(self, src: StrOrBytesPath, dst: StrOrBytesPathT, *, follow_symlinks: bool = True) -> StrOrBytesPathT | str | bytes: ...
 
-    # type CopyFunction = Callable[[StrOrBytesPath, StrOrBytesPathT, bool], StrOrBytesPathT]   # return value is the same type as the second argument - i.e. passed-through
-    # type CopyFunction = Callable[[StrPath, StrPath, bool], StrPath]  # return value is the same type as the second argument - i.e. passed-through
+    class CopyTreeFunc(Protocol):
+        def __call__(
+            self,
+            src: StrPath,
+            dst: _StrPathT,
+            symlinks: bool = False,
+            ignore: Callable[[str, list[str]], Iterable[str]] | Callable[[StrPath, list[str]], Iterable[str]] | None = None,
+            copy_function: Callable[[str, str], object] = ...,
+            ignore_dangling_symlinks: bool = False,
+            dirs_exist_ok: bool = False,
+        ) -> _StrPathT: ...
 
-    # def type_check(func: CopyFunction) -> None: ...
-    # type_check(shutil.copy2)
-    # reveal_type(CopyFunction.__call__)
-    # reveal_type(shutil.copy2)
-    # assert_type(shutil.copy2, CopyFunction)
 
+    # `ty_extensions.static_assert()` is needed instead of `typing.assert_type()` due to https://docs.astral.sh/ty/reference/rules/#assert-type-unspellable-subtype.
+    # tl;dr `ty` tries to be more precise than some other type checkers, so it doesn't like the fact that the `TypeVar`s we use aren't the ones that `typeshed`'s stubs for `shutil` uses.
+
+    static_assert(is_subtype_of(TypeOf[shutil.copyfile], CopyFunc))
+    static_assert(is_subtype_of(TypeOf[shutil.copy], CopyFunc))
+    static_assert(is_subtype_of(TypeOf[shutil.copy2], CopyFunc))
+
+    static_assert(is_subtype_of(TypeOf[shutil.copytree], CopyTreeFunc))
 
 FILENAME_PADDING_CHAR = '_'
 DEFAULT_COPY_FUNC = shutil.copy2
@@ -224,14 +236,14 @@ def _copy(
     return dst
 
 
-def copyfile(
+def _copyfile(
     src: Path,
     dst: Path,
     *,
+    func: CopyFunc,
     noclobber: bool | None = False,
     not_exist_ok: bool = False,
     todir: bool = False,
-    func: CopyFunction = DEFAULT_COPY_FUNC,
     # passed through to `func()`
     follow_symlinks: bool = True,
 ) -> Path | None:
@@ -251,30 +263,33 @@ def copyfile(
     if src.is_dir():
         raise IsADirectoryError(src)
 
-    func = partial(func, follow_symlinks=follow_symlinks)
+    _func = partial(func, follow_symlinks=follow_symlinks)
 
     return _copy(
         src=src,
         dst=dst,
-        func=func,
+        func=_func,
         noclobber=noclobber,
         not_exist_ok=not_exist_ok,
         todir=todir,
     )
 
+copyfile = partial(_copyfile, func=shutil.copyfile)
+copy = partial(_copyfile, func=shutil.copy)
+copy2 = partial(_copyfile, func=shutil.copy2)
 
-def copytree(
+def _copytree(
     src: Path,
     dst: Path,
     *,
+    func: CopyTreeFunc,
     noclobber: bool | None = False,
     not_exist_ok: bool = False,
     todir: bool = False,
-    func: Callable = DEFAULT_COPYTREE_FUNC,
     # passed through to `func()`
     symlinks: bool = False,
     ignore: Callable[[str, list[str]], Sequence] | None = None,
-    copy_function: CopyFunction = DEFAULT_COPY_FUNC,
+    copy_function: CopyFunc = DEFAULT_COPY_FUNC,
     ignore_dangling_symlinks: bool = False,
 ) -> Path | None:
     '''
@@ -293,7 +308,7 @@ def copytree(
     if src.is_file():
         raise NotADirectoryError(src)
 
-    func = partial(func,
+    _func = partial(func,
         symlinks=symlinks,
         ignore=ignore,
         copy_function=copy_function,
@@ -304,12 +319,13 @@ def copytree(
     return _copy(
         src=src,
         dst=dst,
-        func=func,
+        func=_func,
         noclobber=noclobber,
         not_exist_ok=not_exist_ok,
         todir=todir,
     )
 
+copytree = partial(_copytree, func=shutil.copytree)
 
 def move(
     src: Path,

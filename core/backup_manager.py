@@ -7,7 +7,7 @@ from pathlib import Path
 
 from core.config import config
 from core.operations.pcf_rebuild import load_particle_system_map
-from core.util.file import copyfile, copytree, delete, modeset, move
+from core.util.file import copy2, copytree, delete, modeset, move
 from core.util.text import inline_list
 
 log = logging.getLogger()
@@ -29,7 +29,7 @@ def prepare_working_copy() -> str | None:
         particle_dest_dir.mkdir(parents=True, exist_ok=True)
 
         for pcf_file in (file for file in backup_particles_dir.iterdir() if file.suffix == '.pcf'):
-            copyfile(pcf_file, particle_dest_dir / pcf_file.name)
+            copy2(pcf_file, particle_dest_dir / pcf_file.name)
     except Exception as e:
         log.exception('Error preparing working copy')
         return (

@@ -7,7 +7,7 @@ from typing import TypedDict
 
 from valve_parsers import VPKFile
 
-from core.util.file import copyfile, move
+from core.util.file import copy2, move
 
 log = logging.getLogger()
 
@@ -113,7 +113,7 @@ def copy_needed_scripts(needed_scripts: list[Path], temp_scripts_dir: Path) -> l
         target_path = temp_scripts_dir / script_path.name
 
         try:
-            copyfile(script_path, target_path)
+            copy2(script_path, target_path)
             copied_scripts.append(str(target_path))
         except Exception:
             log.exception(f'Error copying script file {script_path} to {target_path}')
