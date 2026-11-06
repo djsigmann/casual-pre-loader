@@ -16,10 +16,10 @@ from core.util.file import (
     _check_file_is_new,
     _check_src,
     _copy,
+    _copyfile,
+    _copytree,
     _get_new_file,
     check_writable,
-    copyfile,
-    copytree,
     delete,
     get_lockfile,
     modeset,
@@ -351,27 +351,27 @@ def test__copy_not_exist_ok(tmp_path: Path, not_exist_ok: bool):
 
 
 @pytest.mark.parametrize('src_state', [True, False, None])
-def test_copyfile(tmp_path: Path, src_state: FileState):
+def test__copyfile(tmp_path: Path, src_state: FileState):
     src = tmp_path / 'src'
     dst = tmp_path / 'dst'
 
     if src_state:
         src_content = generate_sample_file(src)
 
-        assert copyfile(src, dst) == dst
+        assert _copyfile(src, dst, func=DEFAULT_COPY_FUNC) == dst
         assert dst.read_text() == src_content
     elif src_state == False:
         src.mkdir()
 
         with pytest.raises(IsADirectoryError):
-            copyfile(src, dst)
+            _copyfile(src, dst, func=DEFAULT_COPY_FUNC)
     else:
         with pytest.raises(FileNotFoundError):
-            copyfile(src, dst)
+            _copyfile(src, dst, func=DEFAULT_COPY_FUNC)
 
 
 @pytest.mark.parametrize('src_state', [True, False, None])
-def test_copytree(tmp_path: Path, src_state: FileState):
+def test__copytree(tmp_path: Path, src_state: FileState):
     src = tmp_path / 'src'
     dst = tmp_path / 'dst'
 
@@ -379,21 +379,21 @@ def test_copytree(tmp_path: Path, src_state: FileState):
         src.touch()
 
         with pytest.raises(NotADirectoryError):
-            copytree(src, dst)
+            _copytree(src, dst, func=DEFAULT_COPYTREE_FUNC)
     elif src_state == False:
         src.mkdir()
         src_file_content = generate_sample_file(src / 'file')
 
-        assert copytree(src, dst) == dst
+        assert _copytree(src, dst, func=DEFAULT_COPYTREE_FUNC) == dst
         assert (dst / 'file').read_text() == src_file_content
     else:
         with pytest.raises(FileNotFoundError):
-            copyfile(src, dst)
+            _copytree(src, dst, func=DEFAULT_COPYTREE_FUNC)
 
 
 @pytest.mark.parametrize('todir', [True, False])
 @pytest.mark.parametrize('noclobber', [True, False, None])
-def test_copytree_todir_noclobber(tmp_path: Path, noclobber: bool | None, todir: bool):
+def test__copytree_todir_noclobber(tmp_path: Path, noclobber: bool | None, todir: bool):
     src = tmp_path / 'src'
     dst = tmp_path / 'dst'
 
@@ -404,7 +404,7 @@ def test_copytree_todir_noclobber(tmp_path: Path, noclobber: bool | None, todir:
     src.mkdir()
     src_file_content = generate_sample_file(src / 'file')
 
-    result = copytree(src, dst, noclobber=noclobber, todir=todir)
+    result = _copytree(src, dst,func=DEFAULT_COPYTREE_FUNC, noclobber=noclobber, todir=todir)
 
     if todir:
         dst = dst / src.name
