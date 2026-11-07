@@ -5,7 +5,6 @@ from valve_parsers import VPKFile
 
 from core.config import config
 from core.handlers.file_handler import FileHandler
-from core.util.file import move
 from core.util.vpk import get_vpk_name
 
 log = logging.getLogger()
@@ -31,18 +30,11 @@ def handle_skybox_mods(temp_dir: Path, tf_path: Path) -> int:
     file_handler = FileHandler(vpk_file)
     for vmt_file in skybox_vmts:
         try:
-            with vmt_file.open('rb') as f:
-                vmt_content = f.read()
-
-            # copy vtf with modified name
-            orig_vtf_path = vmt_file.with_suffix('.vtf')
-            if orig_vtf_path.is_file():
-                new_vtf_path = temp_dir / 'materials/skybox' / orig_vtf_path.name
-                move(orig_vtf_path, new_vtf_path)
+            vmt_content = vmt_file.read_bytes()
 
             try:
-                file_handler.process_file('materials/skybox/' + vmt_file.name, vmt_content)
-                patched_count += 1
+                if file_handler.process_file('materials/skybox/' + vmt_file.name, vmt_content):
+                    patched_count += 1
             finally:
                 vmt_file.unlink()
         except Exception:
@@ -61,8 +53,7 @@ def restore_skybox_files(tf_path: Path) -> int:
 
     for skybox_vmt in (file for file in backup_skybox_dir.iterdir() if file.suffix == '.vmt'):
         try:
-            with skybox_vmt.open('rb') as fd:
-                original_content = fd.read()
+            original_content =  skybox_vmt.read_bytes()
 
             if vpk.patch_file(f'materials/skybox/{skybox_vmt.name}', original_content, create_backup=False):
                 restored_count += 1
