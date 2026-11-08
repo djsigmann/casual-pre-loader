@@ -1,6 +1,6 @@
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Generator, Iterable, Mapping
 from dataclasses import Field, fields, is_dataclass
-from functools import wraps
+from functools import partial, wraps
 from typing import (
     Any,
     ClassVar,
@@ -19,6 +19,18 @@ type FieldCompatibleIterable = Iterable[tuple[str, Any]]
 @runtime_checkable
 class DataClass(Protocol):
     __dataclass_fields__: ClassVar[dict[str, Field[Any]]]
+
+
+def filterval[T](val: Any, iterable: Iterable[T]) -> Generator[T, None, None]:
+    yield from (_ for _ in iterable if _ is not val)
+
+
+def pack_args_and_call[T, R](func: Callable[[Iterable[T]], R], *args: T) -> R:
+    return func(args)
+
+
+filternone = partial(filterval, None)
+filternone_va = partial(pack_args_and_call, filternone)
 
 
 def all_predicates[**P](*predicates: Callable[P, bool]) -> Callable[P, bool]:
