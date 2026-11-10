@@ -5,7 +5,6 @@ from typing import (
     Any,
     ClassVar,
     Concatenate,
-    Literal,
     Protocol,
     cast,
     overload,
@@ -34,15 +33,14 @@ filternone_va = partial(pack_args_and_call, filternone)
 
 
 def all_predicates[**P](*predicates: Callable[P, bool]) -> Callable[P, bool]:
-    """
+    '''
     Returns a function that returns true if all functions return a truthy value when run with the same arguements.
 
     Args:
         predicates: Any number of functions.
-
     Returns:
         A function that lazily calls all previously provided functions with the same arguments and returns true if they all return true.
-    """
+    '''
 
     def inner(*args: P.args, **kwargs: P.kwargs) -> bool:
         return all(predicate(*args, **kwargs) for predicate in predicates)
@@ -54,63 +52,45 @@ def all_predicates[**P](*predicates: Callable[P, bool]) -> Callable[P, bool]:
 def as_base_class[T, **P, R](
     func: Callable[Concatenate[T, P], R],
     /,
-    pass_self: Literal[True] | None,
-    cls: type | None
+    cls: type | None = None
 ) -> Callable[Concatenate[T, P], R]: ...
 
 @overload
 def as_base_class[T, **P, R](
-    func: Callable[P, R],
+    func: None = None,
     /,
-    pass_self: Literal[False],
-    cls: type | None
-) -> Callable[Concatenate[T, P], R]: ...
-
-@overload
-def as_base_class[T, **P, R](
-    func: None,
-    /,
-    pass_self: Literal[False],
-    cls: type | None
-) -> Callable[[Callable[P, R]], Callable[Concatenate[T, P], R]]: ...
-
-@overload
-def as_base_class[T, **P, R](
-    func: None,
-    /,
-    pass_self: Literal[True] | None,
-    cls: type | None
+    cls: type | None = None
 ) -> Callable[[Callable[Concatenate[T, P], R]], Callable[Concatenate[T, P], R]]: ...
 
 def as_base_class[T, **P, R](
-    func: Callable[P, R] | Callable[Concatenate[T, P], R] | None = None,
+    func: Callable[Concatenate[T, P], R] | None = None,
     /,
-    pass_self: bool | None = None,
     cls: type | None = None
 ) -> (
-    # Callable[[Callable[P, R]], Callable[Concatenate[T, P], R]]
-    # | Callable[[Callable[Concatenate[T, P], R]], Callable[Concatenate[T, P], R]]
-    # | Callable[Concatenate[T, P], R]
-    Callable[..., Callable[Concatenate[T, P], R]]
-    | Callable[Concatenate[T, P], R]
+    Callable[Concatenate[T, P], R]
+    | Callable[[Callable[Concatenate[T, P], R]], Callable[Concatenate[T, P], R]]
 ):
-    """
+    '''
     A decorator function meant to be used with methods that temporarily sets the instance's `__class__` to its base class while the method runs.
-    """
 
-    pass_self = True if pass_self is None else pass_self
+    The replacement class must be compatible with the instance. Concurrent access to the instance may cause issues.
 
-    def decorator(func: Callable[..., R]) -> Callable[Concatenate[T, P], R]:
+    Args:
+        func: Optional method to wrap. If None, returns a decorator function that may be called with a method later on.
+        cls: Optionally, the class to use instead of the base class.
+    Returns:
+        The wrapped method, or a decorator if func is None.
+    '''
+
+    def decorator(func: Callable[Concatenate[T, P], R]) -> Callable[Concatenate[T, P], R]:
         @wraps(func)
         def wrap(self: T, *args: P.args, **kwargs: P.kwargs) -> R:
-            old_cls = type(self)
+            original_cls = type(self)
             try:
-                object.__setattr__(self, '__class__', cls if cls is not None else old_cls.__base__)
-                if pass_self:
-                    return func(self, *args, **kwargs)
-                return func(*args, **kwargs)
+                object.__setattr__(self, '__class__', cls if cls is not None else original_cls.__base__)
+                return func(self, *args, **kwargs)
             finally:
-                object.__setattr__(self, '__class__', old_cls)
+                object.__setattr__(self, '__class__', original_cls)
 
         return wrap
 
@@ -120,7 +100,7 @@ def as_base_class[T, **P, R](
 
 
 def update_dataclass(obj: DataClass, other: DataClass | FieldCompatibleMapping | FieldCompatibleIterable | None = None, /, **kwargs) -> None:
-    """
+    '''
     Update a dataclass' values in-place.
 
     This function uses similar semantics to `dict.update()`, but operates on dataclass instances.
@@ -136,7 +116,7 @@ def update_dataclass(obj: DataClass, other: DataClass | FieldCompatibleMapping |
     Args:
         other: An optional dataclass, mapping, or tuple to update with.
         kwargs: Optional additional key-value pairs to update with.
-    """
+   '''
 
     fs = fields(obj)
 

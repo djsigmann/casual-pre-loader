@@ -1,6 +1,6 @@
 import json
 import logging
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -49,6 +49,7 @@ class JSONEncoder(json.JSONEncoder):
             raise
 
 type Profiles = Mapping[str, Profile]
+type MutableProfiles = MutableMapping[str, Profile]
 
 
 def _get_profile_name(name: str, profiles: Profiles) -> str:
@@ -73,7 +74,7 @@ class Settings:
     active_profile: Profile | None = None
     details_collapsed: bool = False
     done_initial_setup: bool = False
-    profiles: Mapping[str, Profile] = field(default_factory=dict)
+    profiles: Profiles = field(default_factory=dict)
     skip_launch_options_cleanup_popup: bool = False
     skip_launch_options_popup: bool = False
     skipped_update_version: Version | None = None
@@ -180,7 +181,9 @@ class Settings:
                 if k in data
             })
 
-            cast(dict, self.profiles)['TF2'] = Profile( # create TF2 profile from existing settings
+            profiles = cast(MutableProfiles, self.profiles)
+
+            profiles['TF2'] = Profile( # create TF2 profile from existing settings
                 name='TF2',
                 game_path=Path(data['tf_directory']),
                 sourcemod = Sourcemods.TF2,
@@ -193,7 +196,7 @@ class Settings:
             )
 
             if (goldrush_dir := data.get('goldrush_directory')) is not None: # create Gold Rush profile if configured
-                cast(dict, self.profiles)['Gold Rush'] = Profile(
+                profiles['Gold Rush'] = Profile(
                     name='Gold Rush',
                     game_path=Path(goldrush_dir),
                     sourcemod = Sourcemods.TF2GR
@@ -203,7 +206,7 @@ class Settings:
 
             logging.info(f'Migrated old settings to profile format ({len(self.profiles)} profile(s))')
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         from core.config import config
 
         data = asdict(self)
@@ -227,7 +230,7 @@ class Settings:
         name = _get_profile_name(name, self.profiles)
 
         profile = Profile(name=name, game_path=game_path, sourcemod=sourcemod)
-        cast(dict, self.profiles)[name] = profile
+        cast(MutableProfiles, self.profiles)[name] = profile
 
         if activate:
             self.active_profile = profile.name
@@ -236,12 +239,12 @@ class Settings:
 
         return profile
 
-    def delete_profile(self, name: str):
+    def delete_profile(self, name: str) -> None:
         if name in self.profiles:
             _profiles = list(self.profiles)
             i = _profiles.index(name) # NOTE: may not be consistent, but this doesn't really matter
             _profiles.pop(i)
-            profile = cast(dict, self.profiles).pop(name)
+            profile = cast(MutableProfiles, self.profiles).pop(name)
 
             if self.active_profile == profile:
                 if i != 0:
@@ -255,13 +258,15 @@ class Settings:
         else:
             raise ProfileNotFound(name)
 
-    def update_profile(self, profile_name: str, **kwargs):
-        if profile_name in self.profiles:
-            update_dataclass(self.profiles[profile_name], **kwargs)
+    def update_profile(self, profile_name: str, **kwargs) -> None:
+        profiles = cast(MutableProfiles, self.profiles)
+
+        if profile_name in profiles:
+            update_dataclass(profiles[profile_name], **kwargs)
 
             if 'name' in kwargs:
-                self.profiles[kwargs['name']] = self.profiles[profile_name]
-                del self.profiles[profile_name]
+                profiles[kwargs['name']] = profiles[profile_name]
+                del profiles[profile_name]
 
             self.save_settings()
         else:
@@ -286,8 +291,8 @@ class _Settings(Settings):
 
 
 # TODO: figure out if we can make type checkers actually happy here
-Settings.__init__ = as_base_class(Settings.__init__, pass_self=True, cls=_Settings) # ty: ignore error[invalid-assignment]:
-Settings._load_settings = as_base_class(Settings._load_settings, pass_self=True, cls=_Settings) # ty: ignore error[invalid-assignment]:
+Settings.__init__ = as_base_class(Settings.__init__, cls=_Settings) # ty: ignore error[invalid-assignment]:
+Settings._load_settings = as_base_class(Settings._load_settings, cls=_Settings) # ty: ignore error[invalid-assignment]:
 
 
 class AddonMetadata(dict):
